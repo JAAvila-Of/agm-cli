@@ -1,0 +1,34 @@
+# agm.state: 1.0
+# package: test.pkg
+# version: 0.1.0
+# session_id: run-all-statuses
+# started_at: 2026-04-08T10:00:00Z
+# updated_at: 2026-04-08T10:00:00Z
+
+state node.pending
+execution_status: pending
+retry_count: 0
+
+state node.ready
+execution_status: ready
+retry_count: 0
+
+state node.in_progress
+execution_status: in_progress
+retry_count: 0
+
+state node.completed
+execution_status: completed
+retry_count: 0
+
+state node.failed
+execution_status: failed
+retry_count: 2
+
+state node.blocked
+execution_status: blocked
+retry_count: 0
+
+state node.skipped
+execution_status: skipped
+retry_count: 0

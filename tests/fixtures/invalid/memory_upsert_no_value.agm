@@ -1,0 +1,11 @@
+agm: 1.0
+package: test.memory.invalid2
+version: 0.1.0
+
+node mem.noval
+type: workflow
+summary: upsert without value
+memory:
+  - key: repo.pattern
+    topic: rust
+    action: upsert

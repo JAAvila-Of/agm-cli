@@ -1,0 +1,16 @@
+# expect: error AGM-V015
+# description: agent_context load_files uses an absolute path (not allowed)
+agm: 1.0
+package: test.validate.path
+version: 0.1.0
+
+node test.agentctx.absolute.path
+type: workflow
+summary: workflow with agent_context load_files using absolute path
+steps:
+  - analyze code
+agent_context:
+  load_files:
+    - path: /home/user/project/src/main.rs
+      range: full
+  system_hint: "absolute path should be rejected"

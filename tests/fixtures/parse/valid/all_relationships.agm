@@ -1,0 +1,49 @@
+# expect: parse ok
+# description: nodes using all 5 relationship types
+agm: 1.0
+package: test.relationships
+version: 0.1.0
+
+node test.base.facts
+type: facts
+summary: base facts node referenced by relationships
+
+node test.base.rules
+type: rules
+summary: base rules node referenced by relationships
+items:
+  - rule_one
+
+node test.old.decision
+type: decision
+status: superseded
+summary: old decision that has been replaced
+rationale:
+  - original reason
+
+node test.related.node
+type: facts
+summary: a node related to the main node
+
+node test.conflicting.node
+type: decision
+summary: a decision that conflicts with main
+rationale:
+  - conflicting approach
+
+node test.see.also.node
+type: glossary
+summary: a glossary term referenced for context
+
+node test.main.node
+type: decision
+summary: main node exercising all relationship types
+depends: [test.base.facts, test.base.rules]
+related_to: [test.related.node]
+replaces: [test.old.decision]
+conflicts: [test.conflicting.node]
+see_also: [test.see.also.node]
+rationale:
+  - uses all relationship types for test coverage
+tradeoffs:
+  - complex dependency graph

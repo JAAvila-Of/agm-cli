@@ -1,0 +1,4 @@
+# expect: error AGM-P008
+# description: file contains only comments with no parseable content
+# this file has no header and no nodes
+# it should trigger the empty/no-content parse error

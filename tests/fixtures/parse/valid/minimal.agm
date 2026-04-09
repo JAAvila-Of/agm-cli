@@ -1,0 +1,9 @@
+# expect: parse ok
+# description: smallest valid AGM file -- 3 header fields + 1 node
+agm: 1.0
+package: test.minimal
+version: 0.1.0
+
+node test.node
+type: facts
+summary: a minimal test node

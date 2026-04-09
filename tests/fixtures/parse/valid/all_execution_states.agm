@@ -1,0 +1,54 @@
+# expect: parse ok
+# description: nodes with each valid execution_status value
+agm: 1.0
+package: test.execstates
+version: 0.1.0
+
+node test.status.pending
+type: workflow
+summary: node with execution_status pending
+execution_status: pending
+steps:
+  - not started yet
+
+node test.status.ready
+type: workflow
+summary: node with execution_status ready
+execution_status: ready
+steps:
+  - prerequisites met
+
+node test.status.inprogress
+type: workflow
+summary: node with execution_status in_progress
+execution_status: in_progress
+steps:
+  - currently executing
+
+node test.status.completed
+type: workflow
+summary: node with execution_status completed
+execution_status: completed
+steps:
+  - finished successfully
+
+node test.status.failed
+type: workflow
+summary: node with execution_status failed
+execution_status: failed
+steps:
+  - encountered an error
+
+node test.status.blocked
+type: workflow
+summary: node with execution_status blocked
+execution_status: blocked
+steps:
+  - waiting on dependency
+
+node test.status.skipped
+type: workflow
+summary: node with execution_status skipped
+execution_status: skipped
+steps:
+  - intentionally skipped

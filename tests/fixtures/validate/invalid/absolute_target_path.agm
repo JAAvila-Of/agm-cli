@@ -1,0 +1,17 @@
+# expect: error AGM-V015
+# description: code block target uses an absolute path (not allowed)
+agm: 1.0
+package: test.validate.path
+version: 0.1.0
+
+node test.absolute.target
+type: workflow
+summary: workflow with code block using absolute target path
+steps:
+  - write to absolute path
+code:
+  lang: rust
+  target: /absolute/path/to/file.rs
+  action: create
+  body: |
+    fn main() {}

@@ -1,0 +1,12 @@
+# expect: error AGM-V004
+# description: related_to references a node ID that does not exist in the file
+agm: 1.0
+package: test.validate.unresolved
+version: 0.1.0
+
+node test.unresolved.related
+type: facts
+summary: facts node with related_to pointing to non-existent node
+related_to: [test.does.not.exist]
+items:
+  - item_one

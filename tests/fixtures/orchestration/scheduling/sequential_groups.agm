@@ -1,0 +1,39 @@
+# expect: parse ok
+# description: orchestration with all groups using sequential strategy
+agm: 1.0
+package: test.orch.sequential
+version: 0.1.0
+
+node test.seq.step1
+type: workflow
+summary: first sequential step
+steps:
+  - step 1 work
+
+node test.seq.step2
+type: workflow
+summary: second sequential step
+steps:
+  - step 2 work
+
+node test.seq.step3
+type: workflow
+summary: third sequential step
+steps:
+  - step 3 work
+
+node test.orch.sequential
+type: orchestration
+summary: orchestration where all groups run sequentially
+parallel_groups:
+  - group: phase1
+    nodes: [test.seq.step1]
+    strategy: sequential
+  - group: phase2
+    nodes: [test.seq.step2]
+    strategy: sequential
+    requires: [phase1]
+  - group: phase3
+    nodes: [test.seq.step3]
+    strategy: sequential
+    requires: [phase2]

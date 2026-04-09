@@ -1,0 +1,49 @@
+# expect: parse ok
+# description: orchestration groups with explicit requires dependencies between groups
+agm: 1.0
+package: test.orch.requires
+version: 0.1.0
+
+node test.req.schema
+type: workflow
+summary: schema migration step
+steps:
+  - run schema migration
+
+node test.req.seed
+type: workflow
+summary: data seeding step
+steps:
+  - seed initial data
+
+node test.req.backend
+type: workflow
+summary: backend model update
+steps:
+  - update backend models
+
+node test.req.frontend
+type: workflow
+summary: frontend update
+steps:
+  - update frontend components
+
+node test.orch.requires
+type: orchestration
+summary: orchestration with explicit group dependency requirements
+parallel_groups:
+  - group: db-schema
+    nodes: [test.req.schema]
+    strategy: sequential
+  - group: db-seed
+    nodes: [test.req.seed]
+    strategy: sequential
+    requires: [db-schema]
+  - group: app-backend
+    nodes: [test.req.backend]
+    strategy: sequential
+    requires: [db-schema]
+  - group: app-frontend
+    nodes: [test.req.frontend]
+    strategy: sequential
+    requires: [app-backend]

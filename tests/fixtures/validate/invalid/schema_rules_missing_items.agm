@@ -1,0 +1,11 @@
+# expect: error AGM-V024
+# description: rules node missing the schema-required items field
+agm: 1.0
+package: test.validate.schema
+version: 0.1.0
+
+node test.rules.no.items
+type: rules
+summary: rules node missing the required items field
+detail:
+  Rules should have items but this node is missing that field.

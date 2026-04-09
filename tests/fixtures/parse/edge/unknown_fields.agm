@@ -1,0 +1,15 @@
+# expect: parse ok
+# description: unrecognized field names should produce warning AGM-P009 but not fail parse
+agm: 1.0
+package: test.unknown.fields
+version: 0.1.0
+future_header_field: some_value
+
+node test.node.with.unknowns
+type: facts
+summary: node with unrecognized field names
+items:
+  - item_one
+unknown_node_field: something
+another_unknown: value_here
+custom_metadata: arbitrary_data

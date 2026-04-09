@@ -1,0 +1,21 @@
+---
+source: crates/agm-core/src/renderer/state.rs
+expression: output
+---
+# agm.state: 1.0
+# package: acme.migration
+# version: 1.0.0
+# session_id: run-2026-04-08
+# started_at: 2026-04-08T15:32:00Z
+# updated_at: 2026-04-08T15:35:00Z
+
+state migration.001
+execution_status: completed
+executed_by: shell-agent
+executed_at: 2026-04-08T10:05:00Z
+retry_count: 1
+execution_log: .agm/logs/migration.001.log
+
+state migration.002
+execution_status: pending
+retry_count: 0

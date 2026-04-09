@@ -1,0 +1,9 @@
+# package: test.pkg
+# version: 0.1.0
+# session_id: run-001
+# started_at: 2026-04-08T10:00:00Z
+# updated_at: 2026-04-08T10:00:00Z
+
+state node.one
+execution_status: pending
+retry_count: 0

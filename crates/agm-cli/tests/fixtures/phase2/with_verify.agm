@@ -1,0 +1,14 @@
+agm: 1.0
+package: test.phase2.verify
+version: 1.0.0
+
+node check.output
+type: workflow
+summary: Produces output that can be verified
+code:
+  lang: sh
+  action: full
+  body: echo hello > /tmp/agm_test_output.txt
+verify:
+  - type: file_exists
+    path: /tmp/agm_test_output.txt

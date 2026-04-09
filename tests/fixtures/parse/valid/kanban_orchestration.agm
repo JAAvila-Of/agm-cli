@@ -1,0 +1,184 @@
+# expect: parse ok
+# description: implementation plan with code, verification, and orchestration example from spec S38.6
+agm: 1.0
+package: kanban.sdd.phase.columns
+version: 0.1.0
+title: Kanban Columns Associated with SDD Phases
+owner: octopus-board-platform
+default_load: operational
+status: draft
+tags: [kanban, sdd, sqlite, tauri, svelte, implementation-plan]
+target_runtime: octopus
+load_profiles:
+  minimal:
+    filter: "priority in [critical] AND type in [decision]"
+    estimated_tokens: 800
+  operational:
+    filter: "priority in [critical, high] AND type in [workflow, decision, facts]"
+    estimated_tokens: 3200
+  executable:
+    filter: "type in [workflow, orchestration] AND code is present"
+    estimated_tokens: 4500
+  full:
+    filter: "*"
+    estimated_tokens: 6800
+
+node arch.schema.sdd-phase-field
+type: decision
+stability: high
+priority: critical
+summary: add nullable sdd_phase TEXT field directly to kanban_columns with CHECK constraint and partial unique index per project
+rationale:
+  - simplest_representation_for_optional_one_to_one_association
+  - avoids_extra_join_table_and_extra_repository_complexity
+tradeoffs:
+  - adds_domain_specific_field_to_general_column_table
+  - uniqueness_requires_partial_index_support
+
+node migration.v025.schema
+type: workflow
+stability: high
+priority: critical
+depends: [arch.schema.sdd-phase-field]
+input: [src-tauri/src/storage/sqlite/migrations/025_column_sdd_phase.sql]
+output: [kanban_columns_has_sdd_phase, unique_partial_index_exists]
+summary: add sdd_phase column -> add partial unique index -> seed default mappings
+steps:
+  - alter kanban_columns add nullable sdd_phase with CHECK constraint
+  - create unique index on project_id and sdd_phase where sdd_phase is not null
+  - update ready rows to analyze
+  - update in_progress rows to implement
+  - update review rows to verify
+code:
+  lang: sql
+  target: src-tauri/src/storage/sqlite/migrations/025_column_sdd_phase.sql
+  action: create
+  body: |
+    ALTER TABLE kanban_columns
+        ADD COLUMN sdd_phase TEXT
+        CHECK (sdd_phase IS NULL OR sdd_phase IN ('analyze', 'plan', 'implement', 'verify'));
+
+    CREATE UNIQUE INDEX idx_kanban_columns_sdd_phase
+        ON kanban_columns(project_id, sdd_phase)
+        WHERE sdd_phase IS NOT NULL;
+
+    UPDATE kanban_columns SET sdd_phase = 'analyze'
+    WHERE slug = 'ready' AND sdd_phase IS NULL;
+
+    UPDATE kanban_columns SET sdd_phase = 'implement'
+    WHERE slug = 'in_progress' AND sdd_phase IS NULL;
+
+    UPDATE kanban_columns SET sdd_phase = 'verify'
+    WHERE slug = 'review' AND sdd_phase IS NULL;
+verify:
+  - type: file_exists
+    file: src-tauri/src/storage/sqlite/migrations/025_column_sdd_phase.sql
+  - type: file_contains
+    file: src-tauri/src/storage/sqlite/migrations/025_column_sdd_phase.sql
+    pattern: "ADD COLUMN sdd_phase"
+agent_context:
+  load_nodes: [arch.schema.sdd-phase-field]
+  load_files:
+    - path: src-tauri/src/storage/sqlite/migrations.rs
+      range: full
+  system_hint: "SQLite migration file. Follow existing naming convention 0XX_description.sql."
+execution_status: pending
+
+node backend.model.kanban-column
+type: workflow
+stability: medium
+priority: critical
+depends: [arch.schema.sdd-phase-field]
+input: [src-tauri/src/models/kanban_column.rs]
+output: [kanban_column_structs_support_sdd_phase]
+summary: add sdd_phase to KanbanColumn, CreateKanbanColumn, and UpdateKanbanColumn structs
+steps:
+  - add Option<String> sdd_phase to KanbanColumn
+  - add Option<String> sdd_phase to CreateKanbanColumn
+  - add Option<Option<String>> sdd_phase to UpdateKanbanColumn
+  - extend default_column_seeds with sdd_phase mapping
+code_blocks:
+  - lang: rust
+    target: src-tauri/src/models/kanban_column.rs
+    action: insert_after
+    anchor: "pub requires_approval: bool,"
+    body: |
+      /// Optional SDD phase associated with this column.
+      pub sdd_phase: Option<String>,
+verify:
+  - type: command
+    run: cargo check --manifest-path src-tauri/Cargo.toml
+    expect: exit_code_0
+  - type: file_contains
+    file: src-tauri/src/models/kanban_column.rs
+    pattern: "pub sdd_phase: Option<String>"
+agent_context:
+  load_nodes: [arch.schema.sdd-phase-field]
+  load_files:
+    - path: src-tauri/src/models/kanban_column.rs
+      range: full
+  system_hint: "Rust project using rusqlite. The UpdateKanbanColumn uses Option<Option<T>> for partial updates."
+execution_status: pending
+
+node frontend.new-task.phase-selector
+type: workflow
+stability: medium
+priority: critical
+depends: [backend.model.kanban-column]
+input: [src/lib/components/board/NewTaskDialog.svelte]
+output: [new_task_dialog_can_choose_initial_sdd_phase_and_resolve_column]
+summary: extend NewTaskDialog so SDD-enabled tasks can choose an initial phase and auto-resolve target column
+steps:
+  - import SDD_PHASES and SDD_PHASE_LABELS
+  - add selectedSddPhase state
+  - show selector only when sddEnabled is true
+  - on submit resolve column via getColumnBySddPhase
+  - pass resolved column_id or null to createTask
+  - reset selectedSddPhase when sddEnabled becomes false
+code:
+  lang: svelte
+  target: src/lib/components/board/NewTaskDialog.svelte
+  action: insert_after
+  anchor: "let sddEnabled = $state(false);"
+  body: |
+    let selectedSddPhase = $state<string>('');
+
+    $effect(() => {
+        if (!sddEnabled) selectedSddPhase = '';
+    });
+verify:
+  - type: file_contains
+    file: src/lib/components/board/NewTaskDialog.svelte
+    pattern: "selectedSddPhase"
+agent_context:
+  load_nodes: [arch.schema.sdd-phase-field]
+  load_files:
+    - path: src/lib/components/board/NewTaskDialog.svelte
+      range: full
+    - path: src/lib/types/sdd.ts
+      range: full
+    - path: src/lib/stores/columns.svelte.ts
+      range: [1, 50]
+  system_hint: "Svelte 5 using runes ($state, $derived, $effect). Tailwind CSS v4. Import from $lib/."
+execution_status: pending
+
+node rollout.orchestration
+type: orchestration
+stability: medium
+priority: critical
+summary: coordinate backend-first rollout with parallel frontend after backend stabilizes
+parallel_groups:
+  - group: 1-schema
+    nodes: [migration.v025.schema]
+    strategy: sequential
+  - group: 2-backend-models
+    nodes: [backend.model.kanban-column]
+    strategy: sequential
+    requires: [1-schema]
+  - group: 3-frontend-ui
+    nodes: [frontend.new-task.phase-selector]
+    strategy: sequential
+    requires: [2-backend-models]
+detail:
+  Simplified orchestration example. A full plan would include repository, commands,
+  types, store, column editor, badge, and test nodes across additional parallel groups.

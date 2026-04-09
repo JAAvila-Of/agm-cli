@@ -1,0 +1,14 @@
+# expect: error AGM-V023
+# description: memory search action missing required query field
+agm: 1.0
+package: test.validate.memory
+version: 0.1.0
+
+node test.memory.search.noquery
+type: workflow
+summary: workflow with search memory entry missing required query
+steps:
+  - search without query
+memory:
+  - action: search
+    max_results: 5

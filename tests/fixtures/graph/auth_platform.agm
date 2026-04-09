@@ -1,0 +1,51 @@
+agm: 1.0
+package: auth.platform
+version: 0.2.0
+title: Authentication Platform Core
+owner: security-platform
+
+node auth.stack
+type: facts
+summary: next15 frontend; net8 backend; identityserver4 local idp; azure external id as external provider
+
+node auth.constraints
+type: rules
+summary: no browser tokens; sensitive calls from server only; tenant selected by host
+
+node auth.session
+type: entity
+summary: opaque sid maps to server-side token pair and session metadata
+
+node auth.tenant.resolve
+type: workflow
+summary: map request host to tenant and oidc configuration
+
+node auth.login
+type: workflow
+depends: [auth.constraints, auth.session, auth.tenant.resolve]
+summary: resolve tenant -> select oidc config -> redirect -> callback -> create sid session
+
+node auth.refresh
+type: workflow
+depends: [auth.session, auth.constraints]
+summary: look up session by sid -> refresh upstream token if needed -> update server-side session
+
+node auth.logout
+type: workflow
+depends: [auth.session]
+summary: revoke server session, clear sid cookie, attempt upstream logout when supported
+
+node auth.logout.no.upstream.endsession
+type: exception
+depends: [auth.logout]
+summary: some providers allow local logout but do not guarantee upstream sign-out
+
+node auth.browser.token.model
+type: anti_pattern
+summary: browser-stored access tokens increase exposure and weaken revocation control
+
+node auth.session.model.decision
+type: decision
+depends: [auth.constraints, auth.session]
+conflicts: [auth.browser.token.model]
+summary: choose opaque sid cookie with server-side token storage instead of browser token model

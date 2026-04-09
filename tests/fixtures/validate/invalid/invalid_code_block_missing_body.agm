@@ -1,0 +1,15 @@
+# expect: error AGM-V008
+# description: code block missing required body field
+agm: 1.0
+package: test.validate.codeblock
+version: 0.1.0
+
+node test.code.no.body
+type: workflow
+summary: workflow with code block missing required body field
+steps:
+  - do something
+code:
+  lang: rust
+  target: src/main.rs
+  action: create

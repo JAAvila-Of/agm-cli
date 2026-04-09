@@ -1,0 +1,25 @@
+# expect: validate ok
+# description: types with only allowed/required fields -- should pass strict schema validation
+agm: 1.0
+package: test.validate.strict
+version: 0.1.0
+
+node test.strict.facts
+type: facts
+summary: facts node with only required fields
+items:
+  - required_item
+
+node test.strict.workflow
+type: workflow
+summary: workflow node with only required fields
+steps:
+  - only required step
+
+node test.strict.decision
+type: decision
+summary: decision node with only required fields
+rationale:
+  - required reason
+tradeoffs:
+  - required tradeoff

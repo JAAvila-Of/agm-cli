@@ -1,0 +1,39 @@
+# expect: parse ok
+# description: node with code_blocks containing 3+ entries
+agm: 1.0
+package: test.multicode
+version: 0.1.0
+
+node test.three.code.blocks
+type: workflow
+summary: workflow with three code blocks
+steps:
+  - create schema
+  - create model
+  - create test
+code_blocks:
+  - lang: sql
+    target: migrations/001_schema.sql
+    action: create
+    body: |
+      CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+  - lang: rust
+    target: src/models/item.rs
+    action: create
+    body: |
+      pub struct Item { pub id: i64, pub name: String }
+  - lang: rust
+    target: src/models/item.rs
+    action: insert_after
+    anchor: "pub name: String"
+    body: |
+      pub created_at: String,
+  - lang: rust
+    target: tests/item_test.rs
+    action: create
+    body: |
+      #[test]
+      fn test_item_creation() {
+          let item = Item { id: 1, name: "test".to_string() };
+          assert_eq!(item.id, 1);
+      }

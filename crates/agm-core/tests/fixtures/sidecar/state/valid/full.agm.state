@@ -1,0 +1,17 @@
+# agm.state: 1.0
+# package: acme.migration
+# version: 1.0.0
+# session_id: run-2026-04-08-153200
+# started_at: 2026-04-08T15:32:00Z
+# updated_at: 2026-04-08T15:35:00Z
+
+state migration.025.data
+execution_status: ready
+retry_count: 0
+
+state migration.025.schema
+execution_status: completed
+executed_by: shell-agent
+executed_at: 2026-04-08T15:30:00Z
+retry_count: 0
+execution_log: .agm/logs/migration.025.schema.log

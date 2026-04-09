@@ -1,0 +1,11 @@
+agm: 1.0
+package: test.memory.invalid
+version: 0.1.0
+
+node mem.badkey
+type: workflow
+summary: node with invalid memory key
+memory:
+  - key: Invalid-Key
+    topic: rust
+    action: get

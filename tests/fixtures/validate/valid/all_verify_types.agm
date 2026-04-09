@@ -1,0 +1,55 @@
+# expect: validate ok
+# description: verify entries with all required sub-fields for each check type
+agm: 1.0
+package: test.validate.verify
+version: 0.1.0
+
+node test.verify.command
+type: workflow
+summary: workflow with command verify check
+steps:
+  - run the command
+verify:
+  - type: command
+    run: cargo test
+    expect: exit_code_0
+
+node test.verify.file.exists
+type: workflow
+summary: workflow with file_exists verify check
+steps:
+  - create the file
+verify:
+  - type: file_exists
+    file: output/result.txt
+
+node test.verify.file.contains
+type: workflow
+summary: workflow with file_contains verify check
+steps:
+  - write the file
+verify:
+  - type: file_contains
+    file: src/main.rs
+    pattern: "fn main"
+
+node test.verify.file.not.contains
+type: workflow
+summary: workflow with file_not_contains verify check
+steps:
+  - clean up the file
+verify:
+  - type: file_not_contains
+    file: src/main.rs
+    pattern: "TODO: remove"
+
+node test.verify.node.status
+type: workflow
+summary: workflow with node_status verify check
+depends: [test.verify.command]
+steps:
+  - check prerequisite status
+verify:
+  - type: node_status
+    node: test.verify.command
+    status: completed

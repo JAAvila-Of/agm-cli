@@ -1,0 +1,16 @@
+# expect: error AGM-V008
+# description: code block missing required lang field
+agm: 1.0
+package: test.validate.codeblock
+version: 0.1.0
+
+node test.code.no.lang
+type: workflow
+summary: workflow with code block missing required lang field
+steps:
+  - do something
+code:
+  target: src/main.rs
+  action: create
+  body: |
+    fn main() {}

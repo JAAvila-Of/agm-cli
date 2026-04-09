@@ -1,0 +1,35 @@
+{
+  "agm": 1,
+  "nodes": [
+    {
+      "node": "cache.strategy.v1",
+      "rationale": [
+        "simplest initial deployment"
+      ],
+      "status": "superseded",
+      "summary": "use local in-memory cache only",
+      "tradeoffs": [
+        "weak multi-instance coherence"
+      ],
+      "type": "decision"
+    },
+    {
+      "node": "cache.strategy.v2",
+      "rationale": [
+        "preserves fast path",
+        "enables multi-instance coherence"
+      ],
+      "replaces": [
+        "cache.strategy.v1"
+      ],
+      "status": "active",
+      "summary": "use local cache with distributed backing store",
+      "tradeoffs": [
+        "higher operational complexity"
+      ],
+      "type": "decision"
+    }
+  ],
+  "package": "infra.caching",
+  "version": "2.0.0"
+}

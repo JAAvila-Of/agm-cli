@@ -1,0 +1,13 @@
+# expect: parse ok
+# description: lines exceeding 500 characters in field values
+agm: 1.0
+package: test.longlines
+version: 0.1.0
+
+node test.long.line
+type: facts
+summary: this summary is intentionally very long to test that the parser can handle lines exceeding five hundred characters without truncating or erroring out on the content that appears after the five hundred character boundary mark in the line
+items:
+  - this_item_key_has_a_very_long_value_that_exceeds_the_typical_line_length_expectation_and_is_used_to_verify_that_the_parser_handles_long_item_values_correctly_without_any_truncation_or_parse_failure_occurring_during_the_processing_of_this_fixture_file
+detail:
+  This detail block contains a very long paragraph that intentionally goes well beyond the five hundred character limit to verify that the parser handles multi-word text content on a single logical line without any issue. The text continues to add more words here to push the length further and further until it clearly exceeds five hundred characters and then some additional words to be sure about it.

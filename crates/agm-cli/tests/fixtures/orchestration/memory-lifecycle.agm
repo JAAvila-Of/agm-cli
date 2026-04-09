@@ -1,0 +1,47 @@
+agm: 1.0
+package: test.orchestration.memory
+version: 1.0.0
+
+node init_memory
+type: workflow
+summary: Sets up memory entries in project scope
+code:
+  lang: sh
+  action: full
+  body: echo init done
+memory:
+  - key: project.db_host
+    topic: infrastructure
+    action: upsert
+    value: localhost:5432
+    scope: project
+    ttl: permanent
+
+node use_memory
+type: workflow
+summary: Reads memory set by init_memory
+depends: [init_memory]
+code:
+  lang: sh
+  action: full
+  body: echo use done
+memory:
+  - key: project.db_host
+    topic: infrastructure
+    action: get
+
+node session_memory
+type: workflow
+summary: Sets session-scoped memory
+depends: [init_memory]
+code:
+  lang: sh
+  action: full
+  body: echo session done
+memory:
+  - key: session.run_id
+    topic: execution
+    action: upsert
+    value: test-run-001
+    scope: session
+    ttl: session

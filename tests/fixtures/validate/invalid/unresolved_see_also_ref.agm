@@ -1,0 +1,12 @@
+# expect: error AGM-V004
+# description: see_also references a node ID that does not exist in the file
+agm: 1.0
+package: test.validate.unresolved
+version: 0.1.0
+
+node test.unresolved.seealso
+type: facts
+summary: facts node with see_also pointing to non-existent node
+see_also: [test.does.not.exist]
+items:
+  - item_one

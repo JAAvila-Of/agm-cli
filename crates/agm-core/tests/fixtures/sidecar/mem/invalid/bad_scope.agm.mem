@@ -1,0 +1,11 @@
+# agm.mem: 1.0
+# package: test.pkg
+# updated_at: 2026-04-08T10:00:00Z
+
+entry bad.scope
+topic: infrastructure
+scope: workspace
+ttl: permanent
+value: some value
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z

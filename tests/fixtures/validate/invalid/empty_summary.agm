@@ -1,0 +1,11 @@
+# expect: error AGM-V002
+# description: node summary field is missing (empty value treated as missing)
+agm: 1.0
+package: test.validate.summary
+version: 0.1.0
+
+node test.empty.summary
+type: facts
+summary:
+items:
+  - item_one

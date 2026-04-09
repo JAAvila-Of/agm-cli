@@ -1,0 +1,38 @@
+[package]
+name = "agm-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "CLI tool for parsing, validating, and orchestrating AGM (Agent Graph Memory) files"
+readme = "../../README.md"
+keywords = ["agm", "agent", "cli", "orchestration", "graph"]
+categories = ["command-line-utilities"]
+exclude = ["tests/fixtures/"]
+
+[[bin]]
+name = "agm"
+path = "src/main.rs"
+
+[features]
+default = ["self-update"]
+self-update = ["dep:self_update"]
+
+[dependencies]
+agm-core = { path = "../agm-core", version = "0.1.0" }
+clap.workspace = true
+anyhow.workspace = true
+miette = { workspace = true, features = ["fancy"] }
+serde_json.workspace = true
+time = { version = "0.3", features = ["formatting", "parsing"] }
+regex.workspace = true
+log = "0.4"
+self_update = { workspace = true, optional = true }
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"

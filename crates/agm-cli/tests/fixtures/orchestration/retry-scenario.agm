@@ -1,0 +1,14 @@
+agm: 1.0
+package: test.orchestration.retry
+version: 1.0.0
+
+node check_file
+type: workflow
+summary: Node that checks for a specific file
+code:
+  lang: sh
+  action: full
+  body: echo check done
+verify:
+  - type: file_exists
+    file: retry_marker.txt

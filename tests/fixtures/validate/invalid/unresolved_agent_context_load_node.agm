@@ -1,0 +1,14 @@
+# expect: error AGM-V004
+# description: agent_context load_nodes references a node ID that does not exist
+agm: 1.0
+package: test.validate.unresolved
+version: 0.1.0
+
+node test.agentctx.bad.ref
+type: workflow
+summary: workflow with agent_context referencing a non-existent node
+steps:
+  - do work
+agent_context:
+  load_nodes: [test.does.not.exist]
+  system_hint: "context for a non-existent node"

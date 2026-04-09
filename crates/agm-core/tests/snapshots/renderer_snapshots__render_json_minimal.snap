@@ -1,0 +1,19 @@
+---
+source: crates/agm-core/tests/renderer_snapshots.rs
+expression: output
+---
+{
+  "agm": "1.0",
+  "package": "test.json.minimal",
+  "version": "0.1.0",
+  "nodes": [
+    {
+      "node": "test.json.node",
+      "type": "facts",
+      "summary": "a minimal node for JSON output testing",
+      "items": [
+        "item_one"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+# expect: parse ok
+# description: nodes with all 5 relationship types for round-trip testing
+agm: 1.0
+package: test.roundtrip.relationships
+version: 0.1.0
+
+node rt.rel.base
+type: facts
+summary: base facts node referenced by relationships
+
+node rt.rel.rules
+type: rules
+summary: rules node for relationship testing
+items:
+  - rule one
+
+node rt.rel.old
+type: decision
+status: superseded
+summary: old decision that has been replaced
+rationale:
+  - original reason
+
+node rt.rel.related
+type: facts
+summary: related node for context
+
+node rt.rel.conflict
+type: decision
+summary: conflicting decision node
+rationale:
+  - conflicting approach
+
+node rt.rel.seealso
+type: glossary
+summary: glossary term for see_also reference
+
+node rt.rel.main
+type: decision
+summary: main node using all relationship types
+depends: [rt.rel.base, rt.rel.rules]
+related_to: [rt.rel.related]
+replaces: [rt.rel.old]
+conflicts: [rt.rel.conflict]
+see_also: [rt.rel.seealso]
+rationale:
+  - exercises all relationship types
+tradeoffs:
+  - complex dependency graph

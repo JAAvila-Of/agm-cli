@@ -1,0 +1,50 @@
+# expect: parse ok
+# description: 5+ nodes forming a DAG via depends relationships
+agm: 1.0
+package: test.multinode
+version: 0.1.0
+
+node test.dag.root
+type: facts
+summary: root node with no dependencies
+items:
+  - foundation_item
+
+node test.dag.rules
+type: rules
+summary: rules derived from root facts
+depends: [test.dag.root]
+items:
+  - rule_derived_from_facts
+
+node test.dag.entity
+type: entity
+summary: entity shaped by root facts
+depends: [test.dag.root]
+fields:
+  - id: string
+  - name: string
+
+node test.dag.workflow
+type: workflow
+summary: workflow depending on rules and entity
+depends: [test.dag.rules, test.dag.entity]
+steps:
+  - apply rules to entity
+  - transform result
+
+node test.dag.decision
+type: decision
+summary: decision based on workflow outcomes
+depends: [test.dag.workflow, test.dag.rules]
+rationale:
+  - outcome of workflow informs decision
+tradeoffs:
+  - requires workflow to complete first
+
+node test.dag.leaf
+type: example
+summary: leaf node depending on the decision
+depends: [test.dag.decision]
+detail:
+  This is the leaf of the dependency graph.

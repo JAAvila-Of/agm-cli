@@ -1,0 +1,21 @@
+{
+  "agm": 1,
+  "nodes": [
+    {
+      "code": {
+        "action": "create",
+        "body": "CREATE TABLE users (\n    id INTEGER PRIMARY KEY,\n    email TEXT NOT NULL UNIQUE\n);",
+        "lang": "sql",
+        "target": "migrations/001_init.sql"
+      },
+      "node": "test.json.code",
+      "steps": [
+        "create schema"
+      ],
+      "summary": "workflow with single code block for JSON serialization",
+      "type": "workflow"
+    }
+  ],
+  "package": "test.json.codeblock",
+  "version": "0.1.0"
+}

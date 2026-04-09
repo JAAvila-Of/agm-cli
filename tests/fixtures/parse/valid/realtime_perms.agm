@@ -1,0 +1,98 @@
+# expect: parse ok
+# description: realtime permissions and signalr-style delivery example from spec S38.3
+agm: 1.0
+package: realtime.permissions
+version: 0.4.0
+title: Realtime Permission Delivery Model
+default_load: summary
+
+node rt.permission.model
+type: facts
+stability: medium
+priority: critical
+summary: realtime events target users, meetings, roles and optional permission groups
+items:
+  - target_user_group
+  - target_meeting_group
+  - target_role_group
+  - optional_permission_group
+
+node rt.permission.groups
+type: entity
+stability: medium
+priority: high
+summary: group identities follow stable naming patterns for user, role, meeting and permission scopes
+fields:
+  - user_group: user:{userId}
+  - meeting_group: meeting:{clientId}:{meetId}
+  - role_group: role:{scope}:{roleName}
+  - permission_group: permission:{clientId}:{permissionKey}
+
+node rt.permission.broadcast
+type: workflow
+stability: medium
+priority: critical
+depends: [rt.permission.model, rt.permission.groups]
+input: [event_name, payload, target_selector]
+output: [event_dispatched]
+summary: resolve target group -> broadcast event -> rely on authoritative backend auth for membership correctness
+steps:
+  - identify event target scope
+  - resolve matching group name
+  - publish event to group
+  - do not infer authorization truth from group membership alone
+detail:
+  Group-based fan-out is an optimization for event delivery.
+  It MUST NOT replace authoritative backend permission checks for critical operations.
+
+node rt.permission.group_usage_rule
+type: rules
+stability: high
+priority: critical
+summary: permission groups are valid for event fan-out but not as the sole source of authorization truth
+items:
+  - group_membership_can_accelerate_delivery
+  - backend_remains_authoritative
+  - membership_must_be_reconciled_on_permission_change
+detail:
+  Permission groups are useful for routing and fan-out efficiency.
+  They become dangerous when treated as durable authorization truth without reconciliation.
+
+node rt.permission.edge.membership_drift
+type: exception
+stability: medium
+priority: high
+depends: [rt.permission.group_usage_rule]
+summary: signalr, redis and database can temporarily diverge in effective membership
+detail:
+  Permission changes may be persisted before all active realtime connections are reconciled.
+  Temporary drift can appear between the authoritative database and active group membership.
+resolution:
+  - publish permission-changed events
+  - re-evaluate memberships on reconnect
+  - run reconciliation jobs for stale connections
+  - keep critical authorization checks in backend
+
+node rt.permission.antipattern.signalr_as_auth_source
+type: anti_pattern
+stability: high
+priority: critical
+summary: using realtime group membership as the only authorization source risks stale or incorrect access decisions
+detail:
+  Group membership is a delivery optimization, not a durable source of truth for permissions.
+
+node rt.permission.decision.hybrid_delivery
+type: decision
+stability: high
+priority: critical
+depends: [rt.permission.group_usage_rule, rt.permission.edge.membership_drift]
+conflicts: [rt.permission.antipattern.signalr_as_auth_source]
+summary: use permission groups for efficient fan-out while keeping backend authorization authoritative
+rationale:
+  - reduces per-event filtering cost
+  - keeps delivery efficient
+  - avoids turning realtime state into primary authorization truth
+tradeoffs:
+  - requires reconciliation logic
+  - increases operational complexity
+  - requires observability to detect drift

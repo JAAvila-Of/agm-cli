@@ -1,0 +1,14 @@
+---
+source: crates/agm-core/tests/renderer_snapshots.rs
+expression: output
+---
+digraph "auth.platform" {
+    rankdir=LR;
+    node [shape=box, style="rounded,filled", fontname="Helvetica"];
+
+    // Node declarations
+    "auth.stack" [label="auth.stack\n[facts]", fillcolor="#e8f4fd"];
+    "auth.constraints" [label="auth.constraints\n[rules]", fillcolor="#fef9e7"];
+
+    // Edges
+}

@@ -1,0 +1,32 @@
+# expect: parse ok
+# description: auth platform AGM file for JSON forward serialization test
+agm: 1.0
+package: auth.platform
+version: 0.2.0
+title: Authentication Platform Core
+owner: security-platform
+default_load: summary
+tags: [auth, security, oidc]
+
+node auth.stack
+type: facts
+stability: medium
+priority: high
+tags: [stack, infrastructure]
+summary: next15 frontend; net8 backend; identityserver4 local idp; azure external id as external provider
+items:
+  - frontend=next15
+  - backend=net8
+  - local_idp=identityserver4
+  - external_idp=azure_external_id
+
+node auth.constraints
+type: rules
+stability: high
+priority: critical
+tags: [security]
+summary: no browser tokens; sensitive calls from server only; tenant selected by host
+items:
+  - no_client_tokens
+  - server_side_sensitive_calls
+  - host_based_tenant_selection

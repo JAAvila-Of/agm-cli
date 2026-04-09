@@ -1,0 +1,33 @@
+# expect: parse ok
+# description: nodes with each valid stability value
+agm: 1.0
+package: test.stabilities
+version: 0.1.0
+
+node test.stability.high
+type: facts
+stability: high
+summary: node with high stability
+items:
+  - stable_item
+
+node test.stability.medium
+type: facts
+stability: medium
+summary: node with medium stability
+items:
+  - medium_item
+
+node test.stability.low
+type: facts
+stability: low
+summary: node with low stability
+items:
+  - low_item
+
+node test.stability.volatile
+type: facts
+stability: volatile
+summary: node with volatile stability
+items:
+  - volatile_item

@@ -1,0 +1,10 @@
+# expect: error AGM-V002
+# description: node without summary field
+agm: 1.0
+package: test.missing.summary
+version: 0.1.0
+
+node test.no.summary
+type: facts
+items:
+  - item_one

@@ -1,0 +1,26 @@
+# expect: parse ok
+# description: migration example with replacements from spec S38.5
+agm: 1.0
+package: infra.caching
+version: 2.0.0
+
+node cache.strategy.v1
+type: decision
+status: superseded
+summary: use local in-memory cache only for session resolution
+rationale:
+  - simplest initial deployment
+tradeoffs:
+  - weak multi-instance coherence
+
+node cache.strategy.v2
+type: decision
+status: active
+replaces: [cache.strategy.v1]
+summary: use local cache with distributed backing store for session resolution
+rationale:
+  - preserves fast path
+  - enables multi-instance coherence
+tradeoffs:
+  - higher operational complexity
+  - more moving parts

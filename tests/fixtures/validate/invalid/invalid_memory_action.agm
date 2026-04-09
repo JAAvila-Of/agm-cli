@@ -1,0 +1,15 @@
+# expect: error AGM-V023
+# description: memory entry with an invalid action value
+agm: 1.0
+package: test.validate.memory
+version: 0.1.0
+
+node test.memory.bad.action
+type: workflow
+summary: workflow with memory entry having an unknown action
+steps:
+  - do memory operation
+memory:
+  - action: write
+    key: some.memory.key
+    value: some_value

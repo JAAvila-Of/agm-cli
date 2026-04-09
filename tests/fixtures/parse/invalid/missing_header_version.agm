@@ -1,0 +1,8 @@
+# expect: error AGM-P001
+# description: missing version: header field
+agm: 1.0
+package: test.missing.version
+
+node test.node
+type: facts
+summary: node in a file missing the version header field

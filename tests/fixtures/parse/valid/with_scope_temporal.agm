@@ -1,0 +1,28 @@
+# expect: parse ok
+# description: nodes with scope, applies_when, valid_from, valid_until, tags, aliases, keywords
+agm: 1.0
+package: test.scopetemporal
+version: 0.1.0
+
+node test.scoped.node
+type: rules
+summary: rules scoped to specific environments with temporal bounds
+scope: [production, staging]
+applies_when: feature flag PRICING_V2 is enabled
+valid_from: 2026-01-01
+valid_until: 2026-12-31
+tags: [pricing, scoped, temporal]
+aliases: [test.pricing.rules, test.v2.rules]
+keywords: [pricing, discount, enterprise, temporal]
+items:
+  - rule_applies_in_production
+  - rule_applies_in_staging
+  - rule_active_during_2026
+
+node test.unscoped.always
+type: facts
+summary: facts node without temporal or scope restrictions
+tags: [core, permanent]
+keywords: [foundation, stable]
+items:
+  - always_applies

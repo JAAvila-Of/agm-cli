@@ -1,0 +1,28 @@
+{
+  "agm": 1,
+  "nodes": [
+    {
+      "agent_context": {
+        "load_files": [
+          {
+            "path": "src/lib.rs",
+            "range": "full"
+          }
+        ],
+        "load_nodes": [
+          "test.json.agentcontext"
+        ],
+        "max_tokens": 2000,
+        "system_hint": "\"Implementation context for JSON serialization test.\""
+      },
+      "node": "test.json.agentcontext",
+      "steps": [
+        "analyze and implement"
+      ],
+      "summary": "workflow with agent_context for JSON serialization",
+      "type": "workflow"
+    }
+  ],
+  "package": "test.json.agentctx",
+  "version": "0.1.0"
+}

@@ -1,0 +1,13 @@
+# expect: warning AGM-V017
+# description: field not recommended for node type under standard schema (warning not error)
+agm: 1.0
+package: test.validate.disallowed
+version: 0.1.0
+
+node test.disallowed.standard
+type: glossary
+summary: glossary node with a field that is non-standard for this type
+detail:
+  Standard glossary detail here.
+steps:
+  - step not typical for glossary type

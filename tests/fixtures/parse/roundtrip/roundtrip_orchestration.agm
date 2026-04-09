@@ -1,0 +1,36 @@
+# expect: parse ok
+# description: orchestration node with parallel_groups and requires chains for round-trip testing
+agm: 1.0
+package: test.roundtrip.orchestration
+version: 0.1.0
+
+node rt.orch.task.a
+type: workflow
+summary: first task in orchestration
+steps:
+  - execute task a
+
+node rt.orch.task.b
+type: workflow
+summary: second task in orchestration
+steps:
+  - execute task b
+
+node rt.orch.task.c
+type: workflow
+summary: third task depending on a and b
+depends: [rt.orch.task.a, rt.orch.task.b]
+steps:
+  - execute task c after a and b
+
+node rt.orch.main
+type: orchestration
+summary: orchestration node with parallel_groups and requires chains
+parallel_groups:
+  - group: phase1
+    nodes: [rt.orch.task.a, rt.orch.task.b]
+    strategy: parallel
+  - group: phase2
+    nodes: [rt.orch.task.c]
+    strategy: sequential
+    requires: [phase1]

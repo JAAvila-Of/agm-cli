@@ -1,0 +1,26 @@
+{
+  "agm": 1,
+  "nodes": [
+    {
+      "node": "test.json.verify",
+      "steps": [
+        "do work"
+      ],
+      "summary": "workflow with verify checks for JSON serialization",
+      "type": "workflow",
+      "verify": [
+        {
+          "expect": "exit_code_0",
+          "run": "cargo test",
+          "type": "command"
+        },
+        {
+          "file": "target/debug/myapp",
+          "type": "file_exists"
+        }
+      ]
+    }
+  ],
+  "package": "test.json.verify",
+  "version": "0.1.0"
+}

@@ -1,0 +1,13 @@
+# expect: error AGM-V007
+# description: valid_from is after valid_until (invalid temporal range)
+agm: 1.0
+package: test.validate.temporal
+version: 0.1.0
+
+node test.temporal.inverted
+type: rules
+summary: node with valid_from date after valid_until date
+valid_from: 2026-12-31
+valid_until: 2026-01-01
+items:
+  - rule_with_inverted_dates

@@ -1,0 +1,33 @@
+# expect: error AGM-V005
+# description: cycle in a chain of 4 nodes (A->B->C->D->A)
+agm: 1.0
+package: test.validate.cycle
+version: 0.1.0
+
+node test.chain.a
+type: workflow
+summary: node A in long chain cycle
+depends: [test.chain.d]
+steps:
+  - step a
+
+node test.chain.b
+type: workflow
+summary: node B in long chain cycle
+depends: [test.chain.a]
+steps:
+  - step b
+
+node test.chain.c
+type: workflow
+summary: node C in long chain cycle
+depends: [test.chain.b]
+steps:
+  - step c
+
+node test.chain.d
+type: workflow
+summary: node D in long chain cycle -- completes the cycle back to A
+depends: [test.chain.c]
+steps:
+  - step d

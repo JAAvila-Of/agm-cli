@@ -1,0 +1,30 @@
+# expect: parse ok
+# description: node with 3+ memory entries covering multiple operations
+agm: 1.0
+package: test.memory.ops
+version: 0.1.0
+
+node test.memory.multi
+type: workflow
+summary: workflow with multiple memory operations in sequence
+steps:
+  - retrieve existing context
+  - search for additional context
+  - store computed result
+  - clean up temporary data
+memory:
+  - action: get
+    key: workflow.context.previous
+    scope: session
+  - action: search
+    query: related workflow results
+    max_results: 10
+    scope: global
+  - action: upsert
+    key: workflow.result.current
+    value: computed_result
+    scope: session
+    ttl: 7200
+  - action: delete
+    key: workflow.context.temp
+    scope: session

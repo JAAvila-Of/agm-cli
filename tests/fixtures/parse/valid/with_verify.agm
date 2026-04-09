@@ -1,0 +1,27 @@
+# expect: parse ok
+# description: node with verify containing all 5 check types
+agm: 1.0
+package: test.verify
+version: 0.1.0
+
+node test.with.verify
+type: workflow
+summary: workflow with all verification check types
+steps:
+  - run the build
+  - check outputs
+verify:
+  - type: command
+    run: cargo build
+    expect: exit_code_0
+  - type: file_exists
+    file: target/debug/myapp
+  - type: file_contains
+    file: src/main.rs
+    pattern: "fn main"
+  - type: file_not_contains
+    file: src/main.rs
+    pattern: "TODO: remove"
+  - type: node_status
+    node: test.prereq.node
+    status: completed

@@ -1,0 +1,24 @@
+# expect: error AGM-V019
+# description: orchestration parallel_groups with a cycle in requires references
+agm: 1.0
+package: test.validate.orchcycle
+version: 0.1.0
+
+node test.orch.node
+type: workflow
+summary: workflow node referenced in orchestration
+steps:
+  - do work
+
+node test.orch.cycle
+type: orchestration
+summary: orchestration with cycle in group requires
+parallel_groups:
+  - group: group-a
+    nodes: [test.orch.node]
+    strategy: sequential
+    requires: [group-b]
+  - group: group-b
+    nodes: [test.orch.node]
+    strategy: sequential
+    requires: [group-a]

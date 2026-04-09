@@ -1,0 +1,21 @@
+# agm.state: 1.0
+# package: test.orchestration.linear
+# version: 1.0.0
+# session_id: run-2026-04-09-014639
+# started_at: 2026-04-09T01:46:39.2802508Z
+# updated_at: 2026-04-09T01:46:39.2820061Z
+
+state step_a
+execution_status: failed
+executed_by: shell-agent
+executed_at: 2026-04-09T01:46:39.2819802Z
+retry_count: 0
+execution_log: Error in block 1: Failed to spawn shell: El nombre del directorio no es válido. (os error 267)
+
+state step_b
+execution_status: blocked
+retry_count: 0
+
+state step_c
+execution_status: blocked
+retry_count: 0

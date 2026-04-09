@@ -1,0 +1,30 @@
+agm: 1.0
+package: test.phase2.orch
+version: 1.0.0
+
+node setup
+type: workflow
+summary: Setup step
+code:
+  lang: sh
+  action: full
+  body: echo setup done
+
+node build
+type: workflow
+summary: Build step
+depends: [setup]
+code:
+  lang: sh
+  action: full
+  body: echo build done
+
+node main.pipeline
+type: orchestration
+summary: Main pipeline orchestration
+parallel_groups:
+  - name: phase1
+    nodes: [setup]
+  - name: phase2
+    nodes: [build]
+    depends: [phase1]

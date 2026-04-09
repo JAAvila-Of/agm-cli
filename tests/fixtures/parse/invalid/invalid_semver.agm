@@ -1,0 +1,9 @@
+# expect: error AGM-P001
+# description: version field is not a valid semver (missing minor and patch)
+agm: 1.0
+package: test.invalid.semver
+version: 2
+
+node test.node
+type: facts
+summary: node in file with non-semver version field

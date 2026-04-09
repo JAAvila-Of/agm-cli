@@ -1,0 +1,73 @@
+# expect: parse ok
+# description: one node of each type for round-trip testing
+agm: 1.0
+package: test.roundtrip.alltypes
+version: 0.1.0
+
+node rt.facts.node
+type: facts
+summary: a facts node for round-trip testing
+items:
+  - fact one
+  - fact two
+
+node rt.rules.node
+type: rules
+summary: a rules node for round-trip testing
+items:
+  - rule one
+  - rule two
+
+node rt.workflow.node
+type: workflow
+summary: a workflow node for round-trip testing
+steps:
+  - step one
+  - step two
+
+node rt.entity.node
+type: entity
+summary: an entity node for round-trip testing
+fields:
+  - id: string
+  - name: string
+
+node rt.decision.node
+type: decision
+summary: a decision node for round-trip testing
+rationale:
+  - reason one
+tradeoffs:
+  - tradeoff one
+
+node rt.exception.node
+type: exception
+summary: an exception node for round-trip testing
+resolution:
+  - handle gracefully
+
+node rt.example.node
+type: example
+summary: an example node for round-trip testing
+detail:
+  This is an example detail.
+
+node rt.glossary.node
+type: glossary
+summary: a glossary node for round-trip testing
+detail:
+  This is a glossary definition.
+
+node rt.antipattern.node
+type: anti_pattern
+summary: an anti_pattern node for round-trip testing
+detail:
+  This pattern should be avoided.
+
+node rt.orchestration.node
+type: orchestration
+summary: an orchestration node for round-trip testing
+parallel_groups:
+  - group: phase1
+    nodes: [rt.workflow.node]
+    strategy: sequential

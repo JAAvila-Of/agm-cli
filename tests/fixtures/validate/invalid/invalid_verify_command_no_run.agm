@@ -1,0 +1,14 @@
+# expect: error AGM-V009
+# description: verify command check missing required run field
+agm: 1.0
+package: test.validate.verify
+version: 0.1.0
+
+node test.verify.cmd.no.run
+type: workflow
+summary: workflow with command verify check missing run field
+steps:
+  - run something
+verify:
+  - type: command
+    expect: exit_code_0

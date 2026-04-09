@@ -1,0 +1,25 @@
+# expect: parse ok
+# description: caching migration with replaces for JSON forward serialization test
+agm: 1.0
+package: infra.caching
+version: 2.0.0
+
+node cache.strategy.v1
+type: decision
+status: superseded
+summary: use local in-memory cache only
+rationale:
+  - simplest initial deployment
+tradeoffs:
+  - weak multi-instance coherence
+
+node cache.strategy.v2
+type: decision
+status: active
+replaces: [cache.strategy.v1]
+summary: use local cache with distributed backing store
+rationale:
+  - preserves fast path
+  - enables multi-instance coherence
+tradeoffs:
+  - higher operational complexity

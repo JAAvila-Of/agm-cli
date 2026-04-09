@@ -1,0 +1,29 @@
+# expect: parse ok
+# description: billing invoice AGM file for JSON forward serialization test
+agm: 1.0
+package: billing.invoice
+version: 1.0.0
+title: Invoice Knowledge Pack
+default_load: operational
+
+node invoice.definition
+type: entity
+stability: high
+priority: critical
+tags: [invoice, fiscal, domain]
+summary: invoice contains issuer, receiver, currency, lines, totals and tax breakdown
+fields:
+  - issuer: party
+  - receiver: party
+  - currency: code
+  - lines: collection
+  - grand_total: money
+
+node invoice.validation.rules
+type: rules
+stability: high
+priority: critical
+summary: totals must reconcile; currency is mandatory
+items:
+  - subtotal_equals_sum_of_lines
+  - currency_required

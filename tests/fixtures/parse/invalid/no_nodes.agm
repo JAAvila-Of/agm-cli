@@ -1,0 +1,5 @@
+# expect: error AGM-P008
+# description: valid header but no nodes defined
+agm: 1.0
+package: test.no.nodes
+version: 0.1.0

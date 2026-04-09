@@ -1,0 +1,14 @@
+# expect: warning AGM-V014
+# description: node with status deprecated/superseded but no replaces field set
+agm: 1.0
+package: test.validate.deprecated
+version: 0.1.0
+
+node test.deprecated.noreplaces
+type: decision
+status: deprecated
+summary: deprecated decision with no replaces field indicating successor
+rationale:
+  - was the right choice at the time
+tradeoffs:
+  - no longer recommended

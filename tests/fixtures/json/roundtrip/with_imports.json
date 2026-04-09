@@ -1,0 +1,39 @@
+{
+  "agm": 1,
+  "default_load": "operational",
+  "nodes": [
+    {
+      "fields": [
+        "issuer: party",
+        "receiver: party",
+        "currency: code",
+        "lines: collection",
+        "grand_total: money"
+      ],
+      "node": "invoice.definition",
+      "priority": "critical",
+      "stability": "high",
+      "summary": "invoice contains issuer, receiver, currency, lines, totals and tax breakdown",
+      "tags": [
+        "invoice",
+        "fiscal",
+        "domain"
+      ],
+      "type": "entity"
+    },
+    {
+      "items": [
+        "subtotal_equals_sum_of_lines",
+        "currency_required"
+      ],
+      "node": "invoice.validation.rules",
+      "priority": "critical",
+      "stability": "high",
+      "summary": "totals must reconcile; currency is mandatory",
+      "type": "rules"
+    }
+  ],
+  "package": "billing.invoice",
+  "title": "Invoice Knowledge Pack",
+  "version": "1.0.0"
+}

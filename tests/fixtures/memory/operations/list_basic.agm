@@ -1,0 +1,14 @@
+# expect: parse ok
+# description: single memory list operation
+agm: 1.0
+package: test.memory.ops
+version: 0.1.0
+
+node test.memory.list.basic
+type: workflow
+summary: basic list memory operation to enumerate stored entries
+steps:
+  - list all session-scoped memory entries
+memory:
+  - action: list
+    scope: session

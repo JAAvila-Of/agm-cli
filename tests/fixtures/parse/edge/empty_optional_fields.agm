@@ -1,0 +1,16 @@
+# expect: parse ok
+# description: optional fields present but with empty values
+agm: 1.0
+package: test.empty.optional
+version: 0.1.0
+
+node test.empty.fields
+type: workflow
+summary: node with optional fields set to empty values
+detail:
+steps:
+  - step one
+tags: []
+scope: []
+aliases: []
+keywords: []

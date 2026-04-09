@@ -1,0 +1,32 @@
+# expect: parse ok
+# description: 3+ blank lines between sections
+agm: 1.0
+package: test.blanklines
+version: 0.1.0
+
+
+
+
+node test.first.node
+type: facts
+summary: node separated from header by 3 blank lines
+items:
+  - item_one
+
+
+
+
+node test.second.node
+type: rules
+summary: node separated from previous node by 4 blank lines
+items:
+  - rule_one
+
+
+
+
+node test.third.node
+type: workflow
+summary: node separated from previous by 4 blank lines
+steps:
+  - step one

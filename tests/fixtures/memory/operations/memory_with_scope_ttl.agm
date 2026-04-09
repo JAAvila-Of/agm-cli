@@ -1,0 +1,37 @@
+# expect: parse ok
+# description: memory entries with all scope and ttl combinations
+agm: 1.0
+package: test.memory.ops
+version: 0.1.0
+
+node test.memory.scopes
+type: workflow
+summary: workflow exercising all memory scope and ttl combinations
+steps:
+  - store in each scope
+memory:
+  - action: upsert
+    key: data.session.short
+    value: short_lived
+    scope: session
+    ttl: 300
+  - action: upsert
+    key: data.session.long
+    value: long_lived
+    scope: session
+    ttl: 86400
+  - action: upsert
+    key: data.global.persistent
+    value: persistent_data
+    scope: global
+  - action: upsert
+    key: data.user.setting
+    value: user_pref
+    scope: user
+    ttl: 604800
+  - action: get
+    key: data.session.short
+    scope: session
+  - action: get
+    key: data.global.persistent
+    scope: global

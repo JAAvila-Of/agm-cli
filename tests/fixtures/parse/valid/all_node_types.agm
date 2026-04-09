@@ -1,0 +1,74 @@
+# expect: parse ok
+# description: one node per built-in type covering all 10 AGM node types
+agm: 1.0
+package: test.alltypes
+version: 0.1.0
+
+node test.facts.node
+type: facts
+summary: a facts node with a list of items
+items:
+  - item_one
+  - item_two
+
+node test.rules.node
+type: rules
+summary: a rules node defining constraints
+items:
+  - rule_one
+  - rule_two
+
+node test.workflow.node
+type: workflow
+summary: a workflow node with steps
+steps:
+  - step one
+  - step two
+
+node test.entity.node
+type: entity
+summary: an entity node with fields
+fields:
+  - id: string
+  - name: string
+
+node test.decision.node
+type: decision
+summary: a decision node with rationale
+rationale:
+  - reason one
+  - reason two
+tradeoffs:
+  - tradeoff one
+
+node test.exception.node
+type: exception
+summary: an exception node with resolution
+resolution:
+  - handle gracefully
+
+node test.example.node
+type: example
+summary: an example node with detail
+detail:
+  This demonstrates the example node type.
+
+node test.glossary.node
+type: glossary
+summary: a glossary entry defining a term
+detail:
+  The term means something specific in this domain.
+
+node test.antipattern.node
+type: anti_pattern
+summary: an anti_pattern node describing what to avoid
+detail:
+  Avoid doing this because it causes problems.
+
+node test.orchestration.node
+type: orchestration
+summary: an orchestration node coordinating other nodes
+parallel_groups:
+  - group: phase1
+    nodes: [test.workflow.node]
+    strategy: sequential

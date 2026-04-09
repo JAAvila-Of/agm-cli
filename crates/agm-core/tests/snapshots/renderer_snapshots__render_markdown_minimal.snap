@@ -1,0 +1,17 @@
+---
+source: crates/agm-core/tests/renderer_snapshots.rs
+expression: output
+---
+# test.json.minimal v0.1.0
+
+## Facts
+
+### `test.json.node`
+
+a minimal node for JSON output testing
+
+#### Items
+
+- item_one
+
+---

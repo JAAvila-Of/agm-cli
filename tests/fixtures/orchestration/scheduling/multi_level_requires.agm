@@ -1,0 +1,65 @@
+# expect: parse ok
+# description: orchestration with 3+ levels of group ordering via requires
+agm: 1.0
+package: test.orch.multilevel
+version: 0.1.0
+
+node test.ml.infra
+type: workflow
+summary: level 1 -- infrastructure provisioning
+steps:
+  - provision infrastructure
+
+node test.ml.db
+type: workflow
+summary: level 2 -- database setup
+steps:
+  - set up database
+
+node test.ml.config
+type: workflow
+summary: level 2b -- configuration setup
+steps:
+  - apply configuration
+
+node test.ml.app
+type: workflow
+summary: level 3 -- application deployment
+steps:
+  - deploy application
+
+node test.ml.smoke
+type: workflow
+summary: level 4 -- smoke tests
+steps:
+  - run smoke tests
+
+node test.ml.monitor
+type: workflow
+summary: level 5 -- monitoring setup
+steps:
+  - configure monitoring
+
+node test.orch.multilevel
+type: orchestration
+summary: orchestration with 5 levels of group ordering
+parallel_groups:
+  - group: level1-infra
+    nodes: [test.ml.infra]
+    strategy: sequential
+  - group: level2-db-and-config
+    nodes: [test.ml.db, test.ml.config]
+    strategy: parallel
+    requires: [level1-infra]
+  - group: level3-app
+    nodes: [test.ml.app]
+    strategy: sequential
+    requires: [level2-db-and-config]
+  - group: level4-smoke
+    nodes: [test.ml.smoke]
+    strategy: sequential
+    requires: [level3-app]
+  - group: level5-monitor
+    nodes: [test.ml.monitor]
+    strategy: sequential
+    requires: [level4-smoke]

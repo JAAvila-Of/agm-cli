@@ -1,0 +1,15 @@
+# expect: error AGM-V022
+# description: memory entry with an invalid key format
+agm: 1.0
+package: test.validate.memory
+version: 0.1.0
+
+node test.memory.bad.key
+type: workflow
+summary: workflow with memory entry having an invalid key
+steps:
+  - store value
+memory:
+  - action: upsert
+    key: ""
+    value: some_value

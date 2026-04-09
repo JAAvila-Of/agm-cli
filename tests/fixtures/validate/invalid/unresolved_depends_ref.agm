@@ -1,0 +1,12 @@
+# expect: error AGM-V004
+# description: depends references a node ID that does not exist in the file
+agm: 1.0
+package: test.validate.unresolved
+version: 0.1.0
+
+node test.unresolved.depends
+type: workflow
+summary: workflow depending on a non-existent node
+depends: [test.nonexistent.node]
+steps:
+  - step one

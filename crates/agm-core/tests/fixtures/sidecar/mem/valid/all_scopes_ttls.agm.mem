@@ -1,0 +1,35 @@
+# agm.mem: 1.0
+# package: test.pkg
+# updated_at: 2026-04-08T10:00:00Z
+
+entry scope.node
+topic: test
+scope: node
+ttl: session
+value: node-scoped value
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z
+
+entry scope.session
+topic: test
+scope: session
+ttl: session
+value: session-scoped value
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z
+
+entry scope.project.permanent
+topic: test
+scope: project
+ttl: permanent
+value: project-scoped permanent value
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z
+
+entry scope.global.duration
+topic: test
+scope: global
+ttl: duration:P7D
+value: global-scoped duration value
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z

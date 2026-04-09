@@ -1,0 +1,23 @@
+agm: 1.0
+package: test.memory.context
+version: 0.1.0
+
+node data.store
+type: facts
+summary: data storage patterns
+memory:
+  - key: data.connection_pool
+    topic: infrastructure
+    action: upsert
+    value: "pool size = 10"
+    scope: project
+    ttl: permanent
+
+node data.migrate
+type: workflow
+summary: migrate database schema
+depends: [data.store]
+agent_context:
+  load_nodes: [data.store]
+  load_memory: [infrastructure]
+  system_hint: "Check memory for connection patterns"

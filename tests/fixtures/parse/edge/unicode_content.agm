@@ -1,0 +1,30 @@
+# expect: parse ok
+# description: CJK, accented characters, and symbols in field values
+agm: 1.0
+package: test.unicode
+version: 0.1.0
+title: Unicode Content Test — テスト
+
+node test.unicode.cjk
+type: facts
+summary: node with CJK characters in content -- 日本語テスト
+items:
+  - 项目一
+  - 項目二
+  - 아이템_셋
+
+node test.unicode.accented
+type: glossary
+summary: terme avec des accents — définition en français
+detail:
+  El sistema soporta caracteres acentuados: á, é, í, ó, ú, ñ, ü.
+  Aussi des caractères spéciaux: «guillemets», –tiret, …ellipse.
+  Ελληνικά: αβγδεζηθ.
+
+node test.unicode.symbols
+type: rules
+summary: rules referencing symbolic notation ∀x ∈ ℝ
+items:
+  - rule_with_math: ∑(x) ≥ 0
+  - rule_with_arrows: input → process → output
+  - rule_with_emoji_free: no_emoji_per_project_rules

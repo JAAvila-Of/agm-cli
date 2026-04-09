@@ -1,0 +1,14 @@
+# agm.state: 1.0
+# package: test.pkg
+# version: 0.1.0
+# session_id: run-001
+# started_at: 2026-04-08T10:00:00Z
+# updated_at: 2026-04-08T10:00:00Z
+
+state dup.node
+execution_status: pending
+retry_count: 0
+
+state dup.node
+execution_status: ready
+retry_count: 0

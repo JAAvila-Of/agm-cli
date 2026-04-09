@@ -1,0 +1,51 @@
+AGM CLI
+Copyright 2025-2026 Jose Angel Avila
+
+This product includes software developed by Jose Angel Avila
+(https://github.com/JAAvila-Of/agm-cli).
+
+This product includes the following third-party dependencies:
+
+  clap - MIT OR Apache-2.0
+    https://github.com/clap-rs/clap
+    Copyright (c) 2015-2022 Kevin B. Knapp and clap contributors
+
+  serde / serde_json - MIT OR Apache-2.0
+    https://github.com/serde-rs/serde
+    Copyright (c) David Tolnay
+
+  thiserror - MIT OR Apache-2.0
+    https://github.com/dtolnay/thiserror
+    Copyright (c) David Tolnay
+
+  miette - Apache-2.0
+    https://github.com/zkat/miette
+    Copyright (c) Kat Marchán
+
+  petgraph - MIT OR Apache-2.0
+    https://github.com/petgraph/petgraph
+    Copyright (c) 2015 petgraph contributors
+
+  regex - MIT OR Apache-2.0
+    https://github.com/rust-lang/regex
+    Copyright (c) 2014 The Rust Project Developers
+
+  semver - MIT OR Apache-2.0
+    https://github.com/dtolnay/semver
+    Copyright (c) David Tolnay
+
+  anyhow - MIT OR Apache-2.0
+    https://github.com/dtolnay/anyhow
+    Copyright (c) David Tolnay
+
+  time - MIT OR Apache-2.0
+    https://github.com/time-rs/time
+    Copyright (c) time-rs contributors
+
+  log - MIT OR Apache-2.0
+    https://github.com/rust-lang/log
+    Copyright (c) 2014 The Rust Project Developers
+
+  self_update - MIT
+    https://github.com/jaemk/self_update
+    Copyright (c) 2017 James K.

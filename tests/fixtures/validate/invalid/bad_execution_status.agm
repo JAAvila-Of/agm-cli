@@ -1,0 +1,12 @@
+# expect: error AGM-P003
+# description: execution_status has an invalid/unknown value
+agm: 1.0
+package: test.validate.execstatus
+version: 0.1.0
+
+node test.bad.exec.status
+type: workflow
+summary: node with an invalid execution_status value
+execution_status: running
+steps:
+  - step one

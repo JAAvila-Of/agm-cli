@@ -1,0 +1,17 @@
+# expect: error AGM-V008
+# description: code block with action replace but missing required old field
+agm: 1.0
+package: test.validate.codeblock
+version: 0.1.0
+
+node test.code.replace.no.old
+type: workflow
+summary: workflow with replace code block missing the old field
+steps:
+  - replace the function
+code:
+  lang: rust
+  target: src/main.rs
+  action: replace
+  body: |
+    fn main() { println!("new"); }

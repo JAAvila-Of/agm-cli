@@ -1,0 +1,21 @@
+# expect: parse ok
+# description: node with agent_context including load_nodes, load_files, system_hint, max_tokens
+agm: 1.0
+package: test.agentctx
+version: 0.1.0
+
+node test.with.agentcontext
+type: workflow
+summary: workflow with a full agent_context definition
+steps:
+  - analyze existing code
+  - implement changes
+agent_context:
+  load_nodes: [test.facts.node, test.rules.node]
+  load_files:
+    - path: src/lib.rs
+      range: full
+    - path: src/models.rs
+      range: [1, 100]
+  system_hint: "Focus on the public API surface. Maintain backward compatibility."
+  max_tokens: 4000

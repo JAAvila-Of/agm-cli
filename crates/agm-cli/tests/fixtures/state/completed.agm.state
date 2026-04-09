@@ -1,0 +1,24 @@
+# agm.state: 1.0
+# package: test.orchestration.linear
+# version: 1.0.0
+# session_id: run-2026-04-08-100000
+# started_at: 2026-04-08T10:00:00Z
+# updated_at: 2026-04-08T10:05:00Z
+
+state step_a
+execution_status: completed
+executed_by: shell-agent
+executed_at: 2026-04-08T10:01:00Z
+retry_count: 0
+
+state step_b
+execution_status: completed
+executed_by: shell-agent
+executed_at: 2026-04-08T10:02:00Z
+retry_count: 0
+
+state step_c
+execution_status: completed
+executed_by: shell-agent
+executed_at: 2026-04-08T10:03:00Z
+retry_count: 0

@@ -1,0 +1,41 @@
+agm: 1.0
+package: test.orchestration.failure
+version: 1.0.0
+
+node step_a
+type: workflow
+summary: Succeeding node
+code:
+  lang: sh
+  action: full
+  body: echo step_a done
+
+node step_b
+type: workflow
+summary: Node that fails verification
+depends: [step_a]
+code:
+  lang: sh
+  action: full
+  body: echo step_b done
+verify:
+  - type: file_exists
+    file: __nonexistent_file_that_should_never_exist__.txt
+
+node step_c
+type: workflow
+summary: Blocked by step_b
+depends: [step_b]
+code:
+  lang: sh
+  action: full
+  body: echo step_c done
+
+node step_d
+type: workflow
+summary: Also blocked by step_b
+depends: [step_b]
+code:
+  lang: sh
+  action: full
+  body: echo step_d done

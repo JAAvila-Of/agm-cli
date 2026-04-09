@@ -1,0 +1,14 @@
+# expect: parse ok
+# description: file with import declarations using version constraints
+agm: 1.0
+package: test.imports
+version: 0.1.0
+imports: [shared.security@^1.0.0, shared.http, core.utils@~2.0.0]
+
+node test.uses.imported
+type: workflow
+summary: a workflow that references imported packages
+depends: [shared.security.auth.rules]
+steps:
+  - load security rules from imported package
+  - apply rules to request

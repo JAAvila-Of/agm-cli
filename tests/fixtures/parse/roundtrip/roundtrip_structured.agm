@@ -1,0 +1,34 @@
+# expect: parse ok
+# description: workflow with code_blocks, verify, and agent_context for round-trip testing
+agm: 1.0
+package: test.roundtrip.structured
+version: 0.1.0
+
+node rt.structured.node
+type: workflow
+summary: workflow node with structured fields for round-trip testing
+steps:
+  - analyze input
+  - run transformation
+  - verify output
+code_blocks:
+  - lang: bash
+    target: scripts/build.sh
+    action: create
+    body: |
+      cargo build --release
+  - lang: bash
+    target: scripts/test.sh
+    action: create
+    body: |
+      cargo test
+verify:
+  - type: command
+    run: cargo check
+    expect: exit_code_0
+  - type: file_exists
+    file: target/release/agm-cli
+agent_context:
+  load_nodes: [rt.structured.node]
+  system_hint: "Focus on the transformation step."
+  max_tokens: 2000

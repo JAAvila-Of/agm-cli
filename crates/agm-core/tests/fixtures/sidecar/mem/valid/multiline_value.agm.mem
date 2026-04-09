@@ -1,0 +1,13 @@
+# agm.mem: 1.0
+# package: test.pkg
+# updated_at: 2026-04-08T10:00:00Z
+
+entry project.notes
+topic: documentation
+scope: project
+ttl: permanent
+value: Primera linea del valor
+  Segunda linea continuada
+  Tercera linea continuada
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z

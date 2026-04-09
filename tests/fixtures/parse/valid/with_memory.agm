@@ -1,0 +1,45 @@
+# expect: parse ok
+# description: nodes with memory field covering get, upsert, and search actions
+agm: 1.0
+package: test.memory
+version: 0.1.0
+
+node test.memory.upsert
+type: workflow
+summary: workflow that upserts a value into memory
+steps:
+  - compute value
+  - store in memory
+memory:
+  - action: upsert
+    topic: user.preferences
+    key: session.user.preference
+    value: dark_mode
+    scope: session
+    ttl: 3600
+
+node test.memory.get
+type: workflow
+summary: workflow that retrieves a value from memory
+steps:
+  - retrieve user preference
+  - apply to rendering
+memory:
+  - action: get
+    topic: user.preferences
+    key: session.user.preference
+    scope: session
+
+node test.memory.search
+type: workflow
+summary: workflow that searches memory for matching entries
+steps:
+  - search relevant context
+  - filter results
+memory:
+  - action: search
+    topic: user.preferences
+    key: user.search.results
+    query: user preferences
+    max_results: 10
+    scope: global

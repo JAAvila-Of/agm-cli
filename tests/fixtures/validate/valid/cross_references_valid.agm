@@ -1,0 +1,58 @@
+# expect: validate ok
+# description: all relationship fields pointing to existing nodes within the same file
+agm: 1.0
+package: test.validate.xref
+version: 0.1.0
+
+node test.xref.base
+type: facts
+summary: base node referenced by all relationship types
+items:
+  - foundation
+
+node test.xref.rules
+type: rules
+summary: rules node depending on base
+depends: [test.xref.base]
+items:
+  - rule_based_on_facts
+
+node test.xref.old
+type: decision
+status: superseded
+summary: old decision being replaced
+rationale:
+  - original approach
+
+node test.xref.related
+type: facts
+summary: related node referenced for context
+items:
+  - related_item
+
+node test.xref.conflict
+type: decision
+summary: conflicting decision
+rationale:
+  - conflicting approach
+tradeoffs:
+  - tradeoff
+
+node test.xref.seealso
+type: glossary
+summary: glossary term for see_also reference
+detail:
+  Term definition.
+
+node test.xref.main
+type: decision
+summary: main node exercising all relationship types pointing to existing nodes
+depends: [test.xref.base, test.xref.rules]
+related_to: [test.xref.related]
+replaces: [test.xref.old]
+conflicts: [test.xref.conflict]
+see_also: [test.xref.seealso]
+rationale:
+  - all references resolve to existing nodes
+tradeoffs:
+  - complex reference graph

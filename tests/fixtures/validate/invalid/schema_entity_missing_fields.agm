@@ -1,0 +1,11 @@
+# expect: error AGM-V024
+# description: entity node missing the schema-required fields field
+agm: 1.0
+package: test.validate.schema
+version: 0.1.0
+
+node test.entity.no.fields
+type: entity
+summary: entity node missing the required fields field
+detail:
+  An entity should define its fields but this one does not.

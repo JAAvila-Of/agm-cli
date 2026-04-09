@@ -1,0 +1,29 @@
+# expect: parse ok
+# description: comments interspersed between fields and nodes
+agm: 1.0
+# this comment is between header fields
+package: test.comments
+# another comment
+version: 0.1.0
+# comment after header, before first node
+
+# standalone comment block
+
+node test.first.node
+# comment between node declaration and type
+type: facts
+# comment between fields
+summary: node with comments between its fields
+# comment after last field of first node
+
+# comment between nodes
+
+node test.second.node
+type: rules
+# inline comment before summary
+summary: second node also with interspersed comments
+items:
+  # comment inside list
+  - item_one
+  # another comment inside list
+  - item_two

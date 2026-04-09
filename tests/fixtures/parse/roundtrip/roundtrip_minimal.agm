@@ -1,0 +1,12 @@
+# expect: parse ok
+# description: minimal file for parse round-trip: header + 1 facts node with items
+agm: 1.0
+package: test.roundtrip.minimal
+version: 0.1.0
+
+node test.minimal.node
+type: facts
+summary: a minimal node for round-trip testing
+items:
+  - fact one
+  - fact two

@@ -1,0 +1,73 @@
+# expect: validate ok
+# description: all 10 node types with correct required fields per schema
+agm: 1.0
+package: test.validate.alltypes
+version: 0.1.0
+
+node test.facts.valid
+type: facts
+summary: well-formed facts node
+items:
+  - fact_one
+  - fact_two
+
+node test.rules.valid
+type: rules
+summary: well-formed rules node
+items:
+  - rule_one
+  - rule_two
+
+node test.workflow.valid
+type: workflow
+summary: well-formed workflow node
+steps:
+  - step one
+  - step two
+
+node test.entity.valid
+type: entity
+summary: well-formed entity node
+fields:
+  - id: string
+  - name: string
+
+node test.decision.valid
+type: decision
+summary: well-formed decision node
+rationale:
+  - reason one
+tradeoffs:
+  - tradeoff one
+
+node test.exception.valid
+type: exception
+summary: well-formed exception node
+resolution:
+  - handle it
+
+node test.example.valid
+type: example
+summary: well-formed example node
+detail:
+  Example detail here.
+
+node test.glossary.valid
+type: glossary
+summary: well-formed glossary node
+detail:
+  Term definition here.
+
+node test.antipattern.valid
+type: anti_pattern
+summary: well-formed anti_pattern node
+detail:
+  Avoid this approach.
+
+node test.orchestration.valid
+type: orchestration
+summary: well-formed orchestration node
+parallel_groups:
+  - group: phase1
+    nodes: [test.workflow.valid]
+    strategy: sequential

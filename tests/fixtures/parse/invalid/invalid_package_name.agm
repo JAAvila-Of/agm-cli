@@ -1,0 +1,9 @@
+# expect: error AGM-P001
+# description: package name contains uppercase and hyphen which are not allowed
+agm: 1.0
+package: Auth-Platform
+version: 0.1.0
+
+node test.node
+type: facts
+summary: node in file with invalid package name

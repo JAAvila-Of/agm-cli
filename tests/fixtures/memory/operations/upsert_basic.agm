@@ -1,0 +1,18 @@
+# expect: parse ok
+# description: single memory upsert with value, scope, and ttl
+agm: 1.0
+package: test.memory.ops
+version: 0.1.0
+
+node test.memory.upsert.basic
+type: workflow
+summary: basic upsert memory operation with value scope and ttl
+steps:
+  - compute the value
+  - store in memory with ttl
+memory:
+  - action: upsert
+    key: user.preference.theme
+    value: dark
+    scope: session
+    ttl: 3600

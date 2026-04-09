@@ -1,0 +1,36 @@
+# expect: parse ok
+# description: product knowledge with temporal scope example from spec S38.4
+agm: 1.0
+package: product.pricing
+version: 0.3.0
+
+node pricing.plan.matrix
+type: facts
+stability: medium
+priority: critical
+summary: plans are free, pro and enterprise with increasing limits and capabilities
+items:
+  - free
+  - pro
+  - enterprise
+
+node pricing.rule.enterprise_only_feature_x
+type: rules
+stability: medium
+priority: high
+scope: [enterprise]
+summary: feature_x is only available for enterprise customers
+items:
+  - feature_x_requires_enterprise_tier
+
+node pricing.rule.promo_q2_upgrade_discount
+type: rules
+stability: low
+priority: normal
+valid_from: 2026-04-01
+valid_until: 2026-06-30
+summary: q2 promotional upgrade discount applies to pro annual upgrades
+items:
+  - promo_window_q2_2026
+  - annual_upgrade_only
+  - pro_plan_target

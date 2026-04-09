@@ -1,0 +1,28 @@
+[package]
+name = "agm-core"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Core library for parsing, validating, loading, and rendering AGM (Agent Graph Memory) files"
+documentation = "https://docs.rs/agm-core"
+readme = "../../README.md"
+keywords = ["agm", "agent", "graph", "knowledge", "parser"]
+categories = ["command-line-utilities", "parser-implementations", "data-structures"]
+exclude = ["tests/fixtures/", "tests/snapshots/", "tests/conformance/"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+miette.workspace = true
+petgraph.workspace = true
+regex.workspace = true
+semver.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+tempfile.workspace = true

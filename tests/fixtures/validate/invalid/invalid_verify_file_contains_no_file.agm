@@ -1,0 +1,14 @@
+# expect: error AGM-V009
+# description: verify file_contains check missing required file field
+agm: 1.0
+package: test.validate.verify
+version: 0.1.0
+
+node test.verify.contains.no.file
+type: workflow
+summary: workflow with file_contains verify check missing file field
+steps:
+  - write something
+verify:
+  - type: file_contains
+    pattern: "some pattern"

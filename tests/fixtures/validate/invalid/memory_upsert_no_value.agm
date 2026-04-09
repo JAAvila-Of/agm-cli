@@ -1,0 +1,14 @@
+# expect: error AGM-V023
+# description: memory upsert action missing required value field
+agm: 1.0
+package: test.validate.memory
+version: 0.1.0
+
+node test.memory.upsert.novalue
+type: workflow
+summary: workflow with upsert memory entry missing required value
+steps:
+  - upsert without value
+memory:
+  - action: upsert
+    key: some.memory.key

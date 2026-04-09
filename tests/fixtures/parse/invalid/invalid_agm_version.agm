@@ -1,0 +1,9 @@
+# expect: error AGM-P001
+# description: agm version field has non-numeric value
+agm: latest
+package: test.invalid.agmver
+version: 0.1.0
+
+node test.node
+type: facts
+summary: node in file with invalid agm version value

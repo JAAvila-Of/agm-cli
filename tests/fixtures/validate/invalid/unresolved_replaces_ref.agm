@@ -1,0 +1,14 @@
+# expect: error AGM-V004
+# description: replaces references a node ID that does not exist in the file
+agm: 1.0
+package: test.validate.unresolved
+version: 0.1.0
+
+node test.unresolved.replaces
+type: decision
+summary: decision with replaces pointing to non-existent node
+replaces: [test.does.not.exist]
+rationale:
+  - improved approach
+tradeoffs:
+  - some tradeoff

@@ -1,0 +1,7 @@
+---
+source: crates/agm-core/tests/renderer_snapshots.rs
+expression: output
+---
+graph LR
+    auth_stack["auth.stack<br/>[facts]"]
+    auth_constraints["auth.constraints<br/>[rules]"]

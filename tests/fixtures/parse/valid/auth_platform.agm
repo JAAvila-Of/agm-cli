@@ -1,0 +1,179 @@
+# expect: parse ok
+# description: authentication platform example from spec S38.1
+agm: 1.0
+package: auth.platform
+version: 0.2.0
+title: Authentication Platform Core
+owner: security-platform
+default_load: summary
+tags: [auth, security, oidc]
+
+node auth.stack
+type: facts
+stability: medium
+priority: high
+tags: [stack, infrastructure]
+summary: next15 frontend; net8 backend; identityserver4 local idp; azure external id as external provider
+items:
+  - frontend=next15
+  - backend=net8
+  - local_idp=identityserver4
+  - external_idp=azure_external_id
+detail:
+  The frontend uses Next.js App Router.
+  The backend uses .NET 8 services.
+  IdentityServer4 acts as the local identity provider.
+  Azure External ID is used for external federation scenarios.
+
+node auth.constraints
+type: rules
+stability: high
+priority: critical
+tags: [security]
+summary: no browser tokens; sensitive calls from server only; tenant selected by host
+items:
+  - no_client_tokens
+  - server_side_sensitive_calls
+  - host_based_tenant_selection
+detail:
+  Access and refresh tokens MUST remain server-side.
+  The browser stores only an opaque httpOnly sid cookie.
+  Sensitive API calls SHOULD originate from trusted server-side paths.
+  Tenant resolution MUST fail closed for unknown hosts.
+
+node auth.session
+type: entity
+stability: medium
+priority: high
+tags: [domain, session]
+summary: opaque sid maps to server-side token pair and session metadata
+fields:
+  - sid: opaque string
+  - user_id: string
+  - tenant_id: string
+  - access_token: secure server-side secret
+  - refresh_token: secure server-side secret
+  - expires_at: datetime
+detail:
+  sid is the only browser-visible session identifier.
+  Token material MUST NOT be exposed to client runtime code.
+  Session revocation invalidates the sid-to-token mapping.
+
+node auth.tenant.resolve
+type: workflow
+stability: medium
+priority: high
+tags: [tenant]
+input: [host]
+output: [tenant_id, oidc_config]
+summary: map request host to tenant and oidc configuration
+steps:
+  - inspect request host
+  - resolve host-to-tenant mapping
+  - load oidc configuration for that tenant
+  - reject unknown or disabled hosts
+detail:
+  Resolution should be deterministic for a given host.
+  Configuration lookup may be cached but MUST reflect authoritative tenant state.
+
+node auth.login
+type: workflow
+stability: medium
+priority: critical
+tags: [login, oidc]
+depends: [auth.constraints, auth.session, auth.tenant.resolve]
+input: [host, return_url]
+output: [redirect_url, sid_cookie]
+summary: resolve tenant -> select oidc config -> redirect -> callback -> create sid session
+steps:
+  - resolve tenant from request host
+  - select oidc config for that tenant
+  - redirect to identity provider
+  - validate callback, correlation, and state
+  - persist access and refresh token server-side
+  - create sid session
+  - emit httpOnly sid cookie
+detail:
+  Login MUST NOT leak access tokens to the browser.
+  Correlation and state validation are mandatory.
+  Return URL validation SHOULD prevent open redirect issues.
+
+node auth.refresh
+type: workflow
+stability: medium
+priority: high
+depends: [auth.session, auth.constraints]
+input: [sid]
+output: [refreshed_session_state]
+summary: look up session by sid -> refresh upstream token if needed -> update server-side session
+steps:
+  - resolve sid to server-side session
+  - inspect token expiry
+  - if needed call refresh flow with upstream provider
+  - persist new token material server-side
+  - keep browser-visible sid stable unless rotation policy requires otherwise
+detail:
+  Refresh should remain invisible to the browser.
+  Failures SHOULD preserve security over convenience.
+
+node auth.logout
+type: workflow
+stability: medium
+priority: critical
+tags: [logout]
+depends: [auth.session]
+input: [sid]
+output: [session_revoked, cookie_cleared]
+summary: revoke server session, clear sid cookie, attempt upstream logout when supported
+steps:
+  - locate session by sid
+  - revoke local session
+  - clear sid cookie
+  - if provider supports end-session then trigger provider logout
+  - notify active realtime connections if needed
+detail:
+  Local revocation MUST complete even if upstream logout is unavailable.
+  Client-visible messaging SHOULD distinguish local sign-out from federated sign-out when needed.
+
+node auth.logout.no_upstream_endsession
+type: exception
+stability: medium
+priority: high
+depends: [auth.logout]
+summary: some providers allow local logout but do not guarantee upstream sign-out
+detail:
+  The local session can be terminated successfully while the upstream provider session remains alive.
+  Reauthentication may silently reuse that provider session.
+resolution:
+  - show clear logout scope to the user
+  - optionally force account chooser
+  - document provider limitation
+  - do not treat this as a local session revocation failure
+
+node auth.browser_token_model
+type: anti_pattern
+stability: high
+priority: high
+tags: [security, anti-pattern]
+summary: browser-stored access tokens increase exposure and weaken revocation control
+detail:
+  localStorage or sessionStorage token persistence increases the exposure surface.
+  It also weakens server-side control over revocation and rotation.
+
+node auth.session_model_decision
+type: decision
+stability: high
+priority: critical
+tags: [architecture]
+depends: [auth.constraints, auth.session]
+conflicts: [auth.browser_token_model]
+summary: choose opaque sid cookie with server-side token storage instead of browser token model
+rationale:
+  - lowers token exposure surface
+  - centralizes revocation
+  - aligns with bff architecture
+  - simplifies browser-side trust assumptions
+tradeoffs:
+  - session lookup becomes mandatory
+  - backend complexity increases
+  - horizontal scale requires robust session persistence

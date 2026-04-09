@@ -1,0 +1,40 @@
+# expect: parse ok
+# description: nodes with each valid confidence value
+agm: 1.0
+package: test.confidences
+version: 0.1.0
+
+node test.confidence.high
+type: facts
+confidence: high
+summary: node with high confidence
+items:
+  - verified_item
+
+node test.confidence.medium
+type: facts
+confidence: medium
+summary: node with medium confidence
+items:
+  - likely_item
+
+node test.confidence.low
+type: facts
+confidence: low
+summary: node with low confidence
+items:
+  - uncertain_item
+
+node test.confidence.inferred
+type: facts
+confidence: inferred
+summary: node with inferred confidence
+items:
+  - inferred_item
+
+node test.confidence.tentative
+type: facts
+confidence: tentative
+summary: node with tentative confidence
+items:
+  - tentative_item

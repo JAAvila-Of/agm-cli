@@ -1,0 +1,17 @@
+agm: 1.0
+package: test.memory
+version: 0.1.0
+
+node repo.update
+type: workflow
+summary: update repository with memory operations
+memory:
+  - key: repo.kanban_column.row_mapping_pattern
+    topic: rust.repository
+    action: upsert
+    value: "The kanban board uses get() to map columns to rows"
+    scope: project
+    ttl: permanent
+  - key: repo.schema_version
+    topic: infrastructure
+    action: get

@@ -1,0 +1,26 @@
+# expect: parse ok
+# description: pricing with temporal scope for JSON forward serialization test
+agm: 1.0
+package: product.pricing
+version: 0.3.0
+
+node pricing.plan.matrix
+type: facts
+stability: medium
+priority: critical
+summary: plans are free, pro and enterprise
+items:
+  - free
+  - pro
+  - enterprise
+
+node pricing.rule.promo
+type: rules
+stability: low
+priority: normal
+valid_from: 2026-04-01
+valid_until: 2026-06-30
+summary: q2 promotional discount applies to pro annual upgrades
+items:
+  - promo_window_q2_2026
+  - annual_upgrade_only

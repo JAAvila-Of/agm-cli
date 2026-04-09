@@ -1,0 +1,15 @@
+---
+source: crates/agm-core/src/renderer/mem.rs
+expression: output
+---
+# agm.mem: 1.0
+# package: acme.migration
+# updated_at: 2026-04-08T15:30:00Z
+
+entry project.db_version
+topic: infrastructure
+scope: project
+ttl: permanent
+value: PostgreSQL 15.2
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z

@@ -1,0 +1,12 @@
+# expect: error AGM-P004
+# description: tab character used for indentation instead of spaces
+agm: 1.0
+package: test.tab.indent
+version: 0.1.0
+
+node test.tab.indented
+type: facts
+summary: node with tab-indented list items
+items:
+	- tab_indented_item
+	- another_tab_item

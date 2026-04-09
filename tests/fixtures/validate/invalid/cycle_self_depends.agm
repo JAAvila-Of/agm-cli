@@ -1,0 +1,12 @@
+# expect: error AGM-V005
+# description: node depends on itself -- self-referential cycle
+agm: 1.0
+package: test.validate.cycle
+version: 0.1.0
+
+node test.self.cycle
+type: workflow
+summary: node that depends on itself creating a self-loop
+depends: [test.self.cycle]
+steps:
+  - recursive step

@@ -1,0 +1,25 @@
+# expect: warning AGM-V013
+# description: two active nodes that declare conflicts with each other
+agm: 1.0
+package: test.validate.conflict
+version: 0.1.0
+
+node test.policy.a
+type: decision
+status: active
+summary: policy A which conflicts with policy B
+conflicts: [test.policy.b]
+rationale:
+  - approach A is better
+tradeoffs:
+  - incompatible with B
+
+node test.policy.b
+type: decision
+status: active
+summary: policy B which conflicts with policy A
+conflicts: [test.policy.a]
+rationale:
+  - approach B is better
+tradeoffs:
+  - incompatible with A

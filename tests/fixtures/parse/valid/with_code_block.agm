@@ -1,0 +1,21 @@
+# expect: parse ok
+# description: node with a single code block (lang, target, action, body)
+agm: 1.0
+package: test.codeblock
+version: 0.1.0
+
+node test.with.code
+type: workflow
+summary: workflow with a single code block
+steps:
+  - create the migration file
+code:
+  lang: sql
+  target: migrations/001_init.sql
+  action: create
+  body: |
+    CREATE TABLE users (
+        id INTEGER PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL
+    );

@@ -1,0 +1,20 @@
+agm: 1.0
+package: test.orchestration.noverify
+version: 1.0.0
+
+node task_one
+type: workflow
+summary: First task without verify
+code:
+  lang: sh
+  action: full
+  body: echo task_one done
+
+node task_two
+type: workflow
+summary: Second task without verify
+depends: [task_one]
+code:
+  lang: sh
+  action: full
+  body: echo task_two done

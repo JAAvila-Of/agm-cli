@@ -1,0 +1,35 @@
+# expect: validate ok
+# description: multiple nodes with valid cross-references forming a DAG
+agm: 1.0
+package: test.validate.multirefs
+version: 0.1.0
+
+node test.multi.base
+type: facts
+summary: base node in a multi-node reference DAG
+items:
+  - foundation item
+
+node test.multi.intermediate.a
+type: rules
+summary: intermediate node A depending on base
+depends: [test.multi.base]
+items:
+  - rule derived from base
+
+node test.multi.intermediate.b
+type: workflow
+summary: intermediate node B also depending on base
+depends: [test.multi.base]
+steps:
+  - step derived from base
+
+node test.multi.leaf
+type: decision
+summary: leaf node depending on both intermediate nodes
+depends: [test.multi.intermediate.a, test.multi.intermediate.b]
+related_to: [test.multi.base]
+rationale:
+  - depends on all upstream nodes
+tradeoffs:
+  - complex dependency chain

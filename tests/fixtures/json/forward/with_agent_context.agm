@@ -1,0 +1,18 @@
+# expect: parse ok
+# description: node with agent_context for JSON forward serialization test
+agm: 1.0
+package: test.json.agentctx
+version: 0.1.0
+
+node test.json.agentcontext
+type: workflow
+summary: workflow with agent_context for JSON serialization
+steps:
+  - analyze and implement
+agent_context:
+  load_nodes: [test.json.agentcontext]
+  load_files:
+    - path: src/lib.rs
+      range: full
+  system_hint: "Implementation context for JSON serialization test."
+  max_tokens: 2000

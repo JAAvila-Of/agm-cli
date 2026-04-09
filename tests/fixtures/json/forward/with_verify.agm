@@ -1,0 +1,17 @@
+# expect: parse ok
+# description: node with verify checks for JSON forward serialization test
+agm: 1.0
+package: test.json.verify
+version: 0.1.0
+
+node test.json.verify
+type: workflow
+summary: workflow with verify checks for JSON serialization
+steps:
+  - do work
+verify:
+  - type: command
+    run: cargo test
+    expect: exit_code_0
+  - type: file_exists
+    file: target/debug/myapp

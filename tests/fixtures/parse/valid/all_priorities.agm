@@ -1,0 +1,33 @@
+# expect: parse ok
+# description: nodes with each valid priority value
+agm: 1.0
+package: test.priorities
+version: 0.1.0
+
+node test.priority.critical
+type: facts
+priority: critical
+summary: node with critical priority
+items:
+  - critical_item
+
+node test.priority.high
+type: facts
+priority: high
+summary: node with high priority
+items:
+  - high_item
+
+node test.priority.normal
+type: facts
+priority: normal
+summary: node with normal priority
+items:
+  - normal_item
+
+node test.priority.low
+type: facts
+priority: low
+summary: node with low priority
+items:
+  - low_item

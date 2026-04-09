@@ -1,0 +1,20 @@
+# expect: parse ok
+# description: no blank lines between nodes
+agm: 1.0
+package: test.minwhitespace
+version: 0.1.0
+node test.first.node
+type: facts
+summary: first node with no blank line after header
+items:
+  - item_one
+node test.second.node
+type: rules
+summary: second node immediately after first with no blank line
+items:
+  - rule_one
+node test.third.node
+type: workflow
+summary: third node immediately after second with no blank line
+steps:
+  - step one

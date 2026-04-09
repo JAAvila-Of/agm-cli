@@ -1,0 +1,15 @@
+# expect: parse ok
+# description: single memory delete operation
+agm: 1.0
+package: test.memory.ops
+version: 0.1.0
+
+node test.memory.delete.basic
+type: workflow
+summary: basic delete memory operation to remove a stored entry
+steps:
+  - delete user session data from memory
+memory:
+  - action: delete
+    key: user.session.data
+    scope: session

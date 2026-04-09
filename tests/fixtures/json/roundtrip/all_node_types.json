@@ -1,0 +1,47 @@
+{
+  "agm": 1,
+  "default_load": "summary",
+  "nodes": [
+    {
+      "items": [
+        "frontend=next15",
+        "backend=net8",
+        "local_idp=identityserver4",
+        "external_idp=azure_external_id"
+      ],
+      "node": "auth.stack",
+      "priority": "high",
+      "stability": "medium",
+      "summary": "next15 frontend; net8 backend; identityserver4 local idp; azure external id as external provider",
+      "tags": [
+        "stack",
+        "infrastructure"
+      ],
+      "type": "facts"
+    },
+    {
+      "items": [
+        "no_client_tokens",
+        "server_side_sensitive_calls",
+        "host_based_tenant_selection"
+      ],
+      "node": "auth.constraints",
+      "priority": "critical",
+      "stability": "high",
+      "summary": "no browser tokens; sensitive calls from server only; tenant selected by host",
+      "tags": [
+        "security"
+      ],
+      "type": "rules"
+    }
+  ],
+  "owner": "security-platform",
+  "package": "auth.platform",
+  "tags": [
+    "auth",
+    "security",
+    "oidc"
+  ],
+  "title": "Authentication Platform Core",
+  "version": "0.2.0"
+}

@@ -1,0 +1,8 @@
+# expect: warning AGM-V010
+# description: node without type field
+agm: 1.0
+package: test.missing.type
+version: 0.1.0
+
+node test.no.type
+summary: this node is missing the required type field

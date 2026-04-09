@@ -1,0 +1,14 @@
+# expect: error AGM-V016
+# enforcement: strict
+# description: field not allowed for node type under strict schema mode
+agm: 1.0
+package: test.validate.disallowed
+version: 0.1.0
+
+node test.disallowed.strict
+type: facts
+summary: facts node with a field disallowed under strict schema
+items:
+  - fact_one
+steps:
+  - this_field_is_not_allowed_on_facts_type

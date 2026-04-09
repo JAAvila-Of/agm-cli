@@ -1,0 +1,37 @@
+# expect: validate ok
+# description: types with universal optional fields added -- should pass standard schema validation
+agm: 1.0
+package: test.validate.standard
+version: 0.1.0
+
+node test.standard.facts
+type: facts
+stability: high
+priority: critical
+tags: [test, standard]
+summary: facts node with universal optional fields
+confidence: high
+items:
+  - required_item
+
+node test.standard.workflow
+type: workflow
+stability: medium
+priority: high
+tags: [workflow, test]
+summary: workflow with universal optional fields added
+execution_status: pending
+steps:
+  - step one
+
+node test.standard.decision
+type: decision
+stability: high
+priority: critical
+tags: [architecture]
+summary: decision with universal optional fields
+depends: [test.standard.facts]
+rationale:
+  - reason based on facts
+tradeoffs:
+  - some tradeoff

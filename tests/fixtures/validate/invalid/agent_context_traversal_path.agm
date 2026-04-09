@@ -1,0 +1,16 @@
+# expect: error AGM-V015
+# description: agent_context load_files uses a path traversal sequence (not allowed)
+agm: 1.0
+package: test.validate.path
+version: 0.1.0
+
+node test.agentctx.traversal.path
+type: workflow
+summary: workflow with agent_context load_files using path traversal
+steps:
+  - analyze code
+agent_context:
+  load_files:
+    - path: ../../sensitive/config.toml
+      range: full
+  system_hint: "traversal path should be rejected"

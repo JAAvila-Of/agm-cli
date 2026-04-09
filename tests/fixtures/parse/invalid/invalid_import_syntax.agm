@@ -1,0 +1,10 @@
+# expect: error AGM-P001
+# description: imports field with an entry starting with @ (no package name) is invalid
+agm: 1.0
+package: test.invalid.imports
+version: 0.1.0
+imports: [@bad.package]
+
+node test.node
+type: facts
+summary: node in file with malformed import entry (starts with @)

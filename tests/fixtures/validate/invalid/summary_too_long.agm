@@ -1,0 +1,11 @@
+# expect: warning AGM-V012
+# description: node summary field exceeds the recommended maximum length
+agm: 1.0
+package: test.validate.summary
+version: 0.1.0
+
+node test.long.summary
+type: facts
+summary: this summary is intentionally very long and exceeds the recommended maximum character limit for summaries in the AGM specification which is designed to keep summaries brief and scannable so that they can be used in list views and operational load modes without overwhelming the consumer with too much detail in what is meant to be a one-line description field
+items:
+  - item_one

@@ -1,0 +1,17 @@
+# expect: parse ok
+# description: single memory search operation with query and max_results
+agm: 1.0
+package: test.memory.ops
+version: 0.1.0
+
+node test.memory.search.basic
+type: workflow
+summary: basic search memory operation with query and result limit
+steps:
+  - search memory for relevant user context
+  - use top results for response
+memory:
+  - action: search
+    query: user preference settings
+    max_results: 5
+    scope: global

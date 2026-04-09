@@ -1,0 +1,11 @@
+# expect: error AGM-V024
+# description: orchestration node missing the schema-required parallel_groups field
+agm: 1.0
+package: test.validate.schema
+version: 0.1.0
+
+node test.orchestration.no.groups
+type: orchestration
+summary: orchestration node missing the required parallel_groups field
+detail:
+  An orchestration node must define parallel_groups but this one does not.

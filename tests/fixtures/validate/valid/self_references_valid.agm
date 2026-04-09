@@ -1,0 +1,25 @@
+# expect: validate ok
+# description: nodes with valid related_to cross-references forming a valid DAG
+agm: 1.0
+package: test.validate.selfrefs
+version: 0.1.0
+
+node test.selfref.a
+type: facts
+summary: first node in a valid cross-reference chain
+items:
+  - item a
+
+node test.selfref.b
+type: facts
+summary: second node referencing the first
+related_to: [test.selfref.a]
+items:
+  - item b
+
+node test.selfref.c
+type: rules
+summary: third node referencing first and second nodes
+related_to: [test.selfref.a, test.selfref.b]
+items:
+  - rule c

@@ -1,0 +1,41 @@
+# expect: parse ok
+# description: orchestration with groups using parallel strategy
+agm: 1.0
+package: test.orch.parallel
+version: 0.1.0
+
+node test.par.task1
+type: workflow
+summary: first parallel task
+steps:
+  - task 1 work
+
+node test.par.task2
+type: workflow
+summary: second parallel task
+steps:
+  - task 2 work
+
+node test.par.task3
+type: workflow
+summary: third parallel task
+steps:
+  - task 3 work
+
+node test.par.finalize
+type: workflow
+summary: finalization step after parallel tasks
+steps:
+  - aggregate results
+
+node test.orch.parallel
+type: orchestration
+summary: orchestration where a group runs multiple nodes in parallel
+parallel_groups:
+  - group: parallel-work
+    nodes: [test.par.task1, test.par.task2, test.par.task3]
+    strategy: parallel
+  - group: finalize
+    nodes: [test.par.finalize]
+    strategy: sequential
+    requires: [parallel-work]

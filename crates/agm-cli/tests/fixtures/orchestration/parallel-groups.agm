@@ -1,0 +1,51 @@
+agm: 1.0
+package: test.orchestration.groups
+version: 1.0.0
+
+node step_a
+type: workflow
+summary: Phase 1 setup
+code:
+  lang: sh
+  action: full
+  body: echo step_a done
+
+node step_b
+type: workflow
+summary: Phase 2 left task
+depends: [step_a]
+code:
+  lang: sh
+  action: full
+  body: echo step_b done
+
+node step_c
+type: workflow
+summary: Phase 2 right task
+depends: [step_a]
+code:
+  lang: sh
+  action: full
+  body: echo step_c done
+
+node step_d
+type: workflow
+summary: Phase 3 finalize
+depends: [step_b, step_c]
+code:
+  lang: sh
+  action: full
+  body: echo step_d done
+
+node main.pipeline
+type: orchestration
+summary: Pipeline with 3 parallel groups
+parallel_groups:
+  - group: phase1
+    nodes: [step_a]
+  - group: phase2
+    nodes: [step_b, step_c]
+    requires: [phase1]
+  - group: phase3
+    nodes: [step_d]
+    requires: [phase2]

@@ -1,0 +1,50 @@
+{
+  "agm": 1,
+  "nodes": [
+    {
+      "node": "test.json.task.a",
+      "steps": [
+        "task a work"
+      ],
+      "summary": "first task in orchestration",
+      "type": "workflow"
+    },
+    {
+      "depends": [
+        "test.json.task.a"
+      ],
+      "node": "test.json.task.b",
+      "steps": [
+        "task b work"
+      ],
+      "summary": "second task in orchestration",
+      "type": "workflow"
+    },
+    {
+      "node": "test.json.orchestration",
+      "parallel_groups": [
+        {
+          "group": "phase1",
+          "nodes": [
+            "test.json.task.a"
+          ],
+          "strategy": "sequential"
+        },
+        {
+          "group": "phase2",
+          "nodes": [
+            "test.json.task.b"
+          ],
+          "requires": [
+            "phase1"
+          ],
+          "strategy": "sequential"
+        }
+      ],
+      "summary": "orchestration coordinating tasks for JSON serialization",
+      "type": "orchestration"
+    }
+  ],
+  "package": "test.json.orchestration",
+  "version": "0.1.0"
+}

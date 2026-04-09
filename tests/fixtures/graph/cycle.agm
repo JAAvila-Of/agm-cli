@@ -1,0 +1,13 @@
+agm: 1.0
+package: test.cycle
+version: 0.1.0
+
+node test.cycle.a
+type: workflow
+summary: node A depends on node B creating a cycle
+depends: [test.cycle.b]
+
+node test.cycle.b
+type: workflow
+summary: node B depends on node A creating a cycle
+depends: [test.cycle.a]

@@ -1,0 +1,37 @@
+# expect: parse ok
+# description: deeply nested structured fields testing maximum nesting depth
+agm: 1.0
+package: test.nesting
+version: 0.1.0
+
+node test.deep.nesting
+type: workflow
+summary: node with deeply nested structured field content
+steps:
+  - step one
+code_blocks:
+  - lang: rust
+    target: src/deep.rs
+    action: create
+    body: |
+      mod outer {
+          mod inner {
+              mod deeper {
+                  pub fn deep_function() {
+                      let nested = vec![
+                          vec![
+                              vec!["level3_item1", "level3_item2"],
+                          ],
+                      ];
+                      println!("{:?}", nested);
+                  }
+              }
+          }
+      }
+agent_context:
+  load_nodes: [test.deep.nesting]
+  load_files:
+    - path: src/deep.rs
+      range: full
+  system_hint: "Deeply nested context for testing parser depth handling."
+  max_tokens: 2000

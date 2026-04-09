@@ -1,0 +1,17 @@
+# expect: error AGM-V015
+# description: code block target uses a path traversal sequence (not allowed)
+agm: 1.0
+package: test.validate.path
+version: 0.1.0
+
+node test.traversal.target
+type: workflow
+summary: workflow with code block using path traversal sequence
+steps:
+  - write to traversal path
+code:
+  lang: rust
+  target: ../../etc/passwd
+  action: create
+  body: |
+    malicious content

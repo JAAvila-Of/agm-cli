@@ -1,0 +1,30 @@
+# expect: parse ok
+# description: orchestration node for JSON forward serialization test
+agm: 1.0
+package: test.json.orchestration
+version: 0.1.0
+
+node test.json.task.a
+type: workflow
+summary: first task in orchestration
+steps:
+  - task a work
+
+node test.json.task.b
+type: workflow
+summary: second task in orchestration
+depends: [test.json.task.a]
+steps:
+  - task b work
+
+node test.json.orchestration
+type: orchestration
+summary: orchestration coordinating tasks for JSON serialization
+parallel_groups:
+  - group: phase1
+    nodes: [test.json.task.a]
+    strategy: sequential
+  - group: phase2
+    nodes: [test.json.task.b]
+    strategy: sequential
+    requires: [phase1]

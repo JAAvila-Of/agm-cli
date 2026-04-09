@@ -1,0 +1,36 @@
+# expect: parse ok
+# description: node with code_blocks containing multiple entries
+agm: 1.0
+package: test.codeblocks
+version: 0.1.0
+
+node test.with.codeblocks
+type: workflow
+summary: workflow with multiple code blocks for different targets
+steps:
+  - create model file
+  - create migration file
+  - add index
+code_blocks:
+  - lang: rust
+    target: src/models/user.rs
+    action: create
+    body: |
+      #[derive(Debug, Clone)]
+      pub struct User {
+          pub id: i64,
+          pub email: String,
+      }
+  - lang: sql
+    target: migrations/001_users.sql
+    action: create
+    body: |
+      CREATE TABLE users (
+          id INTEGER PRIMARY KEY,
+          email TEXT NOT NULL UNIQUE
+      );
+  - lang: sql
+    target: migrations/002_users_index.sql
+    action: create
+    body: |
+      CREATE INDEX idx_users_email ON users(email);

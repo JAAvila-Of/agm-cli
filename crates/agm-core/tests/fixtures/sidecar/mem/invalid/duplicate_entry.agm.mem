@@ -1,0 +1,19 @@
+# agm.mem: 1.0
+# package: test.pkg
+# updated_at: 2026-04-08T10:00:00Z
+
+entry dup.key
+topic: infrastructure
+scope: project
+ttl: permanent
+value: first value
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z
+
+entry dup.key
+topic: infrastructure
+scope: project
+ttl: permanent
+value: second value
+created_at: 2026-04-08T10:00:00Z
+updated_at: 2026-04-08T10:00:00Z

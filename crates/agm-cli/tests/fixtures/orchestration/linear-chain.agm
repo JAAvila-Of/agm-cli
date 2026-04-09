@@ -1,0 +1,29 @@
+agm: 1.0
+package: test.orchestration.linear
+version: 1.0.0
+
+node step_a
+type: workflow
+summary: First step in chain
+code:
+  lang: sh
+  action: full
+  body: echo step_a done
+
+node step_b
+type: workflow
+summary: Second step depends on A
+depends: [step_a]
+code:
+  lang: sh
+  action: full
+  body: echo step_b done
+
+node step_c
+type: workflow
+summary: Third step depends on B
+depends: [step_b]
+code:
+  lang: sh
+  action: full
+  body: echo step_c done

@@ -1,0 +1,12 @@
+# expect: parse ok
+# description: node with a custom (non-built-in) type value
+agm: 1.0
+package: test.custom.type
+version: 0.1.0
+
+node test.custom.review
+type: custom_review
+summary: node with a custom type not in the built-in type list
+detail:
+  Custom types may be used for extension scenarios.
+  The parser should accept them without error.

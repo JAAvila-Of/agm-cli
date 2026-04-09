@@ -1,0 +1,19 @@
+# expect: error AGM-V005
+# description: minimal cycle with exactly two nodes depending on each other
+agm: 1.0
+package: test.validate.cycle
+version: 0.1.0
+
+node test.two.cycle.x
+type: facts
+summary: node X depends on Y forming a two-node cycle
+depends: [test.two.cycle.y]
+items:
+  - item_x
+
+node test.two.cycle.y
+type: facts
+summary: node Y depends on X forming a two-node cycle
+depends: [test.two.cycle.x]
+items:
+  - item_y

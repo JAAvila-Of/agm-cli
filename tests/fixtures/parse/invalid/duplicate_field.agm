@@ -1,0 +1,12 @@
+# expect: error AGM-P006
+# description: field appears twice within the same node
+agm: 1.0
+package: test.duplicate.field
+version: 0.1.0
+
+node test.duplicate.field
+type: facts
+summary: first summary value
+summary: second summary value -- duplicate field
+items:
+  - item_one

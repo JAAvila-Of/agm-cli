@@ -1,0 +1,11 @@
+# expect: error AGM-V024
+# description: node type missing a schema-required field (decision without rationale)
+agm: 1.0
+package: test.validate.schema
+version: 0.1.0
+
+node test.decision.no.rationale
+type: decision
+summary: decision node missing the required rationale field
+tradeoffs:
+  - some tradeoff

@@ -1,0 +1,19 @@
+# expect: error AGM-V018
+# description: orchestration group references a node that does not exist
+agm: 1.0
+package: test.validate.orchmissing
+version: 0.1.0
+
+node test.orch.existing
+type: workflow
+summary: existing workflow node
+steps:
+  - do work
+
+node test.orch.missing.ref
+type: orchestration
+summary: orchestration referencing a non-existent node
+parallel_groups:
+  - group: phase1
+    nodes: [test.orch.existing, test.nonexistent.node]
+    strategy: sequential

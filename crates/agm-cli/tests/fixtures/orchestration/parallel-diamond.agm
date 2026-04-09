@@ -1,0 +1,38 @@
+agm: 1.0
+package: test.orchestration.diamond
+version: 1.0.0
+
+node step_a
+type: workflow
+summary: Root node
+code:
+  lang: sh
+  action: full
+  body: echo step_a done
+
+node step_b
+type: workflow
+summary: Left branch
+depends: [step_a]
+code:
+  lang: sh
+  action: full
+  body: echo step_b done
+
+node step_c
+type: workflow
+summary: Right branch
+depends: [step_a]
+code:
+  lang: sh
+  action: full
+  body: echo step_c done
+
+node step_d
+type: workflow
+summary: Join point
+depends: [step_b, step_c]
+code:
+  lang: sh
+  action: full
+  body: echo step_d done

@@ -1,0 +1,23 @@
+# expect: error AGM-V018
+# description: orchestration group nodes list contains an ID that does not exist
+agm: 1.0
+package: test.validate.orchbad
+version: 0.1.0
+
+node test.orch.real.node
+type: workflow
+summary: real workflow node referenced in orchestration
+steps:
+  - real work
+
+node test.orch.bad.group
+type: orchestration
+summary: orchestration with a group containing a bad node reference
+parallel_groups:
+  - group: phase1
+    nodes: [test.orch.real.node]
+    strategy: sequential
+  - group: phase2
+    nodes: [test.orch.real.node, test.phantom.node]
+    strategy: sequential
+    requires: [phase1]

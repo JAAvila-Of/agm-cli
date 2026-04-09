@@ -1,0 +1,16 @@
+# expect: parse ok
+# description: single memory get operation
+agm: 1.0
+package: test.memory.ops
+version: 0.1.0
+
+node test.memory.get.basic
+type: workflow
+summary: basic get memory operation to retrieve a stored value
+steps:
+  - retrieve user preference from memory
+  - apply preference to output
+memory:
+  - action: get
+    key: user.preference.theme
+    scope: session

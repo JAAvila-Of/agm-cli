@@ -1,0 +1,25 @@
+# Build artifacts
+/target
+/dist
+**/*.rs.bk
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Claude
+.claude/
+CLAUDE.md
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Internal dev files (not published)
+step_*.md
+plan_init.md
+plan_phase_2.md
+agm_specs_v02.md

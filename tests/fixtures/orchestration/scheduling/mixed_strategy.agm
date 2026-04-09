@@ -1,0 +1,51 @@
+# expect: parse ok
+# description: orchestration with some sequential and some parallel groups
+agm: 1.0
+package: test.orch.mixed
+version: 0.1.0
+
+node test.mixed.setup
+type: workflow
+summary: setup step run sequentially first
+steps:
+  - initialize environment
+
+node test.mixed.backend
+type: workflow
+summary: backend task in parallel phase
+steps:
+  - implement backend
+
+node test.mixed.frontend
+type: workflow
+summary: frontend task in parallel phase
+steps:
+  - implement frontend
+
+node test.mixed.tests
+type: workflow
+summary: test task in parallel phase
+steps:
+  - write tests
+
+node test.mixed.deploy
+type: workflow
+summary: deployment step run sequentially after parallel phase
+steps:
+  - deploy to staging
+
+node test.orch.mixed
+type: orchestration
+summary: orchestration mixing sequential setup, parallel work, and sequential deploy
+parallel_groups:
+  - group: setup
+    nodes: [test.mixed.setup]
+    strategy: sequential
+  - group: implementation
+    nodes: [test.mixed.backend, test.mixed.frontend, test.mixed.tests]
+    strategy: parallel
+    requires: [setup]
+  - group: deploy
+    nodes: [test.mixed.deploy]
+    strategy: sequential
+    requires: [implementation]

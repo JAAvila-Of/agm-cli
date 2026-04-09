@@ -1,0 +1,22 @@
+# expect: parse ok
+# description: node with memory operations for JSON forward serialization test
+agm: 1.0
+package: test.json.memory
+version: 0.1.0
+
+node test.json.memory
+type: workflow
+summary: workflow with memory operations for JSON serialization
+steps:
+  - upsert value
+  - retrieve value
+memory:
+  - action: upsert
+    key: test.json.key
+    topic: test.json.memory
+    value: test_value
+    scope: session
+  - action: get
+    key: test.json.key
+    topic: test.json.memory
+    scope: session

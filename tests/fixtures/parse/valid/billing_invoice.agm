@@ -1,0 +1,109 @@
+# expect: parse ok
+# description: billing invoice domain example from spec S38.2
+agm: 1.0
+package: billing.invoice
+version: 1.0.0
+title: Invoice Knowledge Pack
+default_load: operational
+
+node invoice.definition
+type: entity
+stability: high
+priority: critical
+tags: [invoice, fiscal, domain]
+summary: invoice contains issuer, receiver, currency, lines, totals and tax breakdown
+fields:
+  - issuer: party
+  - receiver: party
+  - currency: code
+  - lines: collection
+  - subtotal: money
+  - tax_total: money
+  - grand_total: money
+detail:
+  The invoice aggregates line-level commercial information and derives final totals using tax rules.
+  Depending on jurisdiction, additional metadata may be required, but the core structure remains stable.
+
+node invoice.validation.rules
+type: rules
+stability: high
+priority: critical
+tags: [validation]
+summary: totals must reconcile; tax aggregation must match lines; currency is mandatory
+items:
+  - subtotal_equals_sum_of_lines
+  - tax_total_equals_aggregated_tax
+  - grand_total_equals_subtotal_plus_tax
+  - currency_required
+detail:
+  Reconciliation rules should be deterministic.
+  Validation should surface exact mismatch reasons instead of generic total errors.
+
+node invoice.total.compute
+type: workflow
+stability: medium
+priority: critical
+depends: [invoice.definition, invoice.validation.rules]
+input: [lines, tax_policy]
+output: [subtotal, tax_total, grand_total]
+summary: aggregate lines -> compute tax -> reconcile totals
+steps:
+  - sum line net amounts
+  - compute tax per applicable line rule
+  - aggregate computed tax
+  - compute grand total
+  - validate reconciliation
+detail:
+  The computation pipeline should produce deterministic results given the same lines and tax policy.
+  Any rounding strategy must be explicit.
+
+node invoice.exempt_operation
+type: glossary
+stability: high
+priority: high
+summary: exempt operation is included in the economic amount but not taxed under the applicable exemption rule
+detail:
+  Exempt operations contribute to the invoice amount structure but follow different tax treatment than taxable operations.
+
+node invoice.edge.rounding_mismatch
+type: exception
+stability: medium
+priority: high
+depends: [invoice.total.compute]
+summary: per-line rounding and aggregate rounding can differ by small amounts
+detail:
+  Rounding at line level may produce a tax total slightly different from rounding after aggregation.
+  This is common when line items carry fractional tax values.
+resolution:
+  - define one canonical rounding strategy
+  - keep tolerance explicit
+  - log adjustments if adjustments are permitted
+  - document jurisdiction-specific rounding expectations
+
+node invoice.total.strategy.decision
+type: decision
+stability: high
+priority: high
+depends: [invoice.edge.rounding_mismatch]
+summary: use canonical line-first rounding to keep generated totals deterministic
+rationale:
+  - improves repeatability
+  - eases auditability
+  - simplifies reconciliation debugging
+tradeoffs:
+  - may differ from aggregate-first calculations
+  - may require explicit disclosure in audit documentation
+
+node invoice.example.exempt_with_taxable_lines
+type: example
+stability: medium
+priority: low
+depends: [invoice.definition, invoice.exempt_operation, invoice.total.compute]
+summary: sample invoice containing taxable and exempt lines with reconciled totals
+detail:
+  line 1: taxable service = 100
+  line 2: exempt operation = 50
+  tax on line 1 = 18
+  subtotal = 150
+  tax_total = 18
+  grand_total = 168

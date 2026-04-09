@@ -1,0 +1,27 @@
+# expect: parse ok
+# description: code block using body with pipe (|) block scalar syntax
+agm: 1.0
+package: test.pipesyntax
+version: 0.1.0
+
+node test.pipe.body
+type: workflow
+summary: workflow with code block using pipe body scalar syntax
+steps:
+  - generate configuration
+code:
+  lang: toml
+  target: config/settings.toml
+  action: create
+  body: |
+    [server]
+    host = "0.0.0.0"
+    port = 8080
+
+    [database]
+    url = "sqlite://data/app.db"
+    max_connections = 10
+
+    [logging]
+    level = "info"
+    format = "json"

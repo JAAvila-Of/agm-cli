@@ -1,0 +1,7 @@
+---
+source: crates/agm-core/src/renderer/mem.rs
+expression: output
+---
+# agm.mem: 1.0
+# package: test.pkg
+# updated_at: 2026-04-08T10:00:00Z

@@ -1,0 +1,23 @@
+# expect: parse ok
+# description: header with load_profiles containing named profiles
+agm: 1.0
+package: test.loadprofiles
+version: 0.1.0
+load_profiles:
+  minimal:
+    filter: "priority in [critical] AND type in [decision]"
+    estimated_tokens: 500
+  operational:
+    filter: "priority in [critical, high] AND type in [workflow, facts, rules]"
+    estimated_tokens: 2000
+  full:
+    filter: "*"
+    estimated_tokens: 8000
+
+node test.profile.node
+type: facts
+summary: a node used to test load profile filtering
+priority: critical
+items:
+  - profile_item_one
+  - profile_item_two

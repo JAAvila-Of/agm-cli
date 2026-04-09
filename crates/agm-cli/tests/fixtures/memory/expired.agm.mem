@@ -1,0 +1,11 @@
+# agm.mem: 1.0
+# package: test.orchestration.memory
+# updated_at: 2020-01-01T00:00:00Z
+
+entry old.cache_key
+topic: cache
+scope: project
+ttl: duration:PT1S
+value: stale cached value
+created_at: 2020-01-01T00:00:00Z
+updated_at: 2020-01-01T00:00:00Z

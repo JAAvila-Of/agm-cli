@@ -1,0 +1,31 @@
+{
+  "agm": 1,
+  "nodes": [
+    {
+      "memory": [
+        {
+          "action": "upsert",
+          "key": "test.json.key",
+          "scope": "session",
+          "topic": "test.json.memory",
+          "value": "test_value"
+        },
+        {
+          "action": "get",
+          "key": "test.json.key",
+          "scope": "session",
+          "topic": "test.json.memory"
+        }
+      ],
+      "node": "test.json.memory",
+      "steps": [
+        "upsert value",
+        "retrieve value"
+      ],
+      "summary": "workflow with memory operations for JSON serialization",
+      "type": "workflow"
+    }
+  ],
+  "package": "test.json.memory",
+  "version": "0.1.0"
+}

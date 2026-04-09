@@ -1,0 +1,15 @@
+# expect: error AGM-V003
+# description: two nodes with the same ID
+agm: 1.0
+package: test.duplicate.node
+version: 0.1.0
+
+node test.duplicate.id
+type: facts
+summary: first node with this id
+
+node test.duplicate.id
+type: rules
+summary: second node with the same id -- this is invalid
+items:
+  - conflicting_item

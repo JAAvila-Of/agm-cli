@@ -1,0 +1,20 @@
+# expect: parse ok
+# description: node with code block for JSON forward serialization test
+agm: 1.0
+package: test.json.codeblock
+version: 0.1.0
+
+node test.json.code
+type: workflow
+summary: workflow with single code block for JSON serialization
+steps:
+  - create schema
+code:
+  lang: sql
+  target: migrations/001_init.sql
+  action: create
+  body: |
+    CREATE TABLE users (
+        id INTEGER PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE
+    );

@@ -1,0 +1,15 @@
+{
+  "agm": 1,
+  "nodes": [
+    {
+      "items": [
+        "item_one"
+      ],
+      "node": "test.json.node",
+      "summary": "a minimal node for JSON output testing",
+      "type": "facts"
+    }
+  ],
+  "package": "test.json.minimal",
+  "version": "0.1.0"
+}

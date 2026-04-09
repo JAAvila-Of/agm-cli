@@ -1,0 +1,14 @@
+# expect: error AGM-V004
+# description: conflicts references a node ID that does not exist in the file
+agm: 1.0
+package: test.validate.unresolved
+version: 0.1.0
+
+node test.unresolved.conflicts
+type: decision
+summary: decision with conflicts pointing to non-existent node
+conflicts: [test.does.not.exist]
+rationale:
+  - some reason
+tradeoffs:
+  - some tradeoff
