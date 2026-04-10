@@ -225,7 +225,7 @@ mod tests {
     #[test]
     fn test_reset_keep_completed_filters_correctly() {
         use agm_core::model::execution::ExecutionStatus;
-        let statuses = vec![
+        let statuses = [
             ExecutionStatus::Completed,
             ExecutionStatus::Failed,
             ExecutionStatus::Pending,
@@ -240,7 +240,7 @@ mod tests {
     #[test]
     fn test_reset_clears_all() {
         // All statuses would be reset when keep_completed is false
-        let all = vec![
+        let all = [
             ExecutionStatus::Completed,
             ExecutionStatus::Failed,
             ExecutionStatus::Pending,

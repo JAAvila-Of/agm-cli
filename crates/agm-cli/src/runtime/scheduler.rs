@@ -1285,7 +1285,6 @@ mod tests {
         .unwrap();
         // Node-scoped memory should be cleared after execution
         // We verify no panic and execution completed
-        assert!(true);
     }
 
     // -----------------------------------------------------------------------

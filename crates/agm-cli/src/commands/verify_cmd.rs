@@ -106,14 +106,14 @@ mod tests {
 
     #[test]
     fn test_exit_code_all_pass() {
-        let results = vec![make_result(true)];
+        let results = [make_result(true)];
         let any_failed = results.iter().any(|r| !r.all_passed);
         assert_eq!(if any_failed { 1 } else { 0 }, 0);
     }
 
     #[test]
     fn test_exit_code_any_fail() {
-        let results = vec![make_result(false)];
+        let results = [make_result(false)];
         let any_failed = results.iter().any(|r| !r.all_passed);
         assert_eq!(if any_failed { 1 } else { 0 }, 1);
     }

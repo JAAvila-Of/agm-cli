@@ -1,5 +1,5 @@
 #!/bin/sh
-# AGM CLI installer for Linux and macOS
+# AGM CLI installer for macOS
 # Usage: curl -fsSL https://raw.githubusercontent.com/JAAvila-Of/agm-cli/main/scripts/install.sh | sh
 
 set -e
@@ -8,29 +8,15 @@ REPO="JAAvila-Of/agm-cli"
 BIN_NAME="agm"
 INSTALL_DIR="${AGM_INSTALL_DIR:-$HOME/.local/bin}"
 
-# Detect OS
+# Detect OS — macOS only
 OS="$(uname -s)"
 case "$OS" in
-    Linux)  OS_TARGET="unknown-linux-gnu" ;;
-    Darwin) OS_TARGET="apple-darwin" ;;
+    Darwin) ;;
     *)
-        echo "Error: Unsupported operating system: $OS"
+        echo "Error: This installer is for macOS only. On Windows, use install.ps1 or download the MSI."
         exit 1
         ;;
 esac
-
-# Detect architecture
-ARCH="$(uname -m)"
-case "$ARCH" in
-    x86_64|amd64)  ARCH_TARGET="x86_64" ;;
-    aarch64|arm64) ARCH_TARGET="aarch64" ;;
-    *)
-        echo "Error: Unsupported architecture: $ARCH"
-        exit 1
-        ;;
-esac
-
-TARGET="${ARCH_TARGET}-${OS_TARGET}"
 
 # Get latest release version
 echo "Fetching latest release..."
@@ -42,7 +28,7 @@ if [ -z "$LATEST" ]; then
 fi
 
 VERSION="${LATEST#v}"
-ARCHIVE="agm-v${VERSION}-${TARGET}.tar.gz"
+ARCHIVE="agm-v${VERSION}-universal-macos.tar.gz"
 URL="https://github.com/${REPO}/releases/download/${LATEST}/${ARCHIVE}"
 
 echo "Downloading agm ${VERSION} for ${TARGET}..."

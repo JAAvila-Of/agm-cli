@@ -787,7 +787,7 @@ mod tests {
         };
         // list uses &self through get
         match runtime
-            .list(node_id, &entry.scope.as_ref().unwrap(), &entry.topic)
+            .list(node_id, entry.scope.as_ref().unwrap(), &entry.topic)
             .unwrap()
         {
             MemoryResult::List(v) => v,

@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<!--
+  WiX Manifest for agm-cli MSI installer.
+  Used by cargo-wix to build the Windows installer.
+
+  What the installer does:
+  - Installs agm.exe to C:\Program Files\agm-cli\
+  - Adds the install directory to the system PATH
+  - Registers in Add/Remove Programs for clean uninstall
+-->
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+
+    <Product
+        Id='*'
+        Name='agm-cli'
+        UpgradeCode='E7A1B3C5-4D2F-4A8E-9B6C-1F3E5D7A9B2C'
+        Manufacturer='Jose Angel Avila'
+        Language='1033'
+        Codepage='1252'
+        Version='!(bind.fileVersion.agmEXE)'>
+
+        <Package Id='*'
+            Keywords='Installer'
+            Description='AGM CLI - Agent Graph Memory tool'
+            Manufacturer='Jose Angel Avila'
+            InstallerVersion='450'
+            Languages='1033'
+            Compressed='yes'
+            InstallScope='perMachine'
+            SummaryCodepage='1252'/>
+
+        <MajorUpgrade
+            Schedule='afterInstallInitialize'
+            DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.'/>
+
+        <MediaTemplate EmbedCab='yes' CompressionLevel='high'/>
+
+        <Feature Id='Binaries'
+            Title='Application'
+            Description='Installs the agm command-line tool.'
+            Level='1'
+            ConfigurableDirectory='APPLICATIONFOLDER'
+            AllowAdvertise='no'
+            Display='expand'
+            Absent='disallow'>
+
+            <ComponentRef Id='binary0'/>
+
+            <Feature Id='Environment'
+                Title='PATH Environment Variable'
+                Description='Add the install location to the PATH system environment variable. This allows agm to be called from any location.'
+                Level='1'
+                Absent='allow'>
+                <ComponentRef Id='Path'/>
+            </Feature>
+        </Feature>
+
+        <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
+
+        <Icon Id='ProductICO' SourceFile='wix\agm.ico'/>
+        <Property Id='ARPPRODUCTICON' Value='ProductICO' />
+        <Property Id='ARPHELPLINK' Value='https://github.com/JAAvila-Of/agm-cli'/>
+
+        <UI>
+            <UIRef Id='WixUI_FeatureTree'/>
+            <Publish Dialog='WelcomeDlg' Control='Next' Event='NewDialog' Value='CustomizeDlg' Order='99'>1</Publish>
+            <Publish Dialog='CustomizeDlg' Control='Back' Event='NewDialog' Value='WelcomeDlg' Order='99'>1</Publish>
+        </UI>
+
+        <WixVariable Id='WixUILicenseRtf' Value='wix\License.rtf'/>
+
+        <Directory Id='TARGETDIR' Name='SourceDir'>
+            <Directory Id='ProgramFiles64Folder' Name='PFiles'>
+                <Directory Id='APPLICATIONFOLDER' Name='agm-cli'>
+                    <Component Id='binary0' Guid='*' Win64='yes'>
+                        <File
+                            Id='agmEXE'
+                            Name='agm.exe'
+                            DiskId='1'
+                            Source='target\release\agm.exe'
+                            KeyPath='yes'/>
+                    </Component>
+                    <Component Id='Path' Guid='E8B2C4D6-5F3A-4E9B-8A1C-2D4F6E8A0B3C' Win64='yes' KeyPath='yes'>
+                        <Environment
+                            Id='PATH'
+                            Name='PATH'
+                            Value='[APPLICATIONFOLDER]'
+                            Permanent='no'
+                            Part='last'
+                            Action='set'
+                            System='yes'/>
+                    </Component>
+                </Directory>
+            </Directory>
+        </Directory>
+
+    </Product>
+
+</Wix>
