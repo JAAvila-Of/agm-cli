@@ -1,19 +1,79 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# CI Build Pipeline — lint, test (Windows + macOS)
+# Trigger: push to main/release/*, PRs to main
 
 trigger:
-- main
+        branches:
+          include:
+            - main
+            - release/*
+        paths:
+          exclude:
+            - '*.md'
+            - 'docs/**'
 
-pool:
-  vmImage: ubuntu-latest
+variables:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+stages:
+  # ── Stage 1: Lint & Format (Ubuntu — cheapest VM) ──────
+  - stage: Check
+    displayName: 'Lint & Format'
+    jobs:
+      - job: Fmt
+        displayName: 'cargo fmt'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+          - script: |
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --component rustfmt
+              echo "##vso[task.prependpath]$HOME/.cargo/bin"
+            displayName: 'Install Rust + rustfmt'
+          - script: cargo fmt --all --check
+            displayName: 'Check formatting'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+      - job: Clippy
+        displayName: 'cargo clippy'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+          - script: |
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --component clippy
+              echo "##vso[task.prependpath]$HOME/.cargo/bin"
+            displayName: 'Install Rust + clippy'
+          - script: cargo clippy --workspace --all-targets -- -D warnings
+            displayName: 'Run clippy'
+
+  # ── Stage 2: Test (Windows + macOS) ────────────────────
+  - stage: Test
+    displayName: 'Test'
+    dependsOn: Check
+    jobs:
+      - job: TestWindows
+        displayName: 'Test Windows'
+        pool:
+          vmImage: 'windows-latest'
+        steps:
+          - checkout: self
+          - powershell: |
+              Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
+              .\rustup-init.exe -y --default-toolchain stable
+              echo "##vso[task.prependpath]$env:USERPROFILE\.cargo\bin"
+            displayName: 'Install Rust'
+          - script: cargo test --workspace
+            displayName: 'Run tests'
+
+      - job: TestMacOS
+        displayName: 'Test macOS'
+        pool:
+          vmImage: 'macOS-latest'
+        steps:
+          - checkout: self
+          - script: |
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+              echo "##vso[task.prependpath]$HOME/.cargo/bin"
+            displayName: 'Install Rust'
+          - script: cargo test --workspace
+            displayName: 'Run tests'
