@@ -1390,15 +1390,22 @@ mod tests {
         let nodes = vec![test_node("A"), test_node("B")];
         let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
         config.max_concurrency = 2;
-        let agent = SlowAgent::new(Duration::from_millis(100));
+        // Use a larger delay so CI scheduling overhead (thread spawn, etc.)
+        // is a small fraction of the test window. Serial baseline = 2*delay.
+        // We assert elapsed is clearly less than serial, not close to `delay`,
+        // which is what actually proves concurrency.
+        let delay = Duration::from_millis(300);
+        let agent = SlowAgent::new(delay);
         let start = Instant::now();
         let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
         let elapsed = start.elapsed();
         assert_eq!(report.succeeded, 2);
-        // Both nodes run concurrently -> should complete in ~100ms, not ~200ms
+        // Serial would be ~600ms; parallel should finish well under that even
+        // with generous CI overhead. 500ms leaves ~200ms overhead budget.
+        let threshold = Duration::from_millis(500);
         assert!(
-            elapsed < Duration::from_millis(150),
-            "Expected concurrent execution (<150ms), got {elapsed:?}"
+            elapsed < threshold,
+            "Expected concurrent execution (<{threshold:?}), got {elapsed:?}"
         );
     }
 
