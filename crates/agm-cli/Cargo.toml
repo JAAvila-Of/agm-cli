@@ -22,7 +22,7 @@ default = ["self-update"]
 self-update = ["dep:self_update"]
 
 [dependencies]
-agm-core = { path = "../agm-core", version = "0.1.0" }
+agm-core = { path = "../agm-core", version = "1.0.0" }
 clap.workspace = true
 anyhow.workspace = true
 miette = { workspace = true, features = ["fancy"] }
