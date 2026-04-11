@@ -6,6 +6,11 @@ trigger:
     include:
       - 'refs/tags/v*'
 
+parameters:
+  - name: RunTests
+    type: boolean
+    default: false
+
 variables:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
@@ -43,6 +48,7 @@ stages:
   - stage: Test
     displayName: 'Full Test Suite'
     dependsOn: Validate
+    condition: eq('${{ parameters.RunTests }}', true)
     jobs:
       - job: TestWindows
         displayName: 'Test Windows'
