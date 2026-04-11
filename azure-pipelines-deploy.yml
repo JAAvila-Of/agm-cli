@@ -22,10 +22,17 @@ stages:
         steps:
           - checkout: self
           - script: |
-              echo "=== Debug: Pipeline Variables ==="
-              echo "Build.SourceBranch: $(Build.SourceBranch)"
-              echo "Build.SourceVersion: $(Build.SourceVersion)"
-              echo "Resource ref: $(resources.repositories['agm-cli'].ref)"
-              echo "Resource version: $(resources.repositories['agm-cli'].version)"
-              echo "TAG_NAME: $(TAG_NAME)"
-            displayName: 'Debug - Verify trigger variables'
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+              echo "##vso[task.prependpath]$HOME/.cargo/bin"
+            displayName: 'Install Rust'
+          - script: |
+              TAG="$(TAG_NAME)"
+              CARGO_VERSION=$(cargo metadata --no-deps --format-version 1 \
+                | python3 -c "import sys,json; pkgs=json.load(sys.stdin)['packages']; print([p['version'] for p in pkgs if p['name']=='agm-cli'][0])")
+              echo "Tag: $TAG — Cargo.toml version: $CARGO_VERSION"
+              if [ "v$CARGO_VERSION" != "$TAG" ]; then
+                echo "##vso[task.logissue type=error]Tag $TAG does not match Cargo.toml version v$CARGO_VERSION"
+                exit 1
+              fi
+              echo "##vso[task.complete result=Succeeded;]Version validated: $CARGO_VERSION"
+            displayName: 'Check tag matches Cargo.toml version'
