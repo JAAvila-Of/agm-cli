@@ -10,6 +10,7 @@ trigger:
     exclude:
       - '*.md'
       - 'docs/**'
+      - '*.yml'
 
 variables:
   CARGO_TERM_COLOR: always
