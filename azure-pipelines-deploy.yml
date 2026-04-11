@@ -80,7 +80,7 @@ stages:
   # ── Stage 3: Build Windows MSI Installer ───────────────
   - stage: BuildWindows
     displayName: 'Build Windows MSI'
-    dependsOn: Test
+    #dependsOn: Test
     jobs:
       - job: MSI
         displayName: 'Windows x86_64 MSI'
@@ -113,7 +113,7 @@ stages:
   # ── Stage 4: Build macOS Universal .pkg Installer ──────
   - stage: BuildMacOS
     displayName: 'Build macOS Universal .pkg'
-    dependsOn: Test
+    #dependsOn: Test
     jobs:
       - job: PKG
         displayName: 'macOS Universal (Intel + Apple Silicon)'
