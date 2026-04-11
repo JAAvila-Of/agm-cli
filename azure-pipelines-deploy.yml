@@ -48,7 +48,7 @@ stages:
   - stage: Test
     displayName: 'Full Test Suite'
     dependsOn: Validate
-    condition: eq('${{ parameters.RunTests }}', true)
+    condition: and(succeeded(), eq(${{ parameters.RunTests }}, true))
     jobs:
       - job: TestWindows
         displayName: 'Test Windows'
@@ -81,6 +81,7 @@ stages:
   - stage: BuildWindows
     displayName: 'Build Windows MSI'
     #dependsOn: Test
+    condition: succeeded()
     jobs:
       - job: MSI
         displayName: 'Windows x86_64 MSI'
@@ -114,6 +115,7 @@ stages:
   - stage: BuildMacOS
     displayName: 'Build macOS Universal .pkg'
     #dependsOn: Test
+    condition: succeeded()
     jobs:
       - job: PKG
         displayName: 'macOS Universal (Intel + Apple Silicon)'
