@@ -2,14 +2,14 @@
 # Trigger: push to main/release/*, PRs to main
 
 trigger:
-        branches:
-          include:
-            - main
-            - release/*
-        paths:
-          exclude:
-            - '*.md'
-            - 'docs/**'
+  branches:
+    include:
+      - main
+      - release/*
+  paths:
+    exclude:
+      - '*.md'
+      - 'docs/**'
 
 variables:
   CARGO_TERM_COLOR: always
