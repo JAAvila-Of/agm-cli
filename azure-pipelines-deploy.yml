@@ -141,17 +141,57 @@ stages:
               lipo -info target/universal/agm
             displayName: 'Create universal binary (lipo)'
           - script: |
+              set -e
               VERSION=$(echo "$(TAG_NAME)" | sed 's/^v//')
+
+              # Stage payload: universal binary at /usr/local/bin/agm plus the
+              # .icns at /usr/local/share/agm-cli/ so it travels with the install.
               mkdir -p target/pkg-root/usr/local/bin
+              mkdir -p target/pkg-root/usr/local/share/agm-cli
               cp target/universal/agm target/pkg-root/usr/local/bin/agm
               chmod 755 target/pkg-root/usr/local/bin/agm
+              cp crates/agm-cli/installer/macos/agm.icns \
+                 target/pkg-root/usr/local/share/agm-cli/agm.icns
+
+              # 1) Build the component pkg (no UI branding)
               pkgbuild \
                 --root target/pkg-root \
                 --identifier com.jaavila.agm \
                 --version "$VERSION" \
                 --install-location / \
+                target/agm-component.pkg
+
+              # 2) Stage installer-UI resources (logo background + welcome/conclusion)
+              mkdir -p target/installer-resources
+              cp crates/agm-cli/installer/macos/Resources/background.png  target/installer-resources/
+              cp crates/agm-cli/installer/macos/Resources/welcome.html    target/installer-resources/
+              cp crates/agm-cli/installer/macos/Resources/conclusion.html target/installer-resources/
+              cp crates/agm-cli/installer/macos/agm.icns                  target/installer-resources/
+
+              # 3) Materialize distribution.xml from template, substituting the version
+              sed "s/__VERSION__/$VERSION/g" \
+                  crates/agm-cli/installer/macos/distribution.xml.tmpl \
+                  > target/distribution.xml
+
+              # 4) Wrap the component pkg with productbuild for a branded installer UI
+              productbuild \
+                --distribution target/distribution.xml \
+                --resources target/installer-resources \
+                --package-path target \
                 "target/agm-$(TAG_NAME)-universal-macos.pkg"
-            displayName: 'Build .pkg installer'
+
+              # 5) Attach the .icns as the Finder icon of the .pkg itself
+              #    (Rez/SetFile ship with the Xcode Command Line Tools on macOS-latest)
+              if command -v Rez >/dev/null 2>&1 && command -v SetFile >/dev/null 2>&1; then
+                cp crates/agm-cli/installer/macos/agm.icns /tmp/agm-pkg-icon.icns
+                sips -i /tmp/agm-pkg-icon.icns >/dev/null
+                DeRez -only icns /tmp/agm-pkg-icon.icns > /tmp/agm-pkg-icon.rsrc
+                Rez -append /tmp/agm-pkg-icon.rsrc -o "target/agm-$(TAG_NAME)-universal-macos.pkg"
+                SetFile -a C "target/agm-$(TAG_NAME)-universal-macos.pkg"
+              else
+                echo "Rez/SetFile not available — skipping Finder icon embed"
+              fi
+            displayName: 'Build branded .pkg installer (productbuild + logo)'
           # Also package tar.gz for Homebrew / manual installs
           - script: |
               cd target/universal

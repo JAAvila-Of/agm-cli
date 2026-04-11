@@ -57,7 +57,7 @@
 
         <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
 
-        <Icon Id='ProductICO' SourceFile='wix\agm.ico'/>
+        <Icon Id='ProductICO' SourceFile='$(sys.SOURCEFILEDIR)agm.ico'/>
         <Property Id='ARPPRODUCTICON' Value='ProductICO' />
         <Property Id='ARPHELPLINK' Value='https://github.com/JAAvila-Of/agm-cli'/>
 
@@ -67,7 +67,9 @@
             <Publish Dialog='CustomizeDlg' Control='Back' Event='NewDialog' Value='WelcomeDlg' Order='99'>1</Publish>
         </UI>
 
-        <WixVariable Id='WixUILicenseRtf' Value='wix\License.rtf'/>
+        <WixVariable Id='WixUILicenseRtf' Value='$(sys.SOURCEFILEDIR)License.rtf'/>
+        <WixVariable Id='WixUIBannerBmp' Value='$(sys.SOURCEFILEDIR)WixUIBanner.bmp'/>
+        <WixVariable Id='WixUIDialogBmp' Value='$(sys.SOURCEFILEDIR)WixUIDialog.bmp'/>
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
             <Directory Id='ProgramFiles64Folder' Name='PFiles'>
