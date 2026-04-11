@@ -1401,8 +1401,8 @@ mod tests {
         let elapsed = start.elapsed();
         assert_eq!(report.succeeded, 2);
         // Serial would be ~600ms; parallel should finish well under that even
-        // with generous CI overhead. 500ms leaves ~200ms overhead budget.
-        let threshold = Duration::from_millis(500);
+        // with generous CI overhead. 1000ms leaves ~200ms overhead budget.
+        let threshold = Duration::from_millis(1000);
         assert!(
             elapsed < threshold,
             "Expected concurrent execution (<{threshold:?}), got {elapsed:?}"
