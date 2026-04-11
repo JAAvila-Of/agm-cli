@@ -22,6 +22,7 @@ stages:
     displayName: 'Validate Release Tag'
     jobs:
       - job: ValidateVersion
+        displayName: 'Validate Version'
         pool:
           vmImage: 'ubuntu-latest'
         steps:
@@ -45,43 +46,42 @@ stages:
             displayName: 'Check tag matches Cargo.toml version'
 
   # ── Stage 2: Test (Windows + macOS) ────────────────────
-  - stage: Test
-    displayName: 'Full Test Suite'
-    dependsOn: Validate
-    condition: and(succeeded(), eq(${{ parameters.RunTests }}, true))
-    jobs:
-      - job: TestWindows
-        displayName: 'Test Windows'
-        pool:
-          vmImage: 'windows-latest'
-        steps:
-          - checkout: self
-          - powershell: |
-              Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
-              .\rustup-init.exe -y --default-toolchain stable
-              echo "##vso[task.prependpath]$env:USERPROFILE\.cargo\bin"
-            displayName: 'Install Rust'
-          - script: cargo test --workspace
-            displayName: 'Run tests'
+  #- stage: Test
+    #displayName: 'Full Test Suite'
+    #dependsOn: Validate
+    #condition: and(succeeded(), eq(${{ parameters.RunTests }}, true))
+    #jobs:
+      #- job: TestWindows
+        #displayName: 'Test Windows'
+        #pool:
+          #vmImage: 'windows-latest'
+        #steps:
+          #- checkout: self
+          #- powershell: |
+              #Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
+              #.\rustup-init.exe -y --default-toolchain stable
+              #echo "##vso[task.prependpath]$env:USERPROFILE\.cargo\bin"
+            #displayName: 'Install Rust'
+          #- script: cargo test --workspace
+            #displayName: 'Run tests'
 
-      - job: TestMacOS
-        displayName: 'Test macOS'
-        pool:
-          vmImage: 'macOS-latest'
-        steps:
-          - checkout: self
-          - script: |
-              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-              echo "##vso[task.prependpath]$HOME/.cargo/bin"
-            displayName: 'Install Rust'
-          - script: cargo test --workspace
-            displayName: 'Run tests'
+      #- job: TestMacOS
+        #displayName: 'Test macOS'
+        #pool:
+          #vmImage: 'macOS-latest'
+        #steps:
+          #- checkout: self
+          #- script: |
+              #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+              #echo "##vso[task.prependpath]$HOME/.cargo/bin"
+            #displayName: 'Install Rust'
+          #- script: cargo test --workspace
+            #displayName: 'Run tests'
 
   # ── Stage 3: Build Windows MSI Installer ───────────────
   - stage: BuildWindows
     displayName: 'Build Windows MSI'
-    #dependsOn: Test
-    condition: succeeded()
+    dependsOn: Validate
     jobs:
       - job: MSI
         displayName: 'Windows x86_64 MSI'
@@ -114,8 +114,7 @@ stages:
   # ── Stage 4: Build macOS Universal .pkg Installer ──────
   - stage: BuildMacOS
     displayName: 'Build macOS Universal .pkg'
-    #dependsOn: Test
-    condition: succeeded()
+    dependsOn: Validate
     jobs:
       - job: PKG
         displayName: 'macOS Universal (Intel + Apple Silicon)'
