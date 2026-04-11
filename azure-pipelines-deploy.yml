@@ -87,7 +87,7 @@ stages:
               .\rustup-init.exe -y --default-toolchain stable
               echo "##vso[task.prependpath]$env:USERPROFILE\.cargo\bin"
             displayName: 'Install Rust'
-          - powershell: cargo install cargo-wix --version 0.3
+          - powershell: cargo install cargo-wix --version ^0.3
             displayName: 'Install cargo-wix'
           - script: cargo build --release -p agm-cli
             displayName: 'Build release binary'
@@ -152,7 +152,7 @@ stages:
             displayName: 'Package portable tar.gz'
           - publish: target/agm-$(TAG_NAME)-universal-macos.pkg
             artifact: macos-pkg
-          - publish: target/universal/agm-$(TAG_NAME)-universal-macos.tar.gz
+          - publish: target/agm-$(TAG_NAME)-universal-macos.tar.gz
             artifact: macos-tar
 
   # ── Stage 5: Publish to crates.io ──────────────────────
