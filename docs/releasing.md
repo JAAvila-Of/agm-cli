@@ -69,18 +69,22 @@ All pipelines clone from GitHub via the `github-connection` service connection.
 | Check | `cargo fmt --check` + `cargo clippy` (Ubuntu) |
 | Test | `cargo test --workspace` on Windows + macOS |
 
-### Release (`azure-pipelines-release.yml`)
+### Release (`azure-pipelines-deploy.yml`)
 
 **Trigger**: Push tag `v*`
 
 | Stage | What |
 |-------|------|
 | Validate | Checks git tag matches `Cargo.toml` version |
-| Test | Full test suite on Windows + macOS |
-| BuildWindows | MSI installer + portable zip (x86_64) |
-| BuildMacOS | Universal .pkg (Intel + Apple Silicon) + portable tar.gz |
 | PublishCrate | `cargo publish` to crates.io (agm-core first, then agm-cli) |
-| GitHubRelease | Creates GitHub release with all artifacts |
+
+Distribution is exclusively via crates.io. Binary generation (Windows
+MSI, macOS `.pkg`, tar.gz/zip archives across target triples) and
+GitHub Releases were removed from the release pipeline; installers are
+no longer produced. The related scripts (`scripts/install.sh`,
+`scripts/install.ps1`) and Windows metadata build (`build.rs` +
+`winresource`) remain in the repo for local use, but are not invoked
+from CI.
 
 ### Pipeline diagram
 
@@ -91,79 +95,35 @@ push to main/PR ──→ CI Build (lint → test)
                         │
 git tag v0.1.0 ────→ Release Pipeline
                         │
-                    Validate tag
+                   Validate tag
                         │
-                   Test (Win+Mac)
-                        │
-              ┌─────────┴─────────┐
-         Build Windows       Build macOS
-         (MSI + zip)         (universal .pkg + tar.gz)
-              └─────────┬─────────┘
-              ┌─────────┴─────────┐
-         Publish crates.io  GitHub Release
-              └───────────────────┘
+                   PublishCrate
+                 (cargo publish
+                  agm-core → agm-cli)
 ```
 
 ## Release Artifacts
 
-Each release produces:
+Each release produces two crate versions published to crates.io:
 
-| Artifact | Platform | Type |
-|----------|----------|------|
-| `agm-vX.Y.Z-x86_64-windows.msi` | Windows x86_64 | Installer (adds to PATH, Add/Remove Programs) |
-| `agm-vX.Y.Z-x86_64-windows.zip` | Windows x86_64 | Portable binary |
-| `agm-vX.Y.Z-universal-macos.pkg` | macOS Intel + Apple Silicon | Installer (installs to `/usr/local/bin`) |
-| `agm-vX.Y.Z-universal-macos.tar.gz` | macOS Intel + Apple Silicon | Portable binary |
+| Crate | Registry |
+|-------|----------|
+| `agm-core` | https://crates.io/crates/agm-core |
+| `agm-cli`  | https://crates.io/crates/agm-cli |
 
-## Installation Methods
+End users install via `cargo install agm-cli`.
 
-### Windows
+## End-user installation
 
-**MSI installer** (recommended):
-1. Download `.msi` from GitHub Releases
-2. Double-click to install
-3. `agm` is added to PATH automatically
-4. Uninstall from Settings → Apps
-
-**Portable**:
-1. Download `.zip` from GitHub Releases
-2. Extract `agm.exe` anywhere
-3. Add location to PATH manually
-
-**PowerShell script**:
-```powershell
-irm https://raw.githubusercontent.com/JAAvila-Of/agm-cli/main/scripts/install.ps1 | iex
-```
-
-### macOS
-
-**pkg installer** (recommended):
-1. Download `.pkg` from GitHub Releases
-2. Double-click to install (installs to `/usr/local/bin/agm`)
-3. Works on both Intel and Apple Silicon Macs
-
-**Portable**:
-```bash
-curl -L https://github.com/JAAvila-Of/agm-cli/releases/latest/download/agm-vX.Y.Z-universal-macos.tar.gz | tar xz
-sudo mv agm /usr/local/bin/
-```
-
-**Shell script**:
-```bash
-curl -sSf https://raw.githubusercontent.com/JAAvila-Of/agm-cli/main/scripts/install.sh | sh
-```
-
-### From source (any platform)
-
-```bash
-cargo install agm-cli
-```
+See [README.md → Installation](../README.md#installation). This document
+covers release engineering; user-facing install instructions live in the
+README.
 
 ## Required Azure DevOps Configuration
 
 | Item | Type | Where | Purpose |
 |------|------|-------|---------|
-| `github-connection` | GitHub | Project Settings → Service Connections | Clone repo + create GitHub Releases |
+| `github-connection` | GitHub | Project Settings → Service Connections | Clone repo |
 | `cargo-connection` | Generic | Project Settings → Service Connections | Publish to crates.io (token stored securely) |
 
 ### Setting up `cargo-connection`

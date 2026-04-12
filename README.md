@@ -1,6 +1,20 @@
-# AGM CLI
+<p align="center">
+  <img src="logo.png" alt="AGM CLI logo" width="200" />
+</p>
 
-A command-line tool and Rust library for parsing, validating, loading, rendering, and orchestrating [AGM (Agent Graph Memory)](docs/spec/agm_spec_v1.0.0.md) files.
+<h1 align="center">AGM CLI</h1>
+
+<p align="center">
+  A command-line tool and Rust library for parsing, validating, loading, rendering, and orchestrating <a href="docs/spec/agm_spec_v1.0.0.md">AGM (Agent Graph Memory)</a> files.
+</p>
+
+## Origin
+
+`agm-cli` was originally built as an internal tool for the **Octopus**
+project, where it served as the backbone for orchestrating AI-agent
+workflows over structured knowledge graphs. It has since been extracted
+and released as a standalone, general-purpose CLI + library so that any
+project can adopt the AGM format and its execution model.
 
 ## What is AGM?
 
@@ -8,24 +22,23 @@ AGM is a compact, line-oriented text format for representing knowledge as a dire
 
 ## Installation
 
-### From crates.io
+`agm-cli` is distributed exclusively through [crates.io](https://crates.io/crates/agm-cli).
+A working [Rust toolchain](https://rustup.rs) (stable) is required.
 
 ```bash
 cargo install agm-cli
 ```
 
-### Pre-built binaries
+Pin a specific version:
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/JAAvila-Of/agm-cli/releases).
-
-**Linux / macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/JAAvila-Of/agm-cli/main/scripts/install.sh | sh
+cargo install agm-cli --version 1.0.0
 ```
 
-**Windows (PowerShell):**
-```powershell
-irm https://raw.githubusercontent.com/JAAvila-Of/agm-cli/main/scripts/install.ps1 | iex
+Upgrade to the latest published version:
+
+```bash
+cargo install agm-cli --force
 ```
 
 ### From source
@@ -33,8 +46,13 @@ irm https://raw.githubusercontent.com/JAAvila-Of/agm-cli/main/scripts/install.ps
 ```bash
 git clone https://github.com/JAAvila-Of/agm-cli.git
 cd agm-cli
-cargo build --release
-# Binary at target/release/agm (or agm.exe on Windows)
+cargo install --path crates/agm-cli
+```
+
+### Uninstall
+
+```bash
+cargo uninstall agm-cli
 ```
 
 ## Quick Start
@@ -100,16 +118,12 @@ if diagnostics.iter().all(|d| !d.is_error()) {
 - [Library API (docs.rs)](https://docs.rs/agm-core) -- Auto-generated Rust API docs for `agm-core`
 - [Contributing](CONTRIBUTING.md) -- How to contribute
 
-## Self-Update
+## Updating
 
-Update to the latest version directly from the CLI:
+New versions are published to crates.io. To upgrade:
 
 ```bash
-# Check for updates
-agm update --check
-
-# Update to latest
-agm update
+cargo install agm-cli --force
 ```
 
 ## Contributing

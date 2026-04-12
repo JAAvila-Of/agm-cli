@@ -1,19 +1,15 @@
-# Release Pipeline — validate, test, build installers, publish, GitHub release
+# Release Pipeline — validate tag and publish to crates.io
 # Trigger: push tag v*
+#
+# NOTE: Binary generation stages (Windows/macOS/Linux) were removed.
+# Distribution is handled exclusively via `cargo install agm-cli`.
 
 trigger:
   tags:
     include:
       - 'refs/tags/v*'
 
-parameters:
-  - name: RunTests
-    type: boolean
-    default: false
-
 variables:
-  CARGO_TERM_COLOR: always
-  RUSTFLAGS: -D warnings
   TAG_NAME: $[replace(variables['Build.SourceBranch'], 'refs/tags/', '')]
 
 stages:
@@ -45,164 +41,7 @@ stages:
               echo "Version validated: $CARGO_VERSION"
             displayName: 'Check tag matches Cargo.toml version'
 
-  # ── Stage 2: Test (Windows + macOS) ────────────────────
-  #- stage: Test
-    #displayName: 'Full Test Suite'
-    #dependsOn: Validate
-    #condition: and(succeeded(), eq(${{ parameters.RunTests }}, true))
-    #jobs:
-      #- job: TestWindows
-        #displayName: 'Test Windows'
-        #pool:
-          #vmImage: 'windows-latest'
-        #steps:
-          #- checkout: self
-          #- powershell: |
-              #Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
-              #.\rustup-init.exe -y --default-toolchain stable
-              #echo "##vso[task.prependpath]$env:USERPROFILE\.cargo\bin"
-            #displayName: 'Install Rust'
-          #- script: cargo test --workspace
-            #displayName: 'Run tests'
-
-      #- job: TestMacOS
-        #displayName: 'Test macOS'
-        #pool:
-          #vmImage: 'macOS-latest'
-        #steps:
-          #- checkout: self
-          #- script: |
-              #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-              #echo "##vso[task.prependpath]$HOME/.cargo/bin"
-            #displayName: 'Install Rust'
-          #- script: cargo test --workspace
-            #displayName: 'Run tests'
-
-  # ── Stage 3: Build Windows MSI Installer ───────────────
-  - stage: BuildWindows
-    displayName: 'Build Windows MSI'
-    dependsOn: Validate
-    jobs:
-      - job: MSI
-        displayName: 'Windows x86_64 MSI'
-        pool:
-          vmImage: 'windows-latest'
-        steps:
-          - checkout: self
-          - powershell: |
-              Invoke-WebRequest -Uri https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe -OutFile rustup-init.exe
-              .\rustup-init.exe -y --default-toolchain stable
-              echo "##vso[task.prependpath]$env:USERPROFILE\.cargo\bin"
-            displayName: 'Install Rust'
-          - powershell: cargo install cargo-wix --version ^0.3
-            displayName: 'Install cargo-wix'
-          - script: cargo build --release -p agm-cli
-            displayName: 'Build release binary'
-          - powershell: |
-              cargo wix --no-build --nocapture -p agm-cli -o target\wix\agm-$(TAG_NAME)-x86_64-windows.msi
-            displayName: 'Build MSI installer'
-          # Also package zip for users who prefer portable
-          - powershell: |
-              Compress-Archive -Path target\release\agm.exe, LICENSE, README.md `
-                -DestinationPath "target\release\agm-$(TAG_NAME)-x86_64-windows.zip"
-            displayName: 'Package portable zip'
-          - publish: target/wix/agm-$(TAG_NAME)-x86_64-windows.msi
-            artifact: windows-msi
-          - publish: target/release/agm-$(TAG_NAME)-x86_64-windows.zip
-            artifact: windows-zip
-
-  # ── Stage 4: Build macOS Universal .pkg Installer ──────
-  - stage: BuildMacOS
-    displayName: 'Build macOS Universal .pkg'
-    dependsOn: Validate
-    jobs:
-      - job: PKG
-        displayName: 'macOS Universal (Intel + Apple Silicon)'
-        pool:
-          vmImage: 'macOS-latest'
-        steps:
-          - checkout: self
-          - script: |
-              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable \
-                --target x86_64-apple-darwin --target aarch64-apple-darwin
-              echo "##vso[task.prependpath]$HOME/.cargo/bin"
-            displayName: 'Install Rust + both targets'
-          - script: |
-              cargo build --release --target x86_64-apple-darwin -p agm-cli
-              cargo build --release --target aarch64-apple-darwin -p agm-cli
-            displayName: 'Build Intel + Apple Silicon binaries'
-          - script: |
-              mkdir -p target/universal
-              lipo -create \
-                target/x86_64-apple-darwin/release/agm \
-                target/aarch64-apple-darwin/release/agm \
-                -output target/universal/agm
-              echo "Universal binary info:"
-              lipo -info target/universal/agm
-            displayName: 'Create universal binary (lipo)'
-          - script: |
-              set -e
-              VERSION=$(echo "$(TAG_NAME)" | sed 's/^v//')
-
-              # Stage payload: universal binary at /usr/local/bin/agm plus the
-              # .icns at /usr/local/share/agm-cli/ so it travels with the install.
-              mkdir -p target/pkg-root/usr/local/bin
-              mkdir -p target/pkg-root/usr/local/share/agm-cli
-              cp target/universal/agm target/pkg-root/usr/local/bin/agm
-              chmod 755 target/pkg-root/usr/local/bin/agm
-              cp crates/agm-cli/installer/macos/agm.icns \
-                 target/pkg-root/usr/local/share/agm-cli/agm.icns
-
-              # 1) Build the component pkg (no UI branding)
-              pkgbuild \
-                --root target/pkg-root \
-                --identifier com.jaavila.agm \
-                --version "$VERSION" \
-                --install-location / \
-                target/agm-component.pkg
-
-              # 2) Stage installer-UI resources (logo background + welcome/conclusion)
-              mkdir -p target/installer-resources
-              cp crates/agm-cli/installer/macos/Resources/background.png  target/installer-resources/
-              cp crates/agm-cli/installer/macos/Resources/welcome.html    target/installer-resources/
-              cp crates/agm-cli/installer/macos/Resources/conclusion.html target/installer-resources/
-              cp crates/agm-cli/installer/macos/agm.icns                  target/installer-resources/
-
-              # 3) Materialize distribution.xml from template, substituting the version
-              sed "s/__VERSION__/$VERSION/g" \
-                  crates/agm-cli/installer/macos/distribution.xml.tmpl \
-                  > target/distribution.xml
-
-              # 4) Wrap the component pkg with productbuild for a branded installer UI
-              productbuild \
-                --distribution target/distribution.xml \
-                --resources target/installer-resources \
-                --package-path target \
-                "target/agm-$(TAG_NAME)-universal-macos.pkg"
-
-              # 5) Attach the .icns as the Finder icon of the .pkg itself
-              #    (Rez/SetFile ship with the Xcode Command Line Tools on macOS-latest)
-              if command -v Rez >/dev/null 2>&1 && command -v SetFile >/dev/null 2>&1; then
-                cp crates/agm-cli/installer/macos/agm.icns /tmp/agm-pkg-icon.icns
-                sips -i /tmp/agm-pkg-icon.icns >/dev/null
-                DeRez -only icns /tmp/agm-pkg-icon.icns > /tmp/agm-pkg-icon.rsrc
-                Rez -append /tmp/agm-pkg-icon.rsrc -o "target/agm-$(TAG_NAME)-universal-macos.pkg"
-                SetFile -a C "target/agm-$(TAG_NAME)-universal-macos.pkg"
-              else
-                echo "Rez/SetFile not available — skipping Finder icon embed"
-              fi
-            displayName: 'Build branded .pkg installer (productbuild + logo)'
-          # Also package tar.gz for Homebrew / manual installs
-          - script: |
-              cd target/universal
-              tar czf ../agm-$(TAG_NAME)-universal-macos.tar.gz agm
-            displayName: 'Package portable tar.gz'
-          - publish: target/agm-$(TAG_NAME)-universal-macos.pkg
-            artifact: macos-pkg
-          - publish: target/agm-$(TAG_NAME)-universal-macos.tar.gz
-            artifact: macos-tar
-
-  # ── Stage 5: Publish to crates.io ──────────────────────
+  # ── Stage 2: Publish to crates.io ──────────────────────
   # Uses the 'cargo-connection' service connection (generic type).
   #
   # Setup in Azure DevOps → Project Settings → Service Connections → New:
@@ -215,9 +54,7 @@ stages:
   # REST API using the predefined $(System.AccessToken).
   - stage: PublishCrate
     displayName: 'Publish to crates.io'
-    dependsOn:
-      - BuildWindows
-      - BuildMacOS
+    dependsOn: Validate
     jobs:
       - job: Publish
         pool:
@@ -256,51 +93,43 @@ stages:
             env:
               CARGO_REGISTRY_TOKEN: $(CARGO_REGISTRY_TOKEN)
 
-  # ── Stage 6: Create GitHub Release ─────────────────────
+  # ── Stage 3: GitHub Release ────────────────────────────
+  # Creates a GitHub Release for the current tag with auto-generated
+  # notes built from conventional commits via git-cliff.
+  #
+  # Requires a secret pipeline variable GITHUB_TOKEN holding a
+  # fine-grained PAT with `Contents: Read and write` on this repo.
+  # Configure at: Edit pipeline → Variables → New → keep secret.
   - stage: GitHubRelease
     displayName: 'Create GitHub Release'
-    dependsOn:
-      - BuildWindows
-      - BuildMacOS
+    dependsOn: PublishCrate
     jobs:
       - job: Release
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - download: current
-            patterns: '**/*'
-            displayName: 'Download all artifacts'
-          - task: GitHubRelease@1
-            inputs:
-              gitHubConnection: 'GitHub JAAvila-Of'
-              repositoryName: 'JAAvila-Of/agm-cli'
-              action: 'create'
-              target: '$(Build.SourceVersion)'
-              tagSource: 'gitTag'
-              title: 'agm $(TAG_NAME)'
-              releaseNotesSource: 'inline'
-              releaseNotesInline: |
-                ## Installation
-
-                ### Windows
-                - **Installer**: Download `agm-$(TAG_NAME)-x86_64-windows.msi` and run it
-                - **Portable**: Download `agm-$(TAG_NAME)-x86_64-windows.zip` and extract
-
-                ### macOS (Intel + Apple Silicon)
-                - **Installer**: Download `agm-$(TAG_NAME)-universal-macos.pkg` and run it
-                - **Portable**: Download `agm-$(TAG_NAME)-universal-macos.tar.gz` and extract
-
-                ### cargo install
-                ```sh
-                cargo install agm-cli
-                ```
-              assets: |
-                $(Pipeline.Workspace)/windows-msi/*
-                $(Pipeline.Workspace)/windows-zip/*
-                $(Pipeline.Workspace)/macos-pkg/*
-                $(Pipeline.Workspace)/macos-tar/*
-              isDraft: false
-              isPreRelease: false
-              changeLogCompareToRelease: 'lastFullRelease'
-              changeLogType: 'commitBased'
-            displayName: 'Create GitHub Release with installers'
+          - checkout: self
+            fetchDepth: 0           # git-cliff needs full history + all tags
+            persistCredentials: true
+          - script: |
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+              echo "##vso[task.prependpath]$HOME/.cargo/bin"
+            displayName: 'Install Rust'
+          - script: |
+              cargo install git-cliff --locked
+            displayName: 'Install git-cliff'
+          - script: |
+              # Generate notes for the current tag only (unreleased → tag)
+              git-cliff --latest --strip all -o RELEASE_NOTES.md
+              echo "─── Release notes ───"
+              cat RELEASE_NOTES.md
+            displayName: 'Generate release notes'
+          - script: |
+              # gh CLI is preinstalled on ubuntu-latest agents
+              gh release create "$(TAG_NAME)" \
+                --title "$(TAG_NAME)" \
+                --notes-file RELEASE_NOTES.md \
+                --verify-tag
+            displayName: 'Create GitHub Release'
+            env:
+              GH_TOKEN: $(GITHUB_TOKEN)
