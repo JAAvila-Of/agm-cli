@@ -42,16 +42,10 @@ stages:
             displayName: 'Check tag matches Cargo.toml version'
 
   # ── Stage 2: Publish to crates.io ──────────────────────
-  # Uses the 'cargo-connection' service connection (generic type).
-  #
-  # Setup in Azure DevOps → Project Settings → Service Connections → New:
-  #   Type: Generic
-  #   Name: cargo-connection
-  #   Server URL: https://crates.io
-  #   Password/Token Key: <your crates.io API token>
-  #
-  # The pipeline accesses the token at runtime via the Azure DevOps
-  # REST API using the predefined $(System.AccessToken).
+  # Requires a secret pipeline variable CARGO_REGISTRY_TOKEN holding
+  # a crates.io API token (crates.io → Account Settings → API Tokens,
+  # with scopes `publish-new` and `publish-update`).
+  # Configure at: Edit pipeline → Variables → New → keep secret.
   - stage: PublishCrate
     displayName: 'Publish to crates.io'
     dependsOn: Validate
@@ -66,23 +60,10 @@ stages:
               echo "##vso[task.prependpath]$HOME/.cargo/bin"
             displayName: 'Install Rust'
           - script: |
-              # Fetch the crates.io token from the generic service connection
-              ENDPOINT_ID=$(az devops service-endpoint list \
-                --organization "$(System.CollectionUri)" \
-                --project "$(System.TeamProject)" \
-                --query "[?name=='Cargo Connection'].id" -o tsv)
-
-              CRATES_TOKEN=$(az devops service-endpoint show \
-                --id "$ENDPOINT_ID" \
-                --organization "$(System.CollectionUri)" \
-                --project "$(System.TeamProject)" \
-                --query "authorization.parameters.password" -o tsv)
-
-              echo "##vso[task.setvariable variable=CARGO_REGISTRY_TOKEN;issecret=true]$CRATES_TOKEN"
-            displayName: 'Fetch token from Cargo Connection'
-            env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-          - script: |
+              if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
+                echo "##vso[task.logissue type=error]CARGO_REGISTRY_TOKEN is not set — configure it as a secret pipeline variable"
+                exit 1
+              fi
               echo "Publishing agm-core..."
               cargo publish -p agm-core
               echo "Waiting for crates.io to index agm-core..."
