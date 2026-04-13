@@ -8,7 +8,7 @@
 
 You may:
 
-- Use the names "AGM" and "Agent Graph Memory" to accurately describe the file format when referencing or implementing the [AGM Specification](docs/spec/agm_spec_v1.0.0.md).
+- Use the names "AGM" and "Agent Graph Memory" to accurately describe the file format when referencing or implementing the [AGM Specification](docs/spec/agm_spec_v1.1.0.md).
 - State that your software "supports AGM" or is "AGM-compatible" if it conforms to the specification.
 - Use the names in academic papers, blog posts, and technical documentation when discussing the format.
 

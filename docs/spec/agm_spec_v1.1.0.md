@@ -1,4 +1,4 @@
-# AGM Specification v1.0.0
+# AGM Specification v1.1.0
 ## Agent Graph Memory
 
 **Status:** Stable  
