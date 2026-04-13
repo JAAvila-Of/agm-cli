@@ -78,3 +78,58 @@ stages:
             displayName: 'Install Rust'
           - script: cargo test --workspace
             displayName: 'Run tests'
+
+  # ── Stage 3: Coverage (Ubuntu — cheapest + fastest) ────
+  - stage: Coverage
+    displayName: 'Code Coverage'
+    dependsOn: Test
+    condition: succeeded()
+    jobs:
+      - job: LlvmCov
+        displayName: 'cargo llvm-cov'
+        pool:
+          vmImage: 'ubuntu-latest'
+        variables:
+          # Don't treat warnings as errors for coverage build — we instrument,
+          # we don't lint here.
+          RUSTFLAGS: ''
+        steps:
+          - checkout: self
+          - script: |
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --component llvm-tools-preview
+              echo "##vso[task.prependpath]$HOME/.cargo/bin"
+            displayName: 'Install Rust + llvm-tools-preview'
+          - script: cargo install cargo-llvm-cov --locked
+            displayName: 'Install cargo-llvm-cov'
+          - script: |
+              cargo llvm-cov --workspace --no-report \
+                --ignore-filename-regex '(agm-lsp|tests/)'
+            displayName: 'Run instrumented tests'
+          - script: |
+              cargo llvm-cov report --cobertura --output-path coverage.xml \
+                --ignore-filename-regex '(agm-lsp|tests/)'
+            displayName: 'Generate Cobertura report'
+          - script: |
+              cargo llvm-cov report --summary-only \
+                --ignore-filename-regex '(agm-lsp|tests/)' \
+                | tee coverage-summary.txt
+            displayName: 'Print coverage summary'
+          - script: |
+              cargo llvm-cov report --html --output-dir coverage-html \
+                --ignore-filename-regex '(agm-lsp|tests/)'
+            displayName: 'Generate HTML report'
+          - task: PublishCodeCoverageResults@2
+            displayName: 'Publish coverage to Azure'
+            inputs:
+              summaryFileLocation: '$(Build.SourcesDirectory)/coverage.xml'
+              pathToSources: '$(Build.SourcesDirectory)'
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish HTML report artifact'
+            inputs:
+              pathToPublish: 'coverage-html'
+              artifactName: 'coverage-html'
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish summary artifact'
+            inputs:
+              pathToPublish: 'coverage-summary.txt'
+              artifactName: 'coverage-summary'
