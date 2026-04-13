@@ -261,7 +261,7 @@ mod tests {
             nodes[1]
                 .depends
                 .as_ref()
-                .map_or(false, |d| d.contains(&"auth.constraints".to_owned()))
+                .is_some_and(|d| d.contains(&"auth.constraints".to_owned()))
         );
     }
 
@@ -282,7 +282,7 @@ mod tests {
         RelationInferrer::infer(&mut nodes);
         // "See also login" should match auth.login via last-segment fuzzy match
         let see_also = nodes[1].see_also.as_ref();
-        assert!(see_also.map_or(false, |s| s.contains(&"auth.login".to_owned())));
+        assert!(see_also.is_some_and(|s| s.contains(&"auth.login".to_owned())));
     }
 
     #[test]

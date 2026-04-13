@@ -365,7 +365,7 @@ mod tests {
             vec![],
             false,
         );
-        let (_, _, alt) = c.classify(&sec);
+        let (_, _, _alt) = c.classify(&sec);
         // Either alternative should be present or both score high
         // The important thing is the function returns without panic
         // and one of the expected types is chosen
