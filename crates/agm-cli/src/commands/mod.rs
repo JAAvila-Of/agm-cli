@@ -1,6 +1,8 @@
 //! CLI command implementations.
 
+pub mod compile;
 pub mod context;
+pub mod diff;
 pub mod graph;
 pub mod helpers;
 pub mod lint;

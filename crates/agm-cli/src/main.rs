@@ -228,6 +228,61 @@ enum Commands {
         #[arg(long, default_value_t = 60)]
         timeout: u64,
     },
+
+    /// Compare two AGM files at the semantic level
+    Diff {
+        /// Path to the left (old/base) AGM file
+        left: PathBuf,
+
+        /// Path to the right (new/changed) AGM file
+        right: PathBuf,
+
+        /// Output format
+        #[arg(long, value_enum, default_value_t = DiffFormatArg::Text)]
+        format: DiffFormatArg,
+
+        /// Show only breaking changes
+        #[arg(long, default_value_t = false)]
+        breaking_only: bool,
+
+        /// Quiet mode: exit code only (0=no changes, 1=changes, 2=breaking)
+        #[arg(long, default_value_t = false)]
+        quiet: bool,
+    },
+
+    /// Compile a Markdown file into an AGM file
+    Compile {
+        /// Path to the input Markdown file
+        input: PathBuf,
+
+        /// Output file path [default: stdout]
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Package name for the generated AGM file
+        #[arg(long)]
+        package: String,
+
+        /// Version for the generated AGM file
+        #[arg(long, default_value = "0.1.0")]
+        version: String,
+
+        /// Prefix for generated node IDs
+        #[arg(long)]
+        id_prefix: Option<String>,
+
+        /// Minimum confidence for node inclusion (0.0-1.0)
+        #[arg(long, default_value_t = 0.5)]
+        min_confidence: f32,
+
+        /// Run validator on generated output
+        #[arg(long, default_value_t = false)]
+        validate: bool,
+
+        /// Output as JSON instead of AGM
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -388,6 +443,23 @@ enum GraphFormatArg {
     Mermaid,
 }
 
+#[derive(Debug, Clone, ValueEnum)]
+enum DiffFormatArg {
+    Text,
+    Json,
+    Markdown,
+}
+
+impl DiffFormatArg {
+    fn to_core(&self) -> agm_core::diff::render::DiffFormat {
+        match self {
+            Self::Text => agm_core::diff::render::DiffFormat::Text,
+            Self::Json => agm_core::diff::render::DiffFormat::Json,
+            Self::Markdown => agm_core::diff::render::DiffFormat::Markdown,
+        }
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     // Configure miette for fancy terminal output
     miette::set_hook(Box::new(|_| {
@@ -525,6 +597,34 @@ fn main() -> anyhow::Result<()> {
                 .unwrap_or_else(|| std::env::current_dir().expect("cannot determine cwd"));
             commands::verify_cmd::run(&file, node.as_deref(), all, json, &wd, timeout)
         }
+
+        Commands::Diff {
+            left,
+            right,
+            format,
+            breaking_only,
+            quiet,
+        } => commands::diff::run(&left, &right, format.to_core(), breaking_only, quiet),
+
+        Commands::Compile {
+            input,
+            output,
+            package,
+            version,
+            id_prefix,
+            min_confidence,
+            validate,
+            json,
+        } => commands::compile::run(
+            &input,
+            output.as_deref(),
+            &package,
+            &version,
+            id_prefix.as_deref(),
+            min_confidence,
+            validate,
+            json,
+        ),
     };
 
     std::process::exit(exit_code);
