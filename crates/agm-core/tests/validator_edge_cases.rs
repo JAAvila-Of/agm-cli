@@ -850,8 +850,8 @@ fn test_validate_300_nodes_with_cross_references() {
         .map(|i| minimal_node(&format!("dag.n{i:03}"), i * 4 + 1))
         .collect();
     // Set up a valid DAG: each node depends on the previous one
-    for i in 1..300usize {
-        nodes[i].depends = Some(vec![format!("dag.n{:03}", i - 1)]);
+    for (i, node) in nodes.iter_mut().enumerate().skip(1) {
+        node.depends = Some(vec![format!("dag.n{:03}", i - 1)]);
     }
 
     let file = AgmFile {

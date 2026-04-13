@@ -130,9 +130,8 @@ fn test_parse_very_long_node_id_returns_error() {
         .collect::<Vec<_>>()
         .join(".");
     let input = format!(
-        "{}{}\n",
-        header(),
-        format!("node {long_id}\ntype: facts\nsummary: Long ID node\n")
+        "{}node {long_id}\ntype: facts\nsummary: Long ID node\n\n",
+        header()
     );
     // The parser should either accept it or return an error; it must not panic.
     let _ = parser::parse(&input);
