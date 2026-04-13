@@ -13,6 +13,9 @@ use crate::error::codes::ErrorCode;
 use crate::error::diagnostic::{AgmError, ErrorLocation};
 use crate::model::memory::{MemoryAction, MemoryEntry};
 
+/// Maximum size of a memory entry value in bytes (32 KiB). Spec S28.3.
+pub const MAX_MEMORY_VALUE_BYTES: usize = 32_768;
+
 /// Regex for memory key: starts with lowercase letter, then lowercase
 /// letters, digits, underscores, or dots. Spec S28.3.
 static MEMORY_KEY_RE: OnceLock<Regex> = OnceLock::new();
@@ -93,8 +96,23 @@ pub fn validate_memory_entry(entry: &MemoryEntry, location: ErrorLocation) -> Ve
                 "Invalid memory action: `search` on key `{}` requires `query`",
                 entry.key
             ),
-            location,
+            location.clone(),
         ));
+    }
+
+    if let Some(ref value) = entry.value {
+        if value.len() > MAX_MEMORY_VALUE_BYTES {
+            errors.push(AgmError::new(
+                ErrorCode::V027,
+                format!(
+                    "Memory value exceeds maximum size ({} bytes > {} bytes) for key `{}`",
+                    value.len(),
+                    MAX_MEMORY_VALUE_BYTES,
+                    entry.key
+                ),
+                location,
+            ));
+        }
     }
 
     errors
@@ -265,6 +283,54 @@ mod tests {
         let errors = validate_memory_entry(&entry, loc());
         assert!(errors.iter().any(|e| e.code == ErrorCode::V022));
         assert!(errors.iter().any(|e| e.code == ErrorCode::V025));
+    }
+
+    // --- validate_load_memory ---
+
+    // --- validate_memory_entry value size ---
+
+    #[test]
+    fn test_validate_memory_entry_value_under_limit_returns_empty() {
+        let mut entry = get_entry("repo.pattern", "rust.repository");
+        entry.action = MemoryAction::Upsert;
+        entry.value = Some("short value".to_owned());
+        assert!(validate_memory_entry(&entry, loc()).is_empty());
+    }
+
+    #[test]
+    fn test_validate_memory_entry_value_at_limit_returns_empty() {
+        let mut entry = get_entry("repo.pattern", "rust.repository");
+        entry.action = MemoryAction::Upsert;
+        entry.value = Some("x".repeat(MAX_MEMORY_VALUE_BYTES));
+        assert!(validate_memory_entry(&entry, loc()).is_empty());
+    }
+
+    #[test]
+    fn test_validate_memory_entry_value_over_limit_returns_v027() {
+        let mut entry = get_entry("repo.pattern", "rust.repository");
+        entry.action = MemoryAction::Upsert;
+        entry.value = Some("x".repeat(MAX_MEMORY_VALUE_BYTES + 1));
+        let errors = validate_memory_entry(&entry, loc());
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V027));
+    }
+
+    #[test]
+    fn test_validate_memory_entry_value_way_over_limit_returns_v027() {
+        let mut entry = get_entry("repo.pattern", "rust.repository");
+        entry.action = MemoryAction::Upsert;
+        entry.value = Some("x".repeat(MAX_MEMORY_VALUE_BYTES * 2));
+        let errors = validate_memory_entry(&entry, loc());
+        assert!(
+            errors.iter().any(|e| e.code == ErrorCode::V027),
+            "Expected V027 for value at 64 KiB"
+        );
+    }
+
+    #[test]
+    fn test_validate_memory_entry_get_with_no_value_ignores_size_check() {
+        let entry = get_entry("repo.pattern", "rust.repository");
+        // action is Get, value is None — no size check triggered
+        assert!(validate_memory_entry(&entry, loc()).is_empty());
     }
 
     // --- validate_load_memory ---

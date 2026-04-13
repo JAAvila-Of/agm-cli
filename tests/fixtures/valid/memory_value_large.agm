@@ -1,0 +1,14 @@
+agm: 1.0
+package: test.memory
+version: 0.1.0
+
+node data.patterns
+type: facts
+summary: discovered data patterns with large memory value
+memory:
+  - key: repo.discovered_patterns
+    topic: infrastructure
+    action: upsert
+    value: "This is a moderately large memory value that contains multiple paragraphs of discovered knowledge from the AI agent during execution. The agent found that the repository uses a specific pattern for database migrations: each migration file is numbered sequentially, contains both up and down SQL, and references a schema version table. The connection pooling configuration uses a minimum of 5 connections and a maximum of 20, with a 30-second idle timeout. The ORM layer maps snake_case column names to camelCase struct fields automatically. Foreign key constraints are enforced at the database level, not just the application level. Indexes exist on all columns used in WHERE clauses of the most frequent queries. The backup strategy uses daily full backups with hourly incremental backups retained for 30 days."
+    scope: project
+    ttl: permanent

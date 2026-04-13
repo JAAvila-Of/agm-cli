@@ -1810,7 +1810,7 @@ memory:
 | `key` | yes | Unique identifier for this memory entry. MUST match `[a-z][a-z0-9_.]*`. |
 | `topic` | yes | Categorical tag for retrieval. Dot-delimited. Examples: `rust.models`, `frontend.svelte`, `infrastructure`. |
 | `action` | yes | Operation to perform: `get`, `upsert`, `delete`, `list` |
-| `value` | conditional | Required for `upsert`. The knowledge to persist. Plain text. |
+| `value` | conditional | Required for `upsert`. The knowledge to persist. Plain text. MUST NOT exceed 32 768 bytes (32 KiB). |
 | `scope` | no | Visibility scope (default: `session`). See §28.5. |
 | `ttl` | no | Time-to-live (default: `session`). See §28.6. |
 

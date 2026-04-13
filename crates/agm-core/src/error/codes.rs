@@ -77,6 +77,7 @@ pub enum ErrorCode {
     V024,
     V025,
     V026,
+    V027,
     I001,
     I002,
     I003,
@@ -137,7 +138,8 @@ impl ErrorCode {
             | Self::V023
             | Self::V024
             | Self::V025
-            | Self::V026 => ErrorCategory::Validation,
+            | Self::V026
+            | Self::V027 => ErrorCategory::Validation,
             Self::I001 | Self::I002 | Self::I003 | Self::I004 | Self::I005 => ErrorCategory::Import,
             Self::R001
             | Self::R002
@@ -180,6 +182,7 @@ impl ErrorCode {
             Self::V024 => 24,
             Self::V025 => 25,
             Self::V026 => 26,
+            Self::V027 => 27,
         }
     }
 
@@ -217,7 +220,8 @@ impl ErrorCode {
             | Self::V022
             | Self::V023
             | Self::V024
-            | Self::V025 => Severity::Error,
+            | Self::V025
+            | Self::V027 => Severity::Error,
             Self::V026 => Severity::Warning,
             Self::I005 => Severity::Warning,
             Self::I001 | Self::I002 | Self::I003 | Self::I004 => Severity::Error,
@@ -276,6 +280,7 @@ impl ErrorCode {
             Self::V026 => {
                 "Unresolved memory topic `{topic}` in `agent_context.load_memory` of node `{node}`"
             }
+            Self::V027 => "Memory value exceeds maximum size limit (32 KiB) for key `{key}`",
             Self::I001 => "Unresolved import: `{package}`",
             Self::I002 => {
                 "Import version constraint not satisfied: `{package}@{constraint}` (found `{actual}`)"
@@ -363,6 +368,7 @@ impl std::str::FromStr for ErrorCode {
             "AGM-V024" => Ok(Self::V024),
             "AGM-V025" => Ok(Self::V025),
             "AGM-V026" => Ok(Self::V026),
+            "AGM-V027" => Ok(Self::V027),
             "AGM-I001" => Ok(Self::I001),
             "AGM-I002" => Ok(Self::I002),
             "AGM-I003" => Ok(Self::I003),
@@ -455,7 +461,7 @@ mod tests {
     }
 
     #[test]
-    fn test_error_code_total_count_is_52() {
+    fn test_error_code_total_count_is_53() {
         let all_codes: Vec<ErrorCode> = vec![
             ErrorCode::P001,
             ErrorCode::P002,
@@ -493,6 +499,7 @@ mod tests {
             ErrorCode::V024,
             ErrorCode::V025,
             ErrorCode::V026,
+            ErrorCode::V027,
             ErrorCode::I001,
             ErrorCode::I002,
             ErrorCode::I003,
@@ -510,7 +517,7 @@ mod tests {
             ErrorCode::L002,
             ErrorCode::L003,
         ];
-        assert_eq!(all_codes.len(), 52);
+        assert_eq!(all_codes.len(), 53);
     }
 
     #[test]

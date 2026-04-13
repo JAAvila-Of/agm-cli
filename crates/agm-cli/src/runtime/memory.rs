@@ -360,6 +360,14 @@ impl MemoryRuntime {
             MemoryAction::Get => self.get(node_id, scope, &entry.key),
             MemoryAction::Upsert => {
                 let value = entry.value.as_deref().unwrap_or("");
+                if value.len() > agm_core::memory::schema::MAX_MEMORY_VALUE_BYTES {
+                    anyhow::bail!(
+                        "Memory value exceeds maximum size ({} bytes > {} bytes) for key `{}`",
+                        value.len(),
+                        agm_core::memory::schema::MAX_MEMORY_VALUE_BYTES,
+                        entry.key
+                    );
+                }
                 self.upsert(node_id, scope, &entry.key, &entry.topic, ttl, value)
             }
             MemoryAction::Delete => self.delete(node_id, scope, &entry.key),
