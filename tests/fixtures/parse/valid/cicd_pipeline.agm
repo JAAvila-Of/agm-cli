@@ -1,0 +1,597 @@
+# expect: parse ok
+# description: large CI/CD pipeline with heavy orchestration, parallel groups, code blocks, verify, memory, execution state, agent_context
+agm: 1.0
+package: cicd.pipeline.enterprise
+version: 1.8.0
+title: Enterprise CI/CD Pipeline Architecture
+owner: devops-platform
+description:
+  Multi-stage CI/CD pipeline for a polyglot microservices architecture.
+  Covers build, test, security scan, artifact publishing, staging
+  deployment, integration testing, production canary, and rollback
+  procedures.
+status: active
+default_load: executable
+tags: [cicd, devops, kubernetes, security, automation]
+target_runtime: octopus
+load_profiles:
+  minimal:
+    filter: "priority in [critical] AND type in [decision]"
+    estimated_tokens: 900
+  operational:
+    filter: "priority in [critical, high]"
+    estimated_tokens: 5800
+  executable:
+    filter: "code is present OR type = orchestration"
+    estimated_tokens: 7500
+  full:
+    filter: "*"
+    estimated_tokens: 12000
+
+node ci.toolchain
+type: facts
+stability: high
+priority: critical
+confidence: high
+tags: [toolchain, infrastructure]
+summary: rust 1.80 toolchain; docker buildx multi-arch; trivy vulnerability scanner; helm 3.14; argocd gitops; azure devops agents
+items:
+  - compiler=rustc_1.80_stable
+  - build_tool=cargo
+  - container_builder=docker_buildx
+  - vulnerability_scanner=trivy_0.52
+  - secret_scanner=gitleaks_8
+  - sast_tool=clippy_semgrep
+  - helm_version=3.14
+  - gitops=argocd_2.11
+  - registry=harbor_2.10
+  - ci_platform=azure_devops
+  - test_runner=cargo_nextest
+  - coverage_tool=cargo_llvm_cov
+detail:
+  The toolchain is pinned via rust-toolchain.toml and renovate bot
+  manages dependency updates with auto-merge for patch versions.
+  Docker buildx produces linux/amd64 and linux/arm64 images in a
+  single build step. Trivy scans both container images and filesystem
+  for CVEs. ArgoCD handles gitops-based deployment to all environments.
+
+node ci.branch.rules
+type: rules
+stability: high
+priority: critical
+confidence: high
+tags: [branching, policy]
+summary: trunk-based development with short-lived feature branches, squash merge, and mandatory ci checks
+items:
+  - main_branch_is_always_deployable
+  - feature_branches_must_be_under_3_days_old
+  - squash_merge_required_for_all_prs
+  - minimum_2_approvals_for_production_changes
+  - minimum_1_approval_for_non_production_changes
+  - ci_must_pass_before_merge
+  - no_force_push_to_main
+  - branch_names_follow_type_slash_ticket_dash_description
+  - release_tags_follow_semver_v_prefix
+  - hotfix_branches_merge_to_main_and_backport
+detail:
+  Trunk-based development minimizes merge conflicts and integration
+  pain. Feature branches should be as small as possible. Long-running
+  branches are reviewed weekly and either merged or closed. Branch
+  protection rules are enforced at the repository level.
+
+node ci.build.rust
+type: workflow
+stability: medium
+priority: critical
+confidence: high
+tags: [build, rust]
+depends: [ci.toolchain, ci.branch.rules]
+input: [source_code, cargo_toml, rust_toolchain_toml]
+output: [compiled_binaries, build_artifacts, build_logs]
+summary: compile rust workspace with incremental caching, dependency audit, and reproducible builds
+steps:
+  - restore cargo registry and target directory caches
+  - run cargo fetch to download dependencies
+  - run cargo audit to check for known vulnerabilities
+  - run cargo fmt --check to verify formatting
+  - run cargo clippy -D warnings for lint checks
+  - run cargo build --release --locked for reproducible builds
+  - save target directory cache keyed by lockfile hash
+  - upload build artifacts to pipeline storage
+code:
+  lang: yaml
+  target: azure-pipelines/stages/build.yaml
+  action: create
+  body: |
+    stages:
+      - stage: Build
+        displayName: 'Build & Lint'
+        jobs:
+          - job: RustBuild
+            pool:
+              vmImage: 'ubuntu-latest'
+            steps:
+              - task: Cache@2
+                inputs:
+                  key: 'cargo | "$(Agent.OS)" | Cargo.lock'
+                  path: $(CARGO_HOME)/registry
+                displayName: 'Cache cargo registry'
+              - script: |
+                  rustup show
+                  cargo fetch
+                  cargo audit --deny warnings
+                  cargo fmt --check
+                  cargo clippy -- -D warnings
+                  cargo build --release --locked
+                displayName: 'Build workspace'
+              - publish: target/release
+                artifact: binaries
+                displayName: 'Publish binaries'
+verify:
+  - type: file_exists
+    file: azure-pipelines/stages/build.yaml
+  - type: file_contains
+    file: azure-pipelines/stages/build.yaml
+    pattern: "cargo build --release --locked"
+  - type: command
+    run: cargo build --release --locked
+    expect: exit_code_0
+agent_context:
+  load_nodes: [ci.toolchain]
+  load_files:
+    - path: Cargo.toml
+      range: full
+    - path: Cargo.lock
+      range: [1, 20]
+    - path: rust-toolchain.toml
+      range: full
+  system_hint: "Azure DevOps pipeline YAML. Use task references not inline scripts where possible."
+  max_tokens: 4000
+execution_status: pending
+
+node ci.test.unit
+type: workflow
+stability: medium
+priority: critical
+confidence: high
+tags: [testing, unit-tests]
+depends: [ci.build.rust]
+input: [compiled_workspace]
+output: [test_results_xml, coverage_report]
+summary: run unit tests with nextest for parallel execution and llvm-cov for coverage reporting
+steps:
+  - restore build cache from previous stage
+  - run cargo nextest run with junit output
+  - run cargo llvm-cov for coverage
+  - fail if coverage below 80 percent threshold
+  - publish test results and coverage to pipeline
+code:
+  lang: yaml
+  target: azure-pipelines/stages/test.yaml
+  action: create
+  body: |
+    stages:
+      - stage: Test
+        displayName: 'Unit Tests & Coverage'
+        dependsOn: Build
+        jobs:
+          - job: UnitTests
+            pool:
+              vmImage: 'ubuntu-latest'
+            steps:
+              - download: current
+                artifact: binaries
+              - script: |
+                  cargo nextest run --profile ci --message-format libtest-json > results.json
+                  cargo llvm-cov --lcov --output-path lcov.info
+                  COVERAGE=$(cargo llvm-cov --summary-only | grep -oP '\d+\.\d+%' | head -1)
+                  echo "Coverage: $COVERAGE"
+                displayName: 'Run tests with coverage'
+              - task: PublishTestResults@2
+                inputs:
+                  testResultsFormat: 'JUnit'
+                  testResultsFiles: 'results.xml'
+verify:
+  - type: file_exists
+    file: azure-pipelines/stages/test.yaml
+  - type: command
+    run: cargo nextest run --profile ci
+    expect: exit_code_0
+execution_status: pending
+memory:
+  - action: upsert
+    topic: ci.metrics
+    key: ci.test.last.coverage
+    value: pending measurement
+    scope: session
+
+node ci.test.integration
+type: workflow
+stability: medium
+priority: high
+confidence: high
+tags: [testing, integration-tests]
+depends: [ci.test.unit]
+input: [compiled_workspace, docker_compose_file]
+output: [integration_test_results]
+summary: run integration tests against real database and message broker using docker compose test environment
+steps:
+  - start docker compose with postgres, redis, and kafka
+  - wait for all services to be healthy
+  - run database migrations
+  - seed test data
+  - run integration test suite with nextest
+  - collect test results
+  - tear down docker compose environment
+code:
+  lang: bash
+  target: scripts/integration-test.sh
+  action: create
+  body: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    echo "Starting test infrastructure..."
+    docker compose -f docker-compose.test.yaml up -d --wait
+
+    echo "Running migrations..."
+    cargo run -p migration-tool -- migrate
+
+    echo "Running integration tests..."
+    cargo nextest run --profile integration \
+      --test-threads=4 \
+      --retries=2
+
+    EXIT_CODE=$?
+
+    echo "Tearing down..."
+    docker compose -f docker-compose.test.yaml down -v
+
+    exit $EXIT_CODE
+verify:
+  - type: file_exists
+    file: scripts/integration-test.sh
+  - type: file_exists
+    file: docker-compose.test.yaml
+  - type: command
+    run: bash scripts/integration-test.sh
+    expect: exit_code_0
+execution_status: pending
+
+node ci.security.scan
+type: workflow
+stability: medium
+priority: critical
+confidence: high
+tags: [security, scanning, compliance]
+depends: [ci.build.rust]
+related_to: [ci.test.unit]
+input: [source_code, container_image]
+output: [vulnerability_report, secret_scan_report, sast_report]
+summary: comprehensive security scanning with trivy for cves, gitleaks for secrets, and semgrep for sast patterns
+steps:
+  - run gitleaks detect on full git history
+  - run trivy filesystem scan on source directory
+  - build container image for scanning
+  - run trivy image scan with severity HIGH and CRITICAL
+  - run semgrep with rust and owasp rulesets
+  - aggregate results into unified security report
+  - fail pipeline if any CRITICAL findings
+  - upload report to security dashboard
+code_blocks:
+  - lang: yaml
+    target: azure-pipelines/stages/security.yaml
+    action: create
+    body: |
+      stages:
+        - stage: SecurityScan
+          displayName: 'Security Scanning'
+          dependsOn: Build
+          jobs:
+            - job: SecretScan
+              pool:
+                vmImage: 'ubuntu-latest'
+              steps:
+                - script: gitleaks detect --source . --verbose
+                  displayName: 'Secret scanning'
+            - job: VulnScan
+              pool:
+                vmImage: 'ubuntu-latest'
+              steps:
+                - script: |
+                    trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+                    trivy image --severity HIGH,CRITICAL --exit-code 1 $(IMAGE_TAG)
+                  displayName: 'Vulnerability scanning'
+            - job: SAST
+              pool:
+                vmImage: 'ubuntu-latest'
+              steps:
+                - script: semgrep --config auto --config p/rust --config p/owasp-top-ten --error
+                  displayName: 'SAST analysis'
+  - lang: toml
+    target: trivy.yaml
+    action: create
+    body: |
+      severity:
+        - HIGH
+        - CRITICAL
+      ignore-unfixed: true
+      skip-dirs:
+        - target
+        - .git
+        - node_modules
+      timeout: 300s
+verify:
+  - type: file_exists
+    file: azure-pipelines/stages/security.yaml
+  - type: file_contains
+    file: azure-pipelines/stages/security.yaml
+    pattern: "gitleaks detect"
+  - type: file_contains
+    file: azure-pipelines/stages/security.yaml
+    pattern: "trivy"
+agent_context:
+  load_nodes: [ci.toolchain]
+  load_files:
+    - path: .trivyignore
+      range: full
+    - path: .semgrep.yaml
+      range: full
+  system_hint: "Security scans must not be skippable. CRITICAL findings block the pipeline unconditionally."
+execution_status: pending
+
+node ci.container.build
+type: workflow
+stability: medium
+priority: high
+confidence: high
+tags: [container, docker, registry]
+depends: [ci.build.rust, ci.security.scan]
+input: [compiled_binaries, dockerfile]
+output: [container_image_digest, sbom]
+summary: multi-stage docker build with distroless base, sbom generation, and harbor registry push
+steps:
+  - copy release binaries into build context
+  - build multi-arch image with docker buildx
+  - generate sbom with syft
+  - sign image with cosign
+  - push to harbor registry with semver and sha tags
+  - run trivy scan on final image
+code:
+  lang: dockerfile
+  target: Dockerfile
+  action: create
+  body: |
+    FROM rust:1.80-slim AS builder
+    WORKDIR /app
+    COPY Cargo.toml Cargo.lock ./
+    COPY crates/ ./crates/
+    RUN cargo build --release --locked
+
+    FROM gcr.io/distroless/cc-debian12:nonroot
+    COPY --from=builder /app/target/release/api-server /usr/local/bin/
+    EXPOSE 8080
+    ENTRYPOINT ["api-server"]
+verify:
+  - type: file_exists
+    file: Dockerfile
+  - type: file_contains
+    file: Dockerfile
+    pattern: "distroless"
+  - type: command
+    run: docker build --check .
+    expect: exit_code_0
+execution_status: pending
+
+node ci.deploy.staging
+type: workflow
+stability: medium
+priority: high
+confidence: high
+tags: [deployment, staging, argocd]
+depends: [ci.container.build, ci.test.integration]
+input: [container_image_digest, helm_chart]
+output: [staging_deployment_status, staging_url]
+summary: deploy to staging via argocd sync with automated smoke tests and environment-specific config
+steps:
+  - update helm values with new image digest
+  - commit values change to gitops repository
+  - trigger argocd sync for staging environment
+  - wait for rollout to complete
+  - run smoke test suite against staging url
+  - verify health endpoints respond 200
+  - run lighthouse performance audit on staging
+code:
+  lang: bash
+  target: scripts/deploy-staging.sh
+  action: create
+  body: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    IMAGE_DIGEST="${1:?Usage: deploy-staging.sh <image-digest>}"
+    STAGING_URL="https://staging.platform.internal"
+
+    echo "Updating staging values..."
+    yq e ".image.digest = \"$IMAGE_DIGEST\"" -i deploy/environments/staging/values.yaml
+
+    echo "Committing to gitops repo..."
+    cd /tmp/gitops-repo
+    git add .
+    git commit -m "chore(staging): update image to $IMAGE_DIGEST"
+    git push origin main
+
+    echo "Syncing ArgoCD..."
+    argocd app sync platform-staging --prune --timeout 300
+
+    echo "Running smoke tests..."
+    curl -sf "$STAGING_URL/health" || exit 1
+    cargo nextest run --profile smoke -- --test-threads=1
+verify:
+  - type: file_exists
+    file: scripts/deploy-staging.sh
+  - type: command
+    run: bash -n scripts/deploy-staging.sh
+    expect: exit_code_0
+execution_status: pending
+memory:
+  - action: upsert
+    topic: deployment.tracking
+    key: ci.staging.last.deploy
+    value: pending
+    scope: project
+    ttl: permanent
+  - action: upsert
+    topic: deployment.tracking
+    key: ci.staging.image.digest
+    value: pending
+    scope: session
+
+node ci.deploy.production
+type: workflow
+stability: medium
+priority: critical
+confidence: high
+tags: [deployment, production, canary]
+depends: [ci.deploy.staging]
+input: [staging_validation_passed, container_image_digest]
+output: [production_deployment_status, canary_metrics]
+summary: production canary deployment with progressive traffic shifting, metric gates, and automatic rollback
+steps:
+  - verify staging deployment passed all checks
+  - update production helm values with image digest
+  - deploy canary with 5 percent traffic
+  - monitor error rate and latency for 10 minutes
+  - if metrics healthy increase to 25 percent
+  - monitor for additional 10 minutes
+  - promote to 100 percent
+  - update deployment record in tracking system
+  - notify team in slack channel
+execution_status: pending
+memory:
+  - action: upsert
+    topic: deployment.tracking
+    key: ci.production.deploy.status
+    value: initiated
+    scope: project
+    ttl: permanent
+
+node ci.rollback.procedure
+type: exception
+stability: high
+priority: critical
+confidence: high
+tags: [rollback, incident-response]
+depends: [ci.deploy.production]
+summary: automatic and manual rollback procedures when canary metrics breach thresholds or hotfix is needed
+detail:
+  Rollback can be triggered automatically by Flagger when canary
+  analysis fails, or manually by any on-call engineer through
+  the ArgoCD dashboard or CLI. The rollback restores the previous
+  known-good image digest and triggers a fresh deployment cycle.
+resolution:
+  - flagger auto-rollback on metric threshold breach
+  - manual rollback via argocd app rollback command
+  - hotfix branch from last known good tag
+  - incident channel created in slack for communication
+  - post-incident review within 48 hours
+  - document root cause in incident database
+
+node ci.dependency.audit.glossary
+type: glossary
+stability: high
+priority: normal
+confidence: high
+tags: [glossary, security]
+summary: terminology for dependency management and vulnerability tracking in the ci pipeline
+items:
+  - cve: common vulnerabilities and exposures, a cataloged security vulnerability
+  - sbom: software bill of materials, a list of all dependencies in a build artifact
+  - sast: static application security testing, analyzing source code for vulnerabilities
+  - dast: dynamic application security testing, testing running applications for vulnerabilities
+  - supply_chain_attack: compromise of a software dependency to inject malicious code
+  - advisory: security notice from a package registry about a known vulnerability
+  - remediation: process of fixing or mitigating a known vulnerability
+
+node ci.skip.tests.antipattern
+type: anti_pattern
+stability: high
+priority: critical
+confidence: high
+tags: [anti-pattern, testing, culture]
+conflicts: [ci.branch.rules]
+summary: skipping ci tests or using no-verify flags to speed up merges undermines pipeline reliability
+detail:
+  Developers under deadline pressure sometimes bypass CI checks using
+  git push --no-verify, pipeline skip comments, or draft-to-ready PR
+  tricks. This erodes trust in the pipeline and allows regressions to
+  reach production. Every pipeline bypass in the last year correlated
+  with a subsequent incident.
+
+node ci.monorepo.decision
+type: decision
+stability: high
+priority: high
+confidence: high
+tags: [architecture, monorepo]
+depends: [ci.toolchain, ci.branch.rules]
+see_also: [ci.build.rust]
+summary: cargo workspace monorepo with per-crate ci triggers instead of polyrepo with separate pipelines
+rationale:
+  - atomic cross-crate refactoring
+  - shared ci configuration and toolchain pinning
+  - single code review for cross-cutting changes
+  - cargo workspace handles dependency deduplication
+tradeoffs:
+  - ci must detect affected crates to avoid full rebuilds
+  - repository size grows faster than polyrepo
+  - access control is coarser than per-repo permissions
+  - git clone time increases over time
+
+node ci.pipeline.orchestration
+type: orchestration
+stability: medium
+priority: critical
+confidence: high
+summary: end-to-end ci/cd pipeline orchestration from build through production deployment
+parallel_groups:
+  - group: 1-build
+    nodes: [ci.build.rust]
+    strategy: sequential
+  - group: 2-quality-gates
+    nodes: [ci.test.unit, ci.security.scan]
+    strategy: parallel
+    requires: [1-build]
+    max_concurrency: 3
+  - group: 3-integration
+    nodes: [ci.test.integration, ci.container.build]
+    strategy: parallel
+    requires: [2-quality-gates]
+    max_concurrency: 2
+  - group: 4-staging
+    nodes: [ci.deploy.staging]
+    strategy: sequential
+    requires: [3-integration]
+  - group: 5-production
+    nodes: [ci.deploy.production]
+    strategy: sequential
+    requires: [4-staging]
+detail:
+  The pipeline flows strictly left-to-right through five phases.
+  Build is the foundation. Quality gates (unit tests and security
+  scans) run in parallel. Integration tests and container build
+  run in parallel after quality gates pass. Staging deployment
+  requires all integration work. Production deployment requires
+  successful staging validation. Any failure in groups 1-4 blocks
+  production deployment entirely.
+memory:
+  - action: upsert
+    topic: pipeline.metrics
+    key: pipeline.last.full.run.duration
+    value: measuring
+    scope: session
+  - action: upsert
+    topic: pipeline.metrics
+    key: pipeline.run.id
+    value: pending
+    scope: session

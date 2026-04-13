@@ -1,0 +1,35 @@
+agm: 1.0
+package: test.invalid
+version: 0.1.0
+
+node INVALID_ID
+type: facts
+summary: Invalid ID (uppercase)
+
+node valid.dup
+type: facts
+summary: First occurrence
+
+node valid.dup
+type: facts
+summary: Duplicate ID
+
+node valid.dangling
+type: workflow
+summary: Dangling reference
+depends: [nonexistent.node]
+
+node cycle.a
+type: facts
+summary: Cycle node A
+depends: [cycle.b]
+
+node cycle.b
+type: facts
+summary: Cycle node B
+depends: [cycle.a]
+
+node valid.bad_status
+type: workflow
+summary: Invalid status
+execution_status: invalid_value

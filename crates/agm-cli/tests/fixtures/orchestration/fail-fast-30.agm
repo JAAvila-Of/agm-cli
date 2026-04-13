@@ -1,0 +1,272 @@
+agm: 1.0
+package: test.orchestration.failfast30
+version: 1.0.0
+
+node node_01
+type: workflow
+summary: Linear chain node 01 (start)
+code:
+  lang: cmd
+  action: full
+  body: echo node 01
+
+node node_02
+type: workflow
+summary: Linear chain node 02
+depends: [node_01]
+code:
+  lang: cmd
+  action: full
+  body: echo node 02
+
+node node_03
+type: workflow
+summary: Linear chain node 03
+depends: [node_02]
+code:
+  lang: cmd
+  action: full
+  body: echo node 03
+
+node node_04
+type: workflow
+summary: Linear chain node 04
+depends: [node_03]
+code:
+  lang: cmd
+  action: full
+  body: echo node 04
+
+node node_05
+type: workflow
+summary: Linear chain node 05
+depends: [node_04]
+code:
+  lang: cmd
+  action: full
+  body: echo node 05
+
+node node_06
+type: workflow
+summary: Linear chain node 06
+depends: [node_05]
+code:
+  lang: cmd
+  action: full
+  body: echo node 06
+
+node node_07
+type: workflow
+summary: Linear chain node 07
+depends: [node_06]
+code:
+  lang: cmd
+  action: full
+  body: echo node 07
+
+node node_08
+type: workflow
+summary: Linear chain node 08
+depends: [node_07]
+code:
+  lang: cmd
+  action: full
+  body: echo node 08
+
+node node_09
+type: workflow
+summary: Linear chain node 09
+depends: [node_08]
+code:
+  lang: cmd
+  action: full
+  body: echo node 09
+
+node node_10
+type: workflow
+summary: Linear chain node 10
+depends: [node_09]
+code:
+  lang: cmd
+  action: full
+  body: echo node 10
+
+node node_11
+type: workflow
+summary: Linear chain node 11
+depends: [node_10]
+code:
+  lang: cmd
+  action: full
+  body: echo node 11
+
+node node_12
+type: workflow
+summary: Linear chain node 12
+depends: [node_11]
+code:
+  lang: cmd
+  action: full
+  body: echo node 12
+
+node node_13
+type: workflow
+summary: Linear chain node 13
+depends: [node_12]
+code:
+  lang: cmd
+  action: full
+  body: echo node 13
+
+node node_14
+type: workflow
+summary: Linear chain node 14
+depends: [node_13]
+code:
+  lang: cmd
+  action: full
+  body: echo node 14
+
+node node_15
+type: workflow
+summary: Linear chain node 15 — exits with code 1
+depends: [node_14]
+code:
+  lang: cmd
+  action: full
+  body: exit 1
+
+node node_16
+type: workflow
+summary: Linear chain node 16
+depends: [node_15]
+code:
+  lang: cmd
+  action: full
+  body: echo node 16
+
+node node_17
+type: workflow
+summary: Linear chain node 17
+depends: [node_16]
+code:
+  lang: cmd
+  action: full
+  body: echo node 17
+
+node node_18
+type: workflow
+summary: Linear chain node 18
+depends: [node_17]
+code:
+  lang: cmd
+  action: full
+  body: echo node 18
+
+node node_19
+type: workflow
+summary: Linear chain node 19
+depends: [node_18]
+code:
+  lang: cmd
+  action: full
+  body: echo node 19
+
+node node_20
+type: workflow
+summary: Linear chain node 20
+depends: [node_19]
+code:
+  lang: cmd
+  action: full
+  body: echo node 20
+
+node node_21
+type: workflow
+summary: Linear chain node 21
+depends: [node_20]
+code:
+  lang: cmd
+  action: full
+  body: echo node 21
+
+node node_22
+type: workflow
+summary: Linear chain node 22
+depends: [node_21]
+code:
+  lang: cmd
+  action: full
+  body: echo node 22
+
+node node_23
+type: workflow
+summary: Linear chain node 23
+depends: [node_22]
+code:
+  lang: cmd
+  action: full
+  body: echo node 23
+
+node node_24
+type: workflow
+summary: Linear chain node 24
+depends: [node_23]
+code:
+  lang: cmd
+  action: full
+  body: echo node 24
+
+node node_25
+type: workflow
+summary: Linear chain node 25
+depends: [node_24]
+code:
+  lang: cmd
+  action: full
+  body: echo node 25
+
+node node_26
+type: workflow
+summary: Linear chain node 26
+depends: [node_25]
+code:
+  lang: cmd
+  action: full
+  body: echo node 26
+
+node node_27
+type: workflow
+summary: Linear chain node 27
+depends: [node_26]
+code:
+  lang: cmd
+  action: full
+  body: echo node 27
+
+node node_28
+type: workflow
+summary: Linear chain node 28
+depends: [node_27]
+code:
+  lang: cmd
+  action: full
+  body: echo node 28
+
+node node_29
+type: workflow
+summary: Linear chain node 29
+depends: [node_28]
+code:
+  lang: cmd
+  action: full
+  body: echo node 29
+
+node node_30
+type: workflow
+summary: Linear chain node 30
+depends: [node_29]
+code:
+  lang: cmd
+  action: full
+  body: echo node 30

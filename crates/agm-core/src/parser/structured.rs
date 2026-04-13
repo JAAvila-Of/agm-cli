@@ -1684,4 +1684,289 @@ mod tests {
         assert_eq!(entries[0].scope, Some(MemoryScope::Project));
         assert_eq!(entries[0].ttl, Some(MemoryTtl::Permanent));
     }
+
+    // -----------------------------------------------------------------------
+    // H: edge case / error-path coverage
+    // -----------------------------------------------------------------------
+
+    // --- H1. parse_kv_from_text via parse_code_blocks inline-kv path ------
+    #[test]
+    fn test_parse_code_blocks_dash_with_inline_action_kv() {
+        // List items whose dash line carries the first kv pair, body on
+        // continuation lines. Covers the `parse_kv_from_text` + inline-kv
+        // merge path inside `parse_code_blocks`.
+        let input = "  - action: create\n    body: |\n      fn a() {}\n";
+        let (blocks, errors) = parse_structured(input, parse_code_blocks);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        assert_eq!(blocks.len(), 1);
+        assert_eq!(blocks[0].action, CodeAction::Create);
+    }
+
+    // --- H2. parse_code_block on empty input (detect_base_indent → None) --
+    #[test]
+    fn test_parse_code_block_empty_input_emits_two_v008_errors() {
+        let input = "";
+        let (cb, errors) = parse_structured(input, parse_code_block);
+        let v008_count = errors.iter().filter(|e| e.code == ErrorCode::V008).count();
+        assert_eq!(
+            v008_count, 2,
+            "expected 2 V008 errors (missing action + body), got {v008_count}"
+        );
+        assert_eq!(cb.action, CodeAction::Full);
+        assert!(cb.body.is_empty());
+    }
+
+    // --- H3. parse_code_blocks on empty input (detect_base_indent → None) -
+    #[test]
+    fn test_parse_code_blocks_no_content_returns_empty_vec() {
+        let input = "";
+        let (blocks, errors) = parse_structured(input, parse_code_blocks);
+        assert!(errors.is_empty());
+        assert!(blocks.is_empty());
+    }
+
+    // --- H4. parse_verify on empty input (detect_base_indent → None) ------
+    #[test]
+    fn test_parse_verify_no_content_returns_empty_vec() {
+        let input = "";
+        let (checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.is_empty());
+        assert!(checks.is_empty());
+    }
+
+    // --- H5. parse_verify command missing `run` emits V009 ----------------
+    #[test]
+    fn test_parse_verify_command_missing_run_emits_v009() {
+        let input = "  - type: command\n";
+        let (checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+        assert!(checks.is_empty());
+    }
+
+    // --- H6. parse_verify file_exists missing `file` emits V009 -----------
+    #[test]
+    fn test_parse_verify_file_exists_missing_file_emits_v009() {
+        let input = "  - type: file_exists\n";
+        let (checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+        assert!(checks.is_empty());
+    }
+
+    // --- H7. parse_verify file_contains missing `file` or `pattern` -------
+    #[test]
+    fn test_parse_verify_file_contains_missing_file_emits_v009() {
+        let input = "  - type: file_contains\n    pattern: foo\n";
+        let (checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+        assert!(checks.is_empty());
+    }
+
+    #[test]
+    fn test_parse_verify_file_contains_missing_pattern_emits_v009() {
+        let input = "  - type: file_contains\n    file: src/lib.rs\n";
+        let (checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+        assert!(checks.is_empty());
+    }
+
+    // --- H8. parse_verify file_not_contains missing fields ---------------
+    #[test]
+    fn test_parse_verify_file_not_contains_missing_file_emits_v009() {
+        let input = "  - type: file_not_contains\n    pattern: unsafe\n";
+        let (_checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+    }
+
+    #[test]
+    fn test_parse_verify_file_not_contains_missing_pattern_emits_v009() {
+        let input = "  - type: file_not_contains\n    file: src/lib.rs\n";
+        let (_checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+    }
+
+    // --- H9. parse_verify node_status missing fields ---------------------
+    #[test]
+    fn test_parse_verify_node_status_missing_node_emits_v009() {
+        let input = "  - type: node_status\n    status: completed\n";
+        let (_checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+    }
+
+    #[test]
+    fn test_parse_verify_node_status_missing_status_emits_v009() {
+        let input = "  - type: node_status\n    node: auth.login\n";
+        let (_checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
+    }
+
+    // --- H10. parse_verify unknown type emits P003 -----------------------
+    #[test]
+    fn test_parse_verify_unknown_type_emits_p003() {
+        let input = "  - type: magic\n    foo: bar\n";
+        let (checks, errors) = parse_structured(input, parse_verify);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::P003));
+        assert!(checks.is_empty());
+    }
+
+    // --- H11. parse_agent_context load_files (block list) ----------------
+    #[test]
+    fn test_parse_agent_context_load_files_block_list_all_range_variants() {
+        let input = "  load_files:\n    - path: src/main.rs\n      range: full\n    - path: src/util.rs\n      range: 1-50\n    - path: src/other.rs\n      range: function: do_work\n";
+        let (ctx, errors) = parse_structured(input, parse_agent_context);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        let files = ctx.load_files.as_deref().unwrap();
+        assert_eq!(files.len(), 3);
+        assert_eq!(files[0].range, FileRange::Full);
+        assert_eq!(files[1].range, FileRange::Lines(1, 50));
+        assert_eq!(files[2].range, FileRange::Function("do_work".to_owned()));
+    }
+
+    // --- H12. parse_agent_context load_files missing path emits P003 -----
+    #[test]
+    fn test_parse_agent_context_load_files_missing_path_emits_p003() {
+        let input = "  load_files:\n    - range: full\n";
+        let (_ctx, errors) = parse_structured(input, parse_agent_context);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::P003));
+    }
+
+    // --- H13. parse_agent_context load_nodes as block list ---------------
+    #[test]
+    fn test_parse_agent_context_load_nodes_block_list() {
+        let input = "  load_nodes:\n    - auth.login\n    - auth.session\n";
+        let (ctx, errors) = parse_structured(input, parse_agent_context);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        let nodes = ctx.load_nodes.as_deref().unwrap();
+        assert_eq!(nodes, &["auth.login", "auth.session"]);
+    }
+
+    // --- H14. parse_agent_context load_memory as block list --------------
+    #[test]
+    fn test_parse_agent_context_load_memory_block_list() {
+        let input = "  load_memory:\n    - topic.one\n    - topic.two\n";
+        let (ctx, errors) = parse_structured(input, parse_agent_context);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        let mem = ctx.load_memory.as_deref().unwrap();
+        assert_eq!(mem, &["topic.one", "topic.two"]);
+    }
+
+    // --- H15. parse_agent_context unknown indented field is skipped -----
+    #[test]
+    fn test_parse_agent_context_unknown_field_skipped_without_error() {
+        let input = "  system_hint: hello\n  unknown_extension:\n    - some\n    - thing\n  max_tokens: 100\n";
+        let (ctx, errors) = parse_structured(input, parse_agent_context);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        assert_eq!(ctx.system_hint.as_deref(), Some("hello"));
+        assert_eq!(ctx.max_tokens, Some(100));
+    }
+
+    // --- H16. parse_agent_context empty input returns all-None ----------
+    #[test]
+    fn test_parse_agent_context_empty_input_returns_all_none() {
+        let input = "";
+        let (ctx, errors) = parse_structured(input, parse_agent_context);
+        assert!(errors.is_empty());
+        assert!(ctx.system_hint.is_none());
+        assert!(ctx.max_tokens.is_none());
+        assert!(ctx.load_nodes.is_none());
+        assert!(ctx.load_files.is_none());
+        assert!(ctx.load_memory.is_none());
+    }
+
+    // --- H17. parse_parallel_groups invalid strategy emits P003 ---------
+    #[test]
+    fn test_parse_parallel_groups_invalid_strategy_emits_p003() {
+        let input = "  - group: g1\n    nodes: [n.a]\n    strategy: bogus\n";
+        let (groups, errors) = parse_structured(input, parse_parallel_groups);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::P003));
+        // Group still builds with fallback strategy.
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].strategy, Strategy::Sequential);
+    }
+
+    // --- H18. parse_parallel_groups empty input returns empty -----------
+    #[test]
+    fn test_parse_parallel_groups_empty_input_returns_empty() {
+        let input = "";
+        let (groups, errors) = parse_structured(input, parse_parallel_groups);
+        assert!(errors.is_empty());
+        assert!(groups.is_empty());
+    }
+
+    // --- H19. parse_load_profiles empty input returns empty -------------
+    #[test]
+    fn test_parse_load_profiles_empty_input_returns_empty() {
+        let input = "";
+        let (profiles, errors) = parse_structured(input, parse_load_profiles);
+        assert!(errors.is_empty());
+        assert!(profiles.is_empty());
+    }
+
+    // --- H20. parse_memory empty input returns empty --------------------
+    #[test]
+    fn test_parse_memory_empty_input_returns_empty() {
+        let input = "";
+        let (entries, errors) = parse_structured(input, parse_memory);
+        assert!(errors.is_empty());
+        assert!(entries.is_empty());
+    }
+
+    // --- H21. parse_memory missing topic emits P003 --------------------
+    #[test]
+    fn test_parse_memory_missing_topic_emits_p003_and_skips() {
+        let input = "  - key: k1\n    action: get\n";
+        let (entries, errors) = parse_structured(input, parse_memory);
+        assert!(errors.iter().any(|e| e.code == ErrorCode::P003));
+        assert!(entries.is_empty());
+    }
+
+    // --- H22. parse_memory entry with query + max_results + value -------
+    #[test]
+    fn test_parse_memory_with_query_max_results_and_value() {
+        let input = "  - key: k1\n    topic: t1\n    action: search\n    value: some value\n    query: pattern\n    max_results: 5\n";
+        let (entries, errors) = parse_structured(input, parse_memory);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        assert_eq!(entries[0].value.as_deref(), Some("some value"));
+        assert_eq!(entries[0].query.as_deref(), Some("pattern"));
+        assert_eq!(entries[0].max_results, Some(5));
+    }
+
+    // --- H23. parse_memory with ttl duration and session scope ----------
+    #[test]
+    fn test_parse_memory_session_scope_and_duration_ttl() {
+        let input = "  - key: sess.k\n    topic: t\n    action: upsert\n    scope: session\n    ttl: duration:P1D\n";
+        let (entries, errors) = parse_structured(input, parse_memory);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        assert_eq!(entries[0].scope, Some(MemoryScope::Session));
+        assert_eq!(
+            entries[0].ttl,
+            Some(MemoryTtl::Duration("P1D".to_owned()))
+        );
+    }
+
+    // --- H24. parse_file_range all branches (via parse_load_files_list) -
+    #[test]
+    fn test_parse_file_range_helper_all_branches() {
+        // Exercise the parse_file_range helper end-to-end through load_files:
+        // "full", numeric range "10-20", "function: name", invalid "abc".
+        let input = "  load_files:\n    - path: a.rs\n      range: full\n    - path: b.rs\n      range: 10-20\n    - path: c.rs\n      range: function: work\n    - path: d.rs\n      range: abc\n";
+        let (ctx, errors) = parse_structured(input, parse_agent_context);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        let files = ctx.load_files.as_deref().unwrap();
+        assert_eq!(files[0].range, FileRange::Full);
+        assert_eq!(files[1].range, FileRange::Lines(10, 20));
+        assert_eq!(files[2].range, FileRange::Function("work".to_owned()));
+        // Invalid falls back to Full.
+        assert_eq!(files[3].range, FileRange::Full);
+    }
+
+    // --- H25. parse_code_block with pipe body that has blank line -------
+    #[test]
+    fn test_parse_code_block_pipe_body_preserves_internal_blank_line() {
+        // A blank line in the middle of a pipe body should be preserved if
+        // more body follows (collect_pipe_body lookahead path).
+        let input = "  action: create\n  body: |\n    line one\n\n    line three\n";
+        let (cb, errors) = parse_structured(input, parse_code_block);
+        assert!(errors.is_empty(), "unexpected errors: {errors:?}");
+        assert_eq!(cb.body, "line one\n\nline three");
+    }
 }

@@ -1,0 +1,695 @@
+# expect: parse ok
+# description: large real-world e-commerce platform covering all 10 node types, relationships, orchestration, memory, code, verify, agent_context, load_profiles, temporal fields
+agm: 1.0
+package: ecommerce.platform
+version: 2.3.1
+title: E-Commerce Platform Core Architecture
+owner: platform-engineering
+description:
+  Comprehensive architecture for a multi-tenant e-commerce platform
+  handling product catalog, order lifecycle, payment processing,
+  inventory management, and customer experience. Designed for
+  horizontal scalability with event-driven microservices.
+status: active
+default_load: operational
+tags: [ecommerce, microservices, event-driven, multi-tenant]
+target_runtime: octopus
+load_profiles:
+  minimal:
+    filter: "priority in [critical] AND type in [decision, facts]"
+    estimated_tokens: 1200
+  operational:
+    filter: "priority in [critical, high] AND type in [workflow, decision, facts, rules, entity]"
+    estimated_tokens: 6500
+  executable:
+    filter: "type in [workflow, orchestration] AND code is present"
+    estimated_tokens: 8200
+  full:
+    filter: "*"
+    estimated_tokens: 14000
+
+node platform.stack
+type: facts
+stability: high
+priority: critical
+confidence: high
+tags: [stack, infrastructure]
+summary: rust backend services; next15 storefront; postgresql primary store; redis cache; kafka event bus; s3 media storage
+items:
+  - api_gateway=rust_axum
+  - catalog_service=rust_axum
+  - order_service=rust_axum
+  - payment_service=rust_axum
+  - inventory_service=rust_axum
+  - storefront=next15_app_router
+  - database=postgresql_16
+  - cache=redis_7
+  - event_bus=kafka_3
+  - media_storage=s3_compatible
+  - search=elasticsearch_8
+  - observability=opentelemetry_grafana
+detail:
+  Backend services use Rust with Axum framework for high throughput
+  and memory safety. The storefront is built on Next.js 15 with App
+  Router for SSR and ISR capabilities. PostgreSQL is the primary
+  data store with read replicas per region. Redis handles session
+  caching, rate limiting, and ephemeral data. Kafka provides the
+  event backbone for eventual consistency between bounded contexts.
+  S3-compatible storage is used for product images, invoices, and
+  media assets. Elasticsearch powers the product search with
+  faceted filtering and relevance scoring.
+notes:
+  Infrastructure runs on Kubernetes with Helm charts managed in a
+  separate infra repository. Each service has its own database schema
+  isolated by PostgreSQL schemas within a shared cluster.
+
+node platform.constraints
+type: rules
+stability: high
+priority: critical
+confidence: high
+tags: [security, compliance, architecture]
+summary: idempotent mutations; event sourcing for orders; pci-dss for payments; gdpr data handling; rate limiting on all public endpoints
+items:
+  - all_write_operations_must_be_idempotent
+  - order_state_transitions_must_be_event_sourced
+  - payment_data_must_comply_with_pci_dss
+  - personal_data_handling_must_comply_with_gdpr
+  - rate_limiting_required_on_all_public_endpoints
+  - cross_service_calls_must_use_circuit_breakers
+  - database_migrations_must_be_backward_compatible
+  - api_versions_must_follow_semver
+  - all_services_must_emit_structured_logs
+  - telemetry_traces_must_propagate_across_service_boundaries
+detail:
+  These constraints are non-negotiable and apply to all services in the
+  platform. Violations are caught by CI lint checks and architecture
+  fitness functions. PCI-DSS compliance requires that raw card numbers
+  never touch our systems; all payment processing goes through the
+  payment gateway tokenization flow. GDPR requires right-to-erasure
+  support within 30 days of request.
+
+node catalog.product
+type: entity
+stability: medium
+priority: high
+confidence: high
+tags: [catalog, domain-model]
+depends: [platform.stack]
+summary: product aggregate root with variants, pricing tiers, media gallery, and category associations
+fields:
+  - product_id: uuid primary key
+  - sku: string unique per tenant
+  - name: string max 200 chars
+  - slug: string url-safe unique per tenant
+  - description: text markdown-enabled
+  - brand: string optional
+  - categories: array of category references
+  - variants: array of product_variant embedded
+  - pricing: pricing_context embedded
+  - media: array of media_asset references
+  - attributes: json key-value map
+  - status: enum (draft, active, archived, discontinued)
+  - tenant_id: uuid partition key
+  - created_at: timestamp with timezone
+  - updated_at: timestamp with timezone
+  - published_at: timestamp with timezone nullable
+  - seo_title: string max 70 chars nullable
+  - seo_description: string max 160 chars nullable
+detail:
+  Products are the central aggregate in the catalog bounded context.
+  Each product belongs to exactly one tenant and can have multiple
+  variants (size, color, material). Pricing is context-dependent:
+  base price, member price, bulk pricing tiers. The media gallery
+  supports images, videos, and 360-degree views with CDN delivery.
+  Elasticsearch indexing is triggered asynchronously via Kafka events
+  on product mutations.
+
+node catalog.search.rules
+type: rules
+stability: medium
+priority: high
+confidence: high
+tags: [catalog, search]
+depends: [catalog.product]
+summary: search relevance rules for product discovery including facets, synonyms, and boosting
+items:
+  - exact_sku_match_boosts_to_top
+  - name_match_weighted_3x_over_description
+  - in_stock_products_boosted_over_out_of_stock
+  - category_facets_always_available
+  - price_range_facets_use_dynamic_intervals
+  - brand_facets_sorted_by_frequency
+  - synonym_expansion_applied_before_scoring
+  - minimum_should_match_75_percent_for_multi_term
+  - typo_tolerance_enabled_for_queries_over_4_chars
+  - recently_published_products_get_freshness_boost
+detail:
+  Search tuning is critical for conversion. The relevance model uses
+  Elasticsearch function_score queries combining text relevance, stock
+  status, recency, and sales velocity signals.
+
+node order.lifecycle
+type: workflow
+stability: medium
+priority: critical
+confidence: high
+tags: [orders, lifecycle, event-sourcing]
+depends: [platform.constraints, catalog.product]
+related_to: [payment.process, inventory.reserve]
+input: [cart_items, customer_id, shipping_address, payment_method_token]
+output: [order_id, order_confirmation_event]
+summary: create order -> validate stock -> reserve inventory -> process payment -> confirm order -> emit events
+steps:
+  - validate cart items exist and are purchasable
+  - calculate order totals with tax and shipping
+  - apply discount codes and loyalty points
+  - reserve inventory for all line items
+  - initiate payment authorization
+  - on payment success create order record
+  - emit order.confirmed event to kafka
+  - send confirmation email via notification service
+  - schedule fulfillment task
+  - on payment failure release inventory reservations
+detail:
+  The order lifecycle is event-sourced: every state transition produces
+  an immutable event appended to the order event stream. The current
+  state is reconstructed by replaying events. This enables full audit
+  trails, temporal queries, and compensation for failed operations.
+  The workflow uses the saga pattern for distributed transaction
+  coordination across inventory, payment, and order services.
+notes:
+  Cart validation re-checks prices at order creation time to prevent
+  stale-price exploits. The payment authorization is held for 7 days
+  before auto-void if fulfillment doesn't begin.
+
+node order.states
+type: glossary
+stability: high
+priority: high
+confidence: high
+tags: [orders, glossary]
+depends: [order.lifecycle]
+summary: canonical order status definitions for the order lifecycle state machine
+items:
+  - pending: order created but payment not yet attempted
+  - payment_authorized: payment hold placed, awaiting fulfillment
+  - processing: order accepted and being prepared for shipment
+  - shipped: carrier has the package, tracking number assigned
+  - delivered: carrier confirmed delivery at address
+  - cancelled: order cancelled before shipment
+  - refunded: payment returned to customer after cancellation or return
+  - return_requested: customer initiated a return
+  - return_received: returned items received at warehouse
+  - partially_fulfilled: some items shipped, others pending
+aliases:
+  - order statuses
+  - order state machine
+
+node payment.process
+type: workflow
+stability: medium
+priority: critical
+confidence: high
+tags: [payments, pci, integration]
+depends: [platform.constraints]
+related_to: [order.lifecycle]
+input: [payment_method_token, amount, currency, order_id, idempotency_key]
+output: [transaction_id, authorization_code, payment_status]
+summary: tokenized payment flow through gateway with idempotency, retry logic, and webhook reconciliation
+steps:
+  - validate payment_method_token format and expiry
+  - lookup idempotency_key to detect duplicate requests
+  - send authorization request to payment gateway
+  - handle gateway response codes
+  - persist transaction record with gateway reference
+  - emit payment.authorized or payment.failed event
+  - register webhook handler for async settlement notifications
+  - on settlement webhook update transaction status
+  - reconcile daily batch with gateway settlement reports
+detail:
+  Payment processing never handles raw card data. The storefront
+  collects card details via the gateway's PCI-compliant JavaScript
+  SDK which returns a one-time-use token. Our backend sends this
+  token to the gateway API for authorization. Idempotency keys
+  prevent duplicate charges on network retries.
+scope: [production, staging]
+
+node payment.gateway.timeout
+type: exception
+stability: medium
+priority: high
+confidence: high
+tags: [payments, resilience]
+depends: [payment.process]
+summary: payment gateway timeout or 5xx during authorization requires idempotent retry with exponential backoff
+detail:
+  Gateway timeouts are common during peak traffic. The payment was
+  potentially processed but we didn't receive confirmation. Blind
+  retry without idempotency would cause double charges.
+resolution:
+  - retry with same idempotency_key using exponential backoff
+  - maximum 3 retries over 30 seconds
+  - if all retries fail mark payment as requires_manual_review
+  - alert on-call if failure rate exceeds 5 percent in 5 minutes
+  - never assume payment failed without gateway confirmation
+  - use gateway query API to check authorization status before final determination
+
+node payment.browser.storage
+type: anti_pattern
+stability: high
+priority: critical
+confidence: high
+tags: [security, anti-pattern, payments]
+conflicts: [platform.constraints]
+summary: storing payment tokens or card data in browser storage violates pci-dss and exposes customer financial data
+detail:
+  localStorage, sessionStorage, or cookies must never contain payment
+  tokens, card numbers, CVVs, or any PCI-sensitive data. Even
+  tokenized payment method references should have short TTLs and be
+  transmitted only over HTTPS. XSS vulnerabilities would directly
+  expose financial data if stored client-side.
+
+node inventory.reserve
+type: workflow
+stability: medium
+priority: high
+confidence: high
+tags: [inventory, warehouse]
+depends: [platform.stack]
+related_to: [order.lifecycle]
+input: [line_items, warehouse_id]
+output: [reservation_id, reserved_quantities]
+summary: atomic inventory reservation with optimistic locking and automatic expiration
+steps:
+  - select optimal warehouse by proximity and stock levels
+  - acquire optimistic lock on inventory records
+  - verify sufficient available quantity for each sku
+  - decrement available quantity and increment reserved quantity
+  - create reservation record with 15 minute expiry
+  - emit inventory.reserved event
+  - schedule reservation expiry check
+code:
+  lang: sql
+  target: services/inventory/migrations/004_reservation_table.sql
+  action: create
+  body: |
+    CREATE TABLE inventory_reservations (
+        reservation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        order_id UUID NOT NULL,
+        sku VARCHAR(100) NOT NULL,
+        warehouse_id UUID NOT NULL,
+        quantity INTEGER NOT NULL CHECK (quantity > 0),
+        status VARCHAR(20) NOT NULL DEFAULT 'active'
+            CHECK (status IN ('active', 'released', 'committed', 'expired')),
+        expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '15 minutes',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT fk_warehouse FOREIGN KEY (warehouse_id)
+            REFERENCES warehouses(warehouse_id)
+    );
+
+    CREATE INDEX idx_reservations_expiry
+        ON inventory_reservations (expires_at)
+        WHERE status = 'active';
+
+    CREATE INDEX idx_reservations_order
+        ON inventory_reservations (order_id);
+verify:
+  - type: file_exists
+    file: services/inventory/migrations/004_reservation_table.sql
+  - type: file_contains
+    file: services/inventory/migrations/004_reservation_table.sql
+    pattern: "CREATE TABLE inventory_reservations"
+  - type: command
+    run: cargo check -p inventory-service
+    expect: exit_code_0
+agent_context:
+  load_nodes: [platform.stack, platform.constraints]
+  load_files:
+    - path: services/inventory/src/models/reservation.rs
+      range: full
+    - path: services/inventory/src/handlers/reserve.rs
+      range: [1, 80]
+  system_hint: "PostgreSQL 16. Use advisory locks for hot SKUs. Reservation TTL is configurable via env."
+  max_tokens: 5000
+execution_status: pending
+
+node customer.session
+type: entity
+stability: medium
+priority: high
+confidence: high
+tags: [customer, session, security]
+depends: [platform.stack]
+summary: customer session with opaque token, cart reference, tenant isolation, and device fingerprint
+fields:
+  - session_id: uuid primary key
+  - customer_id: uuid nullable for anonymous sessions
+  - tenant_id: uuid partition key
+  - cart_id: uuid nullable
+  - device_fingerprint: string hashed
+  - ip_address: inet
+  - user_agent: string truncated to 500 chars
+  - auth_level: enum (anonymous, authenticated, elevated)
+  - created_at: timestamp with timezone
+  - last_active_at: timestamp with timezone
+  - expires_at: timestamp with timezone
+scope: [production, staging]
+valid_from: 2024-01-15
+valid_until: 2026-12-31
+
+node customer.loyalty
+type: facts
+stability: low
+priority: normal
+confidence: medium
+tags: [customer, loyalty, marketing]
+depends: [customer.session]
+summary: loyalty program tiers with point accumulation rates, redemption rules, and tier qualification thresholds
+items:
+  - tier_bronze=0_to_999_points
+  - tier_silver=1000_to_4999_points
+  - tier_gold=5000_to_19999_points
+  - tier_platinum=20000_plus_points
+  - earn_rate_base=1_point_per_dollar
+  - earn_rate_silver=1.5x_multiplier
+  - earn_rate_gold=2x_multiplier
+  - earn_rate_platinum=3x_multiplier
+  - redemption_ratio=100_points_equals_1_dollar
+  - points_expire_after_18_months_inactivity
+  - tier_evaluation_quarterly
+detail:
+  The loyalty program is a key retention mechanism. Points accumulate
+  on every purchase and can be redeemed as discount at checkout. Tier
+  benefits include free shipping thresholds, early access to sales,
+  and dedicated support channels.
+
+node checkout.pricing.decision
+type: decision
+stability: high
+priority: critical
+confidence: high
+tags: [pricing, architecture]
+depends: [catalog.product, customer.loyalty, platform.constraints]
+conflicts: [payment.browser.storage]
+summary: server-side pricing calculation with real-time discount engine instead of client-side price resolution
+rationale:
+  - prevents price manipulation through client-side tampering
+  - enables complex discount stacking rules server-side
+  - supports flash sales with sub-second price updates
+  - audit trail for every price computation
+  - consistent pricing across storefront and api channels
+tradeoffs:
+  - adds latency to cart operations
+  - pricing service becomes critical path dependency
+  - requires caching strategy for high-traffic product pages
+  - complicates offline mode for pos terminals
+
+node checkout.discount.example
+type: example
+stability: medium
+priority: normal
+confidence: high
+tags: [pricing, examples]
+depends: [checkout.pricing.decision]
+summary: example discount stacking calculation showing coupon, loyalty, and volume discount interaction
+detail:
+  Gold tier customer with 5000 points purchases 3 units of Product X
+  (base price $100 each) with coupon SAVE20. Base total is 3 x $100
+  = $300.00. Volume discount (3+ units) applies -5% = -$15.00 giving
+  $285.00. Coupon SAVE20 applies -20% on remaining = -$57.00 giving
+  $228.00. Loyalty points (500 redeemed) deducts $5.00 giving $223.00.
+  Tax (8.5%) adds $18.96 giving $241.96. Free shipping applies for
+  Gold tier with order above $150. Final amount is $241.96 with 500
+  loyalty points deducted and 446 new points earned (2x Gold multiplier
+  on $223.00 pre-tax amount).
+
+node shipping.estimation
+type: workflow
+stability: medium
+priority: high
+confidence: medium
+tags: [shipping, logistics]
+depends: [inventory.reserve, customer.session]
+input: [shipping_address, line_items, warehouse_locations]
+output: [shipping_options, estimated_delivery_dates, shipping_costs]
+summary: calculate shipping options by comparing carrier rates, warehouse proximity, and delivery speed tiers
+steps:
+  - determine fulfillment warehouse for each line item
+  - calculate package dimensions and weight
+  - query carrier rate apis in parallel for each warehouse-destination pair
+  - apply shipping promotions and free shipping thresholds
+  - estimate delivery windows based on carrier sla and cutoff times
+  - present sorted options by speed and cost
+  - cache rates for 15 minutes keyed by destination zip and package profile
+memory:
+  - action: upsert
+    topic: shipping.rates
+    key: shipping.rate.cache.last.updated
+    value: timestamp of last carrier rate refresh
+    scope: session
+    ttl: 900
+  - action: get
+    topic: shipping.carriers
+    key: shipping.carrier.preferences
+    scope: project
+
+node notification.templates
+type: facts
+stability: low
+priority: normal
+confidence: medium
+tags: [notifications, email, sms]
+related_to: [order.lifecycle]
+summary: transactional notification templates for order events including email, sms, and push channels
+items:
+  - order_confirmation_email
+  - payment_receipt_email
+  - shipment_tracking_email
+  - delivery_confirmation_email
+  - return_initiated_email
+  - refund_processed_email
+  - cart_abandonment_email
+  - welcome_series_email
+  - password_reset_email
+  - order_shipped_sms
+  - delivery_eta_sms
+  - flash_sale_push
+  - back_in_stock_push
+
+node analytics.tracking.rules
+type: rules
+stability: medium
+priority: normal
+confidence: medium
+tags: [analytics, tracking, privacy]
+depends: [platform.constraints]
+summary: analytics event tracking rules with consent management, data minimization, and retention policies
+items:
+  - all_tracking_requires_explicit_consent
+  - consent_state_checked_on_every_page_load
+  - pii_stripped_before_analytics_ingestion
+  - session_events_aggregated_before_warehouse_load
+  - raw_events_retained_90_days
+  - aggregated_data_retained_3_years
+  - ab_test_assignments_stored_with_events
+  - funnel_events_must_include_step_index
+  - revenue_events_must_include_currency
+  - cross_device_tracking_requires_authenticated_identity
+applies_when: storefront sessions where analytics consent is granted
+
+node api.versioning.decision
+type: decision
+stability: high
+priority: high
+confidence: high
+tags: [api, versioning, architecture]
+depends: [platform.constraints]
+see_also: [platform.stack]
+summary: url-path versioning with sunset headers instead of content-negotiation versioning
+rationale:
+  - url-path versioning is simpler for api consumers
+  - easier to route at load balancer level
+  - clearer documentation with version in url
+  - sunset header provides deprecation timeline
+tradeoffs:
+  - url space grows with each version
+  - harder to support partial version upgrades
+  - clients must update base urls on major version change
+keywords: [api-design, versioning-strategy, deprecation]
+
+node platform.glossary
+type: glossary
+stability: high
+priority: normal
+confidence: high
+tags: [glossary, domain-language]
+summary: ubiquitous language definitions for the e-commerce platform domain
+items:
+  - sku: stock keeping unit, unique product variant identifier within a tenant
+  - tenant: isolated business entity sharing the platform infrastructure
+  - cart: temporary collection of items a customer intends to purchase
+  - order: committed purchase with payment and fulfillment tracking
+  - reservation: temporary hold on inventory pending payment confirmation
+  - authorization: payment hold without capture, funds earmarked but not transferred
+  - capture: actual transfer of authorized payment funds
+  - settlement: daily reconciliation of captures with payment gateway
+  - fulfillment: process of picking, packing, and shipping an order
+  - sku velocity: rate of sales per sku per time period used for demand forecasting
+  - dead stock: inventory with zero sales velocity over 90 days
+  - backorder: order accepted for out-of-stock items with delayed fulfillment
+aliases:
+  - ecommerce dictionary
+  - domain glossary
+
+node deploy.canary.workflow
+type: workflow
+stability: medium
+priority: high
+confidence: high
+tags: [deployment, canary, observability]
+depends: [platform.stack, platform.constraints]
+input: [service_name, new_version, canary_percentage]
+output: [deployment_status, rollback_decision]
+summary: canary deployment with traffic splitting, metric comparison, and automatic rollback on error rate threshold
+steps:
+  - build and push container image for new version
+  - deploy canary pod with 5 percent traffic weight
+  - monitor error rate and p99 latency for 10 minutes
+  - if error rate above 1 percent or p99 above 500ms trigger rollback
+  - if metrics healthy increase traffic to 25 percent
+  - monitor for additional 10 minutes
+  - if still healthy promote to 100 percent
+  - drain old version pods
+  - emit deployment.completed event
+code_blocks:
+  - lang: yaml
+    target: deploy/helm/templates/canary.yaml
+    action: create
+    body: |
+      apiVersion: flagger.app/v1beta1
+      kind: Canary
+      metadata:
+        name: {{ .Values.service.name }}
+        namespace: {{ .Release.Namespace }}
+      spec:
+        targetRef:
+          apiVersion: apps/v1
+          kind: Deployment
+          name: {{ .Values.service.name }}
+        progressDeadlineSeconds: 600
+        analysis:
+          interval: 60s
+          threshold: 5
+          maxWeight: 50
+          stepWeight: 10
+          metrics:
+            - name: request-success-rate
+              thresholdRange:
+                min: 99
+              interval: 60s
+            - name: request-duration
+              thresholdRange:
+                max: 500
+              interval: 60s
+  - lang: bash
+    target: scripts/deploy-canary.sh
+    action: create
+    body: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      SERVICE_NAME="${1:?Usage: deploy-canary.sh <service> <version>}"
+      VERSION="${2:?Usage: deploy-canary.sh <service> <version>}"
+
+      echo "Deploying $SERVICE_NAME v$VERSION via canary..."
+      helm upgrade --install "$SERVICE_NAME" deploy/helm \
+        --set image.tag="$VERSION" \
+        --set canary.enabled=true \
+        --namespace production \
+        --wait --timeout 300s
+
+      echo "Canary deployed. Monitoring via Flagger..."
+verify:
+  - type: file_exists
+    file: deploy/helm/templates/canary.yaml
+  - type: file_exists
+    file: scripts/deploy-canary.sh
+  - type: command
+    run: helm lint deploy/helm
+    expect: exit_code_0
+  - type: file_contains
+    file: deploy/helm/templates/canary.yaml
+    pattern: "kind: Canary"
+agent_context:
+  load_nodes: [platform.stack, platform.constraints]
+  load_files:
+    - path: deploy/helm/values.yaml
+      range: full
+    - path: deploy/helm/Chart.yaml
+      range: full
+  system_hint: "Kubernetes 1.28. Flagger for progressive delivery. Helm 3.14+."
+  max_tokens: 6000
+execution_status: pending
+
+node platform.monitoring.example
+type: example
+stability: medium
+priority: normal
+confidence: medium
+tags: [observability, examples]
+depends: [deploy.canary.workflow]
+see_also: [platform.stack]
+summary: example grafana alert configuration for canary deployment monitoring
+detail:
+  Dashboard is Production Canary Monitoring at grafana.internal/d/canary-monitor.
+  Panel 1 shows Request Success Rate by Version using
+  sum(rate(http_requests_total{status!~"5.."}[5m])) by (version)
+  divided by sum(rate(http_requests_total[5m])) by (version) times 100.
+  Alert fires if success_rate below 99% for any version over 2 minutes.
+  Panel 2 shows P99 Latency by Version using histogram_quantile 0.99
+  on sum(rate(http_request_duration_seconds_bucket[5m])) by (le, version).
+  Alert fires if p99 above 500ms for canary version over 3 minutes.
+  Panel 3 shows Error Rate Delta computed as
+  (canary_error_rate - baseline_error_rate) / baseline_error_rate * 100.
+  Alert fires if delta above 10% sustained for 5 minutes.
+  Notification channel is PagerDuty oncall-platform.
+
+node rollout.orchestration
+type: orchestration
+stability: medium
+priority: critical
+confidence: high
+summary: coordinate e-commerce platform deployment in dependency order with parallel frontend and backend tracks
+parallel_groups:
+  - group: 1-database-migrations
+    nodes: [inventory.reserve]
+    strategy: sequential
+  - group: 2-backend-services
+    nodes: [order.lifecycle, payment.process, shipping.estimation]
+    strategy: parallel
+    requires: [1-database-migrations]
+    max_concurrency: 2
+  - group: 3-verification
+    nodes: [deploy.canary.workflow]
+    strategy: sequential
+    requires: [2-backend-services]
+detail:
+  The deployment orchestration ensures database migrations run before
+  any service deployment. Backend services can deploy in parallel with
+  bounded concurrency to avoid overwhelming the cluster. Frontend
+  deployment depends on backend stability verification. The canary
+  process acts as the final gate before full rollout.
+memory:
+  - action: upsert
+    topic: deployment.tracking
+    key: deployment.current.phase
+    value: orchestration started
+    scope: project
+    ttl: permanent
+  - action: upsert
+    topic: deployment.tracking
+    key: deployment.start.time
+    value: 2024-09-15T14:30:00Z
+    scope: session

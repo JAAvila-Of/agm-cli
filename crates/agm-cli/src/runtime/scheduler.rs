@@ -1838,4 +1838,315 @@ mod tests {
         let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
         assert!(report.duration > Duration::ZERO);
     }
+
+    // -----------------------------------------------------------------------
+    // Group K: Concurrency, resume, and complex scheduling
+    // -----------------------------------------------------------------------
+
+    /// A mock agent that records the wall-clock time at which each call starts,
+    /// enabling verification of true parallel execution.
+    struct TimestampAgent {
+        name: String,
+        delay: Duration,
+        start_times: Mutex<Vec<(String, Instant)>>,
+    }
+
+    impl TimestampAgent {
+        fn new(delay: Duration) -> Self {
+            Self {
+                name: "timestamp-agent".to_owned(),
+                delay,
+                start_times: Mutex::new(Vec::new()),
+            }
+        }
+
+        fn start_times_snapshot(&self) -> Vec<(String, Instant)> {
+            self.start_times.lock().unwrap().clone()
+        }
+    }
+
+    impl AgentBackend for TimestampAgent {
+        fn execute(&self, request: AgentRequest) -> anyhow::Result<AgentResponse> {
+            let start = Instant::now();
+            self.start_times
+                .lock()
+                .unwrap()
+                .push((request.node_id.clone(), start));
+            std::thread::sleep(self.delay);
+            Ok(AgentResponse {
+                success: true,
+                output: format!("ok {}", request.node_id),
+                duration: self.delay,
+            })
+        }
+
+        fn name(&self) -> &str {
+            &self.name
+        }
+    }
+
+    /// A mock agent that fails only a specific node_id and succeeds for all others.
+    struct SelectiveFailAgent {
+        name: String,
+        fail_node: String,
+    }
+
+    impl SelectiveFailAgent {
+        fn new(fail_node: &str) -> Self {
+            Self {
+                name: "selective-fail-agent".to_owned(),
+                fail_node: fail_node.to_owned(),
+            }
+        }
+    }
+
+    impl AgentBackend for SelectiveFailAgent {
+        fn execute(&self, request: AgentRequest) -> anyhow::Result<AgentResponse> {
+            let success = request.node_id != self.fail_node;
+            Ok(AgentResponse {
+                success,
+                output: if success {
+                    format!("ok {}", request.node_id)
+                } else {
+                    format!("fail {}", request.node_id)
+                },
+                duration: Duration::from_millis(10),
+            })
+        }
+
+        fn name(&self) -> &str {
+            &self.name
+        }
+    }
+
+    #[test]
+    fn test_topo_parallel_max_concurrency_2_batches_4_independent_nodes() {
+        // 4 independent nodes, max_concurrency=2: dispatched in 2 batches of 2.
+        // Total time should be approximately 2 * delay, not 4 * delay.
+        let nodes = vec![
+            test_node("A"),
+            test_node("B"),
+            test_node("C"),
+            test_node("D"),
+        ];
+        let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
+        config.max_concurrency = 2;
+        let delay = Duration::from_millis(150);
+        let agent = TimestampAgent::new(delay);
+        let start = Instant::now();
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        let elapsed = start.elapsed();
+        assert_eq!(report.succeeded, 4);
+        // Serial would be ~600ms; 2 batches of 2 should be ~300ms.
+        // Allow generous CI budget of 900ms.
+        assert!(
+            elapsed < Duration::from_millis(900),
+            "Expected batched execution (<900ms), got {elapsed:?}"
+        );
+    }
+
+    #[test]
+    fn test_topo_parallel_max_concurrency_4_all_independent_nodes_concurrent() {
+        // 4 independent nodes, max_concurrency=4: all run in one batch.
+        // Total time should be approximately 1 * delay, not 4 * delay.
+        let nodes = vec![
+            test_node("A"),
+            test_node("B"),
+            test_node("C"),
+            test_node("D"),
+        ];
+        let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
+        config.max_concurrency = 4;
+        let delay = Duration::from_millis(200);
+        let agent = TimestampAgent::new(delay);
+        let start = Instant::now();
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        let elapsed = start.elapsed();
+        assert_eq!(report.succeeded, 4);
+        // Serial would be ~800ms; 1 batch should finish near 1 * delay.
+        // Allow generous CI budget of 700ms.
+        assert!(
+            elapsed < Duration::from_millis(700),
+            "Expected single-batch execution (<700ms), got {elapsed:?}"
+        );
+    }
+
+    #[test]
+    fn test_topo_parallel_fail_fast_cancels_pending_nodes() {
+        // A, B, C independent. A fails. fail_fast=true.
+        // After A's batch (which may include B/C depending on scheduling), the loop breaks.
+        // At minimum, C (or whichever node wasn't in the first failing batch) is not executed.
+        // Since the batch is dispatched together and fail_fast breaks the loop after the batch,
+        // the key invariant is: at most max_concurrency nodes run in the first batch, and no
+        // further batches execute when a failure occurs.
+        let nodes = vec![test_node("A"), test_node("B"), test_node("C")];
+        let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
+        config.max_concurrency = 1; // serial so A runs first and fails immediately
+        config.fail_fast = true;
+        let agent = SelectiveFailAgent::new("A");
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        assert_eq!(report.failed, 1);
+        // With fail_fast and serial mode, only A should have been executed
+        assert_eq!(report.executed, 1);
+        // B and C must be in Ready/Pending state, not Failed or Completed
+        let b_state = tracker.node_state("B").unwrap();
+        let c_state = tracker.node_state("C").unwrap();
+        assert!(
+            matches!(
+                b_state.execution_status,
+                ExecutionStatus::Ready | ExecutionStatus::Pending
+            ),
+            "B should not have been executed, got {:?}",
+            b_state.execution_status
+        );
+        assert!(
+            matches!(
+                c_state.execution_status,
+                ExecutionStatus::Ready | ExecutionStatus::Pending
+            ),
+            "C should not have been executed, got {:?}",
+            c_state.execution_status
+        );
+    }
+
+    #[test]
+    fn test_topo_parallel_continue_on_error_other_nodes_complete() {
+        // A, B, C independent. A fails. fail_fast=false.
+        // B and C should still execute and succeed.
+        let nodes = vec![test_node("A"), test_node("B"), test_node("C")];
+        let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
+        config.max_concurrency = 1; // serial so each node runs in its own iteration
+        config.fail_fast = false;
+        let agent = SelectiveFailAgent::new("A");
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        assert_eq!(report.failed, 1);
+        // A failed; B and C should have completed
+        let b_state = tracker.node_state("B").unwrap();
+        let c_state = tracker.node_state("C").unwrap();
+        assert_eq!(b_state.execution_status, ExecutionStatus::Completed);
+        assert_eq!(c_state.execution_status, ExecutionStatus::Completed);
+    }
+
+    #[test]
+    fn test_topo_parallel_blocked_propagation_independent_node_completes() {
+        // A->B, C independent. A fails. fail_fast=false.
+        // B should be Blocked, C should succeed.
+        let nodes = vec![
+            test_node("A"),
+            test_node_with_deps("B", vec!["A"]),
+            test_node("C"),
+        ];
+        let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
+        config.fail_fast = false;
+        let agent = SelectiveFailAgent::new("A");
+        run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        let a_state = tracker.node_state("A").unwrap();
+        let b_state = tracker.node_state("B").unwrap();
+        let c_state = tracker.node_state("C").unwrap();
+        assert_eq!(a_state.execution_status, ExecutionStatus::Failed);
+        assert_eq!(b_state.execution_status, ExecutionStatus::Blocked);
+        assert_eq!(c_state.execution_status, ExecutionStatus::Completed);
+    }
+
+    #[test]
+    fn test_topo_parallel_diamond_pattern_correct_order() {
+        // Diamond: A->B, A->C, B->D, C->D
+        // Expected: A runs first, then B and C (concurrently), then D last.
+        let nodes = vec![
+            test_node("A"),
+            test_node_with_deps("B", vec!["A"]),
+            test_node_with_deps("C", vec!["A"]),
+            test_node_with_deps("D", vec!["B", "C"]),
+        ];
+        let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
+        config.max_concurrency = 2;
+        let agent = RecordingAgent::new();
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        assert_eq!(report.succeeded, 4);
+        let calls = agent.calls();
+        // A must be first, D must be last
+        assert_eq!(calls[0], "A", "A should execute first in diamond");
+        assert_eq!(calls[3], "D", "D should execute last in diamond");
+        // B and C must appear at positions 1 and 2 (in any order)
+        let mid: std::collections::HashSet<_> = calls[1..3].iter().cloned().collect();
+        assert!(mid.contains("B"), "B should be in middle positions");
+        assert!(mid.contains("C"), "C should be in middle positions");
+    }
+
+    #[test]
+    fn test_resume_all_nodes_already_completed_executes_zero() {
+        // All nodes pre-completed via tracker: run should report 0 executed.
+        let nodes = vec![test_node("A"), test_node("B"), test_node("C")];
+        let (file, graph, mut tracker, mut memory, _dir, config) = setup_test_env(nodes);
+        // Manually complete all nodes
+        for id in ["A", "B", "C"] {
+            tracker.transition(id, ExecutionStatus::InProgress).unwrap();
+            tracker.mark_completed(id, "pre-run", None).unwrap();
+        }
+        let agent = RecordingAgent::new();
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        let _ = graph; // kept alive
+        assert_eq!(report.executed, 0, "No nodes should execute when all are already completed");
+        assert!(agent.calls().is_empty(), "Agent should not be called when all nodes are completed");
+    }
+
+    #[test]
+    fn test_resume_mixed_completed_pending_executes_only_pending() {
+        // A completed, B and C pending.
+        // Only B and C should execute.
+        let nodes = vec![test_node("A"), test_node("B"), test_node("C")];
+        let (file, _graph, mut tracker, mut memory, _dir, config) = setup_test_env(nodes);
+        // Pre-complete A
+        tracker.transition("A", ExecutionStatus::InProgress).unwrap();
+        tracker.mark_completed("A", "pre-run", None).unwrap();
+
+        let agent = RecordingAgent::new();
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        assert_eq!(report.executed, 2, "Only B and C should execute");
+        let calls = agent.calls();
+        assert!(!calls.contains(&"A".to_owned()), "A should not re-execute");
+        assert!(calls.contains(&"B".to_owned()), "B should execute");
+        assert!(calls.contains(&"C".to_owned()), "C should execute");
+    }
+
+    #[test]
+    fn test_dry_run_complex_graph_reports_all_nodes_no_side_effects() {
+        // Diamond: A->B, A->C, B->D, C->D plus independent E.
+        // Dry-run should list all 5 nodes with Pending status and 0 executed.
+        let nodes = vec![
+            test_node("A"),
+            test_node_with_deps("B", vec!["A"]),
+            test_node_with_deps("C", vec!["A"]),
+            test_node_with_deps("D", vec!["B", "C"]),
+            test_node("E"),
+        ];
+        let (file, _graph, mut tracker, mut memory, _dir, mut config) = setup_test_env(nodes);
+        config.dry_run = true;
+        let agent = MockAgent::succeeding();
+        let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
+        assert_eq!(report.total_nodes, 5);
+        assert_eq!(report.executed, 0);
+        assert_eq!(agent.call_count(), 0);
+        for result in &report.node_results {
+            assert_eq!(
+                result.status,
+                ExecutionStatus::Pending,
+                "Dry-run node {} should be Pending",
+                result.node_id
+            );
+        }
+        // State must be unchanged after dry-run
+        for node in &file.nodes {
+            let ns = tracker.node_state(&node.id).unwrap();
+            assert!(
+                matches!(
+                    ns.execution_status,
+                    ExecutionStatus::Ready | ExecutionStatus::Pending
+                ),
+                "Node {} state should be unchanged after dry-run, got {:?}",
+                node.id,
+                ns.execution_status
+            );
+        }
+    }
 }

@@ -1,0 +1,92 @@
+agm: 1.0
+package: test.loader
+version: 0.1.0
+
+node auth.login
+type: workflow
+summary: Full workflow node
+priority: critical
+stability: high
+confidence: high
+status: active
+depends: [auth.deps]
+related_to: [auth.related]
+replaces: [auth.old]
+conflicts: [auth.conflict]
+see_also: [auth.ref]
+tags: [auth, security]
+aliases: [login_flow]
+keywords: [authentication]
+items:
+  - item one
+  - item two
+steps:
+  - step one
+  - step two
+fields:
+  - field one
+input: [user.credentials]
+output: [session.token]
+detail:
+  Detailed explanation of the login flow.
+rationale:
+  - Security requirement
+tradeoffs:
+  - Complexity vs security
+resolution:
+  - Accepted
+examples:
+  Example usage text
+notes:
+  Implementation notes
+scope: [backend]
+applies_when: production
+valid_from: 2026-01-01
+valid_until: 2026-12-31
+code:
+  lang: bash
+  action: full
+  body: |
+    echo "login"
+verify:
+  - type: file_exists
+    file: auth.conf
+agent_context:
+  system_hint: Use secure protocols
+target: agent-01
+execution_status: pending
+executed_by: agent-01
+executed_at: 2026-04-01T00:00:00Z
+execution_log: log entry
+retry_count: 0
+memory:
+  - key: auth.token_format
+    topic: security
+    action: upsert
+    value: JWT
+    scope: project
+    ttl: permanent
+parallel_groups:
+  - group: auth-checks
+    nodes: [auth.login]
+    strategy: sequential
+
+node auth.deps
+type: facts
+summary: Dependency node
+
+node auth.related
+type: facts
+summary: Related node
+
+node auth.old
+type: facts
+summary: Replaced node
+
+node auth.conflict
+type: facts
+summary: Conflicting node
+
+node auth.ref
+type: facts
+summary: Reference node

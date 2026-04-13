@@ -1,0 +1,174 @@
+{
+  "agm": 1,
+  "package": "test.json.platform",
+  "version": "1.5.0",
+  "title": "Test Platform",
+  "owner": "test-team",
+  "tags": [
+    "test",
+    "platform"
+  ],
+  "status": "active",
+  "nodes": [
+    {
+      "node": "test.json.stack",
+      "type": "facts",
+      "summary": "rust axum backend; next15 frontend; postgresql 16; redis 7; kafka 3",
+      "priority": "critical",
+      "stability": "high",
+      "items": [
+        "backend=rust_axum",
+        "frontend=next15",
+        "database=postgresql_16",
+        "cache=redis_7",
+        "events=kafka_3"
+      ],
+      "detail": "Full-stack platform with event-driven architecture.",
+      "tags": [
+        "infrastructure"
+      ]
+    },
+    {
+      "node": "test.json.security.rules",
+      "type": "rules",
+      "summary": "all endpoints require auth; rate limiting enforced; pii encrypted at rest",
+      "priority": "critical",
+      "stability": "high",
+      "depends": [
+        "test.json.stack"
+      ],
+      "items": [
+        "endpoints_require_auth",
+        "rate_limiting_enforced",
+        "pii_encrypted_at_rest",
+        "audit_logs_immutable"
+      ]
+    },
+    {
+      "node": "test.json.user.entity",
+      "type": "entity",
+      "summary": "user aggregate with profile, preferences, and auth credentials",
+      "priority": "high",
+      "stability": "medium",
+      "depends": [
+        "test.json.stack"
+      ],
+      "fields": [
+        "user_id: uuid primary key",
+        "email: string unique",
+        "display_name: string max 100",
+        "role: enum (admin, user, guest)",
+        "created_at: timestamp"
+      ]
+    },
+    {
+      "node": "test.json.login.workflow",
+      "type": "workflow",
+      "summary": "authenticate user and create session with rate limiting and audit logging",
+      "priority": "critical",
+      "stability": "medium",
+      "depends": [
+        "test.json.security.rules",
+        "test.json.user.entity"
+      ],
+      "steps": [
+        "validate credentials format",
+        "lookup user by email",
+        "verify password hash",
+        "create session token",
+        "emit login event"
+      ],
+      "input": [
+        "email",
+        "password"
+      ],
+      "output": [
+        "session_token",
+        "user_profile"
+      ],
+      "code": {
+        "lang": "rust",
+        "target": "src/handlers/login.rs",
+        "action": "create",
+        "body": "pub async fn login(req: LoginRequest) -> Result<Session> {\n    let user = find_user(&req.email).await?;\n    verify_password(&req.password, &user.hash)?;\n    create_session(user.id).await\n}"
+      },
+      "verify": [
+        {
+          "type": "command",
+          "run": "cargo test -p auth",
+          "expect": "exit_code_0"
+        },
+        {
+          "type": "file_exists",
+          "file": "src/handlers/login.rs"
+        },
+        {
+          "type": "file_contains",
+          "file": "src/handlers/login.rs",
+          "pattern": "\"pub async fn login\""
+        }
+      ],
+      "agent_context": {
+        "load_nodes": [
+          "test.json.security.rules",
+          "test.json.user.entity"
+        ],
+        "load_files": [
+          {
+            "path": "src/handlers/login.rs",
+            "range": "full"
+          },
+          {
+            "path": "src/models/user.rs",
+            "range": "full"
+          }
+        ],
+        "system_hint": "\"Axum with tower middleware. Use extractors.\"",
+        "max_tokens": 3000
+      },
+      "execution_status": "pending",
+      "memory": [
+        {
+          "key": "auth.login.count",
+          "topic": "auth.metrics",
+          "action": "upsert",
+          "value": "incremented",
+          "scope": "session"
+        },
+        {
+          "key": "auth.rate.limit",
+          "topic": "auth.config",
+          "action": "get",
+          "scope": "project"
+        }
+      ]
+    },
+    {
+      "node": "test.json.deploy.orchestration",
+      "type": "orchestration",
+      "summary": "coordinate deployment in dependency order",
+      "priority": "critical",
+      "stability": "medium",
+      "parallel_groups": [
+        {
+          "group": "phase1",
+          "nodes": [
+            "test.json.login.workflow"
+          ],
+          "strategy": "sequential"
+        },
+        {
+          "group": "phase2",
+          "nodes": [
+            "test.json.user.entity"
+          ],
+          "strategy": "parallel",
+          "requires": [
+            "phase1"
+          ],
+          "max_concurrency": 2
+        }
+      ]
+    }
+  ]
+}

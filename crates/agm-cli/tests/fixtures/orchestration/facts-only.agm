@@ -1,0 +1,11 @@
+agm: 1.0
+package: test.orchestration.facts
+version: 1.0.0
+
+node background_facts
+type: facts
+summary: Background knowledge node, not executable
+
+node system_rules
+type: rules
+summary: System rules node, not executable

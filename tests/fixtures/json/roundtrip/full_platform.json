@@ -1,0 +1,180 @@
+{
+  "agm": 1,
+  "package": "test.roundtrip.platform",
+  "version": "2.0.0",
+  "title": "Roundtrip Platform Test",
+  "owner": "test-team",
+  "tags": [
+    "roundtrip",
+    "comprehensive"
+  ],
+  "status": "active",
+  "nodes": [
+    {
+      "node": "rt.stack",
+      "type": "facts",
+      "summary": "rust backend; svelte frontend; postgresql database",
+      "priority": "critical",
+      "stability": "high",
+      "items": [
+        "backend=rust",
+        "frontend=svelte",
+        "database=postgresql"
+      ],
+      "detail": "Full-stack web platform.",
+      "tags": [
+        "stack"
+      ]
+    },
+    {
+      "node": "rt.security.rules",
+      "type": "rules",
+      "summary": "all endpoints authenticated; rate limits enforced",
+      "priority": "critical",
+      "stability": "high",
+      "depends": [
+        "rt.stack"
+      ],
+      "items": [
+        "auth_required",
+        "rate_limits",
+        "input_validation"
+      ]
+    },
+    {
+      "node": "rt.user",
+      "type": "entity",
+      "summary": "user entity with credentials and profile",
+      "priority": "high",
+      "stability": "medium",
+      "fields": [
+        "id: uuid",
+        "email: string",
+        "name: string",
+        "role: enum"
+      ]
+    },
+    {
+      "node": "rt.auth.login",
+      "type": "workflow",
+      "summary": "authenticate and create session",
+      "priority": "critical",
+      "stability": "medium",
+      "depends": [
+        "rt.security.rules",
+        "rt.user"
+      ],
+      "steps": [
+        "validate input",
+        "verify credentials",
+        "create session"
+      ],
+      "input": [
+        "email",
+        "password"
+      ],
+      "output": [
+        "session_token"
+      ],
+      "code": {
+        "lang": "rust",
+        "target": "src/auth.rs",
+        "action": "create",
+        "body": "pub fn login() -> Result<Session> { todo!() }"
+      },
+      "verify": [
+        {
+          "type": "command",
+          "run": "cargo test",
+          "expect": "exit_code_0"
+        },
+        {
+          "type": "file_exists",
+          "file": "src/auth.rs"
+        }
+      ],
+      "agent_context": {
+        "load_nodes": [
+          "rt.security.rules"
+        ],
+        "load_files": [
+          {
+            "path": "src/auth.rs",
+            "range": "full"
+          }
+        ],
+        "system_hint": "Axum framework.",
+        "max_tokens": 2000
+      },
+      "execution_status": "pending",
+      "memory": [
+        {
+          "key": "auth.attempts",
+          "topic": "auth.metrics",
+          "action": "upsert",
+          "value": "0",
+          "scope": "session"
+        }
+      ]
+    },
+    {
+      "node": "rt.auth.decision",
+      "type": "decision",
+      "summary": "jwt over session cookies for api authentication",
+      "priority": "high",
+      "stability": "high",
+      "depends": [
+        "rt.security.rules"
+      ],
+      "rationale": [
+        "stateless for horizontal scaling",
+        "standard across microservices"
+      ],
+      "tradeoffs": [
+        "token revocation is harder",
+        "larger payload per request"
+      ]
+    },
+    {
+      "node": "rt.glossary",
+      "type": "glossary",
+      "summary": "domain terms for the platform",
+      "priority": "normal",
+      "stability": "high",
+      "items": [
+        "tenant: isolated business unit",
+        "session: authenticated user context",
+        "token: bearer credential for api access"
+      ],
+      "aliases": [
+        "platform dictionary"
+      ]
+    },
+    {
+      "node": "rt.deploy.orchestration",
+      "type": "orchestration",
+      "summary": "deployment orchestration",
+      "priority": "critical",
+      "stability": "medium",
+      "parallel_groups": [
+        {
+          "group": "build",
+          "nodes": [
+            "rt.auth.login"
+          ],
+          "strategy": "sequential"
+        },
+        {
+          "group": "verify",
+          "nodes": [
+            "rt.auth.decision"
+          ],
+          "strategy": "parallel",
+          "requires": [
+            "build"
+          ]
+        }
+      ]
+    }
+  ]
+}

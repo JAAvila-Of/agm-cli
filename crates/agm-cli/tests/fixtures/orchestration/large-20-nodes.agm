@@ -1,0 +1,173 @@
+agm: 1.0
+package: test.orchestration.large20
+version: 1.0.0
+
+node node_01
+type: workflow
+summary: Group 1 node 01 no deps
+code:
+  lang: cmd
+  action: full
+  body: echo node 01
+
+node node_02
+type: workflow
+summary: Group 1 node 02 no deps
+code:
+  lang: cmd
+  action: full
+  body: echo node 02
+
+node node_03
+type: workflow
+summary: Group 1 node 03 no deps
+code:
+  lang: cmd
+  action: full
+  body: echo node 03
+
+node node_04
+type: workflow
+summary: Group 1 node 04 no deps
+code:
+  lang: cmd
+  action: full
+  body: echo node 04
+
+node node_05
+type: workflow
+summary: Group 1 node 05 no deps
+code:
+  lang: cmd
+  action: full
+  body: echo node 05
+
+node node_06
+type: workflow
+summary: Group 2 node 06 depends on node_01
+depends: [node_01]
+code:
+  lang: cmd
+  action: full
+  body: echo node 06
+
+node node_07
+type: workflow
+summary: Group 2 node 07 depends on node_01
+depends: [node_01]
+code:
+  lang: cmd
+  action: full
+  body: echo node 07
+
+node node_08
+type: workflow
+summary: Group 2 node 08 depends on node_01
+depends: [node_01]
+code:
+  lang: cmd
+  action: full
+  body: echo node 08
+
+node node_09
+type: workflow
+summary: Group 2 node 09 depends on node_01
+depends: [node_01]
+code:
+  lang: cmd
+  action: full
+  body: echo node 09
+
+node node_10
+type: workflow
+summary: Group 2 node 10 depends on node_01
+depends: [node_01]
+code:
+  lang: cmd
+  action: full
+  body: echo node 10
+
+node node_11
+type: workflow
+summary: Group 3 chain start depends on node_06
+depends: [node_06]
+code:
+  lang: cmd
+  action: full
+  body: echo node 11
+
+node node_12
+type: workflow
+summary: Group 3 chain node 12 depends on node_11
+depends: [node_11]
+code:
+  lang: cmd
+  action: full
+  body: echo node 12
+
+node node_13
+type: workflow
+summary: Group 3 chain node 13 depends on node_12
+depends: [node_12]
+code:
+  lang: cmd
+  action: full
+  body: echo node 13
+
+node node_14
+type: workflow
+summary: Group 3 chain node 14 depends on node_13
+depends: [node_13]
+code:
+  lang: cmd
+  action: full
+  body: echo node 14
+
+node node_15
+type: workflow
+summary: Group 3 chain node 15 depends on node_14
+depends: [node_14]
+code:
+  lang: cmd
+  action: full
+  body: echo node 15
+
+node node_16
+type: workflow
+summary: Independent node 16
+code:
+  lang: cmd
+  action: full
+  body: echo node 16
+
+node node_17
+type: workflow
+summary: Independent node 17
+code:
+  lang: cmd
+  action: full
+  body: echo node 17
+
+node node_18
+type: workflow
+summary: Independent node 18
+code:
+  lang: cmd
+  action: full
+  body: echo node 18
+
+node node_19
+type: workflow
+summary: Independent node 19
+code:
+  lang: cmd
+  action: full
+  body: echo node 19
+
+node node_20
+type: workflow
+summary: Independent node 20
+code:
+  lang: cmd
+  action: full
+  body: echo node 20
