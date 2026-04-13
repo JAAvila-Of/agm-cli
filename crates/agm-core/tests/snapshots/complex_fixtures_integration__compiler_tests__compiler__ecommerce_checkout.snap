@@ -1,0 +1,143 @@
+---
+source: crates/agm-core/tests/complex_fixtures_integration.rs
+expression: agm_text
+---
+agm: 1.0
+package: ecommerce.checkout
+version: 0.1.0
+
+node payment_security_rules
+type: rules
+related_to: [payment_processing_workflow]
+summary: All payment processing must comply with PCI-DSS Level 1 requirements:
+items:
+  - Raw card numbers must never be stored, logged, or transmitted through our systems.
+  - Payment tokens are single-use and expire after 15 minutes.
+  - All payment API calls must use mutual TLS with certificate pinning.
+  - Failed payment attempts must be rate-limited to 5 per hour per customer.
+  - Refund operations require dual authorization from finance and engineering.
+  - Chargeback notifications must trigger automatic fraud review workflows.
+detail: All payment processing must comply with PCI-DSS Level 1 requirements:
+
+node cart_validation_workflow
+type: workflow
+related_to: [inventory_reservation, shipping_rate_calculation]
+summary: Before processing any checkout, the cart must be validated end-to-end:
+steps:
+  - Verify all items are still in stock by querying the inventory service.
+  - Re-fetch current prices from the catalog service to prevent stale-price exploits.
+  - Validate shipping address against the address verification API.
+  - Apply discount codes and verify they haven't expired or exceeded usage limits.
+  - Calculate tax based on shipping destination using the tax calculation service.
+  - Compute final total including shipping, tax, discounts, and loyalty points.
+  - Create an order draft with a 10-minute reservation on all inventory items.
+detail: Before processing any checkout, the cart must be validated end-to-end:
+
+node order_entity
+type: entity
+related_to: [payment_processing_workflow, shipping_rate_calculation]
+summary: The order record contains:
+items:
+  - order_id: UUID primary key
+  - customer_id: UUID foreign key to customers table
+  - tenant_id: UUID for multi-tenant isolation
+  - status: enum (draft, pending_payment, paid, processing, shipped, delivered, cancelled, refunded)
+  - line_items: array of order line items with SKU, quantity, unit price, and discount
+  - subtotal: decimal calculated from line items
+  - tax_amount: decimal from tax calculation service
+  - shipping_cost: decimal from shipping rate API
+  - discount_amount: decimal from applied promotions
+  - total: decimal final charge amount
+  - currency: ISO 4217 code
+  - shipping_address: embedded address object
+  - billing_address: embedded address object
+  - payment_method_token: string from payment gateway
+  - created_at: timestamp with timezone
+  - updated_at: timestamp with timezone
+detail: The order record contains:
+
+node payment_processing_workflow
+type: workflow
+related_to: [inventory_reservation]
+summary: The payment flow handles authorization, capture, and reconciliation:
+steps:
+  - Receive the one-time payment token from the client-side SDK.
+  - Generate an idempotency key based on order ID and attempt number.
+  - Send authorization request to the payment gateway with the token and amount.
+  - If authorization succeeds, store the transaction reference and authorization code.
+  - If authorization fails with a retriable error, retry up to 3 times with exponential backoff.
+  - If authorization fails with a terminal error, release inventory reservation and notify customer.
+  - On successful authorization, mark the order as paid and emit an order.paid event.
+  - Capture is triggered asynchronously when the warehouse confirms shipment.
+code:
+  lang: rust
+  action: full
+  body:
+    pub async fn authorize_payment(
+        gateway: &PaymentGateway,
+        order: &Order,
+        token: &str,
+    ) -> Result<AuthorizationResult, PaymentError> {
+        let idempotency_key = format!("auth-{}-{}", order.id, order.attempt);
+    
+        let request = AuthorizationRequest {
+            amount: order.total,
+            currency: order.currency.clone(),
+            token: token.to_string(),
+            idempotency_key,
+            metadata: json!({
+                "order_id": order.id,
+                "customer_id": order.customer_id,
+            }),
+        };
+    
+        gateway.authorize(&request).await
+    }
+detail: The payment flow handles authorization, capture, and reconciliation:
+
+node inventory_reservation
+type: rules
+summary: When a checkout begins, inventory must be reserved to prevent overselling:
+items:
+  - Each SKU gets a soft reservation that expires after 15 minutes.
+  - Reservations use optimistic locking with a version counter on the inventory row.
+  - If reservation fails due to concurrent update, retry once with fresh stock data.
+  - Committed reservations (after payment) are permanent until fulfillment or cancellation.
+  - Expired reservations are cleaned up by a background job running every 5 minutes.
+detail: When a checkout begins, inventory must be reserved to prevent overselling:
+
+node shipping_rate_calculation
+type: workflow
+summary: Shipping rates depend on multiple factors:
+steps:
+  - Determine the fulfillment warehouse closest to the shipping destination.
+  - Calculate the total package weight and dimensional weight.
+  - Query carrier APIs (FedEx, UPS, USPS) in parallel for rate quotes.
+  - Apply free shipping promotions based on order total and customer loyalty tier.
+  - Cache the rate quotes for 10 minutes keyed by destination ZIP and package profile.
+  - Present the customer with up to 4 options sorted by delivery speed.
+detail: Shipping rates depend on multiple factors:
+
+node fraud_detection_rules
+type: rules
+summary: The fraud detection engine evaluates orders in real-time:
+items:
+  - Flag orders where billing and shipping countries differ.
+  - Flag orders with more than $2000 in value from new accounts (under 30 days).
+  - Flag orders using prepaid or virtual card BINs above $500.
+  - Flag orders with 3 or more failed payment attempts in the last hour.
+  - Auto-reject orders from IP addresses on the global block list.
+  - Require manual review for flagged orders before fulfillment begins.
+detail: The fraud detection engine evaluates orders in real-time:
+
+node post_purchase_communication
+type: workflow
+summary: After checkout completion, the following notifications are sent:
+steps:
+  - Send order confirmation email with order details and estimated delivery.
+  - Send SMS with order number and tracking link (if SMS opt-in).
+  - Queue the order for the fulfillment team dashboard.
+  - Send webhook notification to any integrated third-party systems.
+  - Update the customer's order history in the storefront.
+  - Award loyalty points based on the purchase amount and tier multiplier.
+detail: After checkout completion, the following notifications are sent:

@@ -1,0 +1,21 @@
+---
+source: crates/agm-core/tests/compiler_integration.rs
+expression: agm_text
+---
+agm: 1.0
+package: auth.platform
+version: 0.1.0
+
+node login_constraints
+type: rules
+summary: Access tokens must never be exposed to the browser.; Sensitive calls must originate from the server.
+items: [Access tokens must never be exposed to the browser., Sensitive calls must originate from the server.]
+
+node login_flow
+type: workflow
+summary: Resolve tenant by host. -> Redirect to the provider. -> Validate callback. -> Create a server-side...
+steps:
+  - Resolve tenant by host.
+  - Redirect to the provider.
+  - Validate callback.
+  - Create a server-side session.

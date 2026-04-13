@@ -1,0 +1,37 @@
+---
+source: crates/agm-core/tests/compiler_integration.rs
+expression: agm_text
+---
+agm: 1.0
+package: auth.platform
+version: 0.1.0
+
+node security_rules
+type: rules
+summary: Passwords must be hashed with bcrypt.; Sessions expire after 24 hours.; API keys must not appear in...
+items: [Passwords must be hashed with bcrypt., Sessions expire after 24 hours., API keys must not appear in logs.]
+
+node login_workflow
+type: workflow
+summary: User enters credentials. -> System validates against directory. -> Generate session token. -> Set...
+steps:
+  - User enters credentials.
+  - System validates against directory.
+  - Generate session token.
+  - Set secure cookie.
+
+node token_entity
+type: entity
+summary: The token contains the following fields:
+items:
+  - user_id
+  - session_id
+  - expiration
+  - scope
+detail: The token contains the following fields:
+
+node error_recovery
+type: exception
+summary: In case of authentication failure:
+items: [Lock account after 5 failed attempts., Send notification to security team., Log the attempt with IP address.]
+detail: In case of authentication failure:

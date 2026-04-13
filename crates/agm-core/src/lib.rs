@@ -10,3 +10,6 @@ pub mod parser;
 pub mod renderer;
 pub mod schema;
 pub mod validator;
+
+#[cfg(feature = "compiler")]
+pub mod compiler;

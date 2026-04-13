@@ -14,6 +14,10 @@ keywords = ["agm", "agent", "graph", "knowledge", "parser"]
 categories = ["command-line-utilities", "parser-implementations", "data-structures"]
 exclude = ["tests/fixtures/", "tests/snapshots/", "tests/conformance/"]
 
+[features]
+default = []
+compiler = ["dep:pulldown-cmark"]
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
@@ -22,6 +26,7 @@ miette.workspace = true
 petgraph.workspace = true
 regex.workspace = true
 semver.workspace = true
+pulldown-cmark = { workspace = true, optional = true }
 
 [dev-dependencies]
 insta.workspace = true
