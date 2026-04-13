@@ -1,0 +1,182 @@
+agm: 1.0
+package: platform.auth
+version: 2.0.0
+title: Authentication Platform v2
+owner: security-team
+status: active
+tags: [auth, security, oidc, passkeys]
+
+node auth.stack
+type: facts
+stability: high
+priority: critical
+summary: next15 frontend; net8 backend; identityserver4 local idp; azure external id federation
+items:
+  - frontend=next15
+  - backend=net8
+  - local_idp=identityserver4
+  - external_idp=azure_external_id
+  - passkey_support=webauthn_l2
+detail:
+  Upgraded to Next.js 15 App Router and .NET 8.
+  Added Azure External ID for B2C federation.
+  WebAuthn Level 2 for passkey authentication.
+
+node auth.constraints
+type: rules
+stability: high
+priority: critical
+summary: no browser tokens; sensitive calls server-side only; passkeys preferred over passwords
+items:
+  - no_client_tokens
+  - server_side_sensitive_calls
+  - host_based_tenant_selection
+  - passkeys_preferred_over_passwords
+  - password_min_length_12_chars
+  - rate_limit_auth_endpoints
+
+node auth.session
+type: entity
+stability: medium
+priority: high
+summary: opaque sid maps to server-side token pair with device binding
+fields:
+  - sid: opaque string
+  - user_id: string
+  - tenant_id: string
+  - device_id: string hashed
+  - access_token: secure server secret
+  - refresh_token: secure server secret
+  - auth_level: enum (basic, mfa, passkey)
+  - expires_at: datetime
+  - created_at: datetime
+
+node auth.login
+type: workflow
+stability: medium
+priority: critical
+depends: [auth.constraints, auth.session]
+input: [host, return_url, auth_method]
+output: [redirect_url, sid_cookie]
+summary: resolve tenant -> select auth method -> authenticate -> create session with auth level
+steps:
+  - resolve tenant from host
+  - determine auth method (password, passkey, oidc)
+  - if passkey verify webauthn assertion
+  - if password validate credentials and check strength
+  - if oidc redirect and validate callback
+  - persist tokens server-side
+  - create sid session with auth level
+  - emit httpOnly cookie
+  - emit auth.login.completed event
+code:
+  lang: rust
+  target: src/handlers/login.rs
+  action: create
+  body: |
+    pub async fn handle_login(
+        State(state): State<AppState>,
+        Json(req): Json<LoginRequest>,
+    ) -> Result<Json<LoginResponse>, AuthError> {
+        let tenant = state.tenant_resolver.resolve(&req.host)?;
+        let auth_result = match req.auth_method {
+            AuthMethod::Passkey => state.webauthn.verify(&req).await?,
+            AuthMethod::Password => state.password.verify(&req).await?,
+            AuthMethod::Oidc => state.oidc.initiate(&tenant, &req).await?,
+        };
+        let session = state.sessions.create(auth_result).await?;
+        Ok(Json(LoginResponse::from(session)))
+    }
+verify:
+  - type: command
+    run: cargo test -p auth-service
+    expect: exit_code_0
+  - type: file_contains
+    file: src/handlers/login.rs
+    pattern: "handle_login"
+agent_context:
+  load_nodes: [auth.constraints, auth.session]
+  load_files:
+    - path: src/handlers/login.rs
+      range: full
+  system_hint: "Axum handler. Use extractors for State and Json."
+execution_status: pending
+
+node auth.logout
+type: workflow
+stability: medium
+priority: high
+depends: [auth.session]
+input: [sid]
+output: [session_revoked, cookie_cleared]
+summary: revoke session, clear cookie, attempt upstream logout, notify connected clients
+steps:
+  - locate session by sid
+  - revoke local session
+  - clear sid cookie
+  - if provider supports end-session trigger provider logout
+  - notify active websocket connections
+  - emit auth.logout.completed event
+
+node auth.passkey.registration
+type: workflow
+stability: low
+priority: high
+depends: [auth.session, auth.constraints]
+input: [user_id, device_info]
+output: [credential_id, public_key_registered]
+summary: register a new webauthn passkey credential for passwordless authentication
+steps:
+  - generate registration challenge
+  - send challenge to client
+  - receive and validate attestation response
+  - store credential public key and metadata
+  - mark user as passkey-enabled
+  - emit auth.passkey.registered event
+memory:
+  - action: upsert
+    topic: auth.passkeys
+    key: auth.passkey.registration.count
+    value: incremented
+    scope: project
+
+node auth.token.storage.antipattern
+type: anti_pattern
+stability: high
+priority: critical
+summary: browser-stored tokens increase exposure surface and weaken revocation control
+detail:
+  Storing tokens in localStorage or sessionStorage weakens security.
+  XSS vulnerabilities directly expose token material.
+  Server-side storage with opaque session IDs is strictly preferred.
+conflicts: [auth.constraints]
+
+node auth.session.decision
+type: decision
+stability: high
+priority: critical
+depends: [auth.constraints, auth.session]
+summary: opaque sid cookie with server-side storage over browser token model
+rationale:
+  - lowers token exposure surface
+  - centralizes revocation
+  - aligns with bff architecture
+  - simplifies browser trust model
+tradeoffs:
+  - session lookup on every request
+  - horizontal scale needs shared session store
+  - backend complexity increases
+
+node auth.orchestration
+type: orchestration
+stability: medium
+priority: critical
+summary: coordinate auth platform v2 rollout with passkey support
+parallel_groups:
+  - group: 1-core
+    nodes: [auth.login, auth.logout]
+    strategy: parallel
+  - group: 2-passkeys
+    nodes: [auth.passkey.registration]
+    strategy: sequential
+    requires: [1-core]

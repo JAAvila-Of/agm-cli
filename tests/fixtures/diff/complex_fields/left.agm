@@ -1,0 +1,14 @@
+agm: 1.0
+package: test.diff.complex
+version: 0.1.0
+
+node test.executor
+type: workflow
+summary: complex fields node
+target: http://example.com/v1
+code:
+  lang: python
+  action: full
+  body: |
+    def run():
+        return "old"

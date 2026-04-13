@@ -1,0 +1,14 @@
+---
+source: crates/agm-core/tests/integration_diff.rs
+expression: output
+---
+=== AGM Semantic Diff ===
+
+--- Nodes Modified (1) ---
+  ~ auth.login (2 changes, 2 breaking)
+    ~ type: workflow -> rules [BREAKING]
+    - depends: auth.constraints [BREAKING]
+
+--- Summary ---
+  Added: 0 | Removed: 0 | Modified: 1 | Unchanged: 1
+  Breaking changes: YES

@@ -1,0 +1,45 @@
+---
+source: crates/agm-core/src/diff/render.rs
+expression: output
+---
+# AGM Semantic Diff
+
+## Summary
+
+| Metric | Count |
+|---|---|
+| Nodes added | 1 |
+| Nodes removed | 1 |
+| Nodes modified | 2 |
+| Nodes unchanged | 5 |
+| Header changes | 1 |
+| **Breaking changes** | **Yes** |
+
+## Header Changes
+
+| Field | Change | Old | New | Severity |
+|---|---|---|---|---|
+| version | modified | 0.1.0 | 0.2.0 | info |
+
+## Added Nodes
+
+- `auth.mfa`
+
+## Removed Nodes
+
+- `auth.legacy` (BREAKING)
+
+## Modified Nodes
+
+### auth.login
+
+| Field | Change | Old | New | Severity |
+|---|---|---|---|---|
+| type | modified | workflow | rules | **breaking** |
+| summary | modified | old summary | new summary | minor |
+
+### auth.session
+
+| Field | Change | Old | New | Severity |
+|---|---|---|---|---|
+| priority | added | -- | critical | info |

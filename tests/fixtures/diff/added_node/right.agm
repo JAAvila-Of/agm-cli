@@ -1,0 +1,15 @@
+agm: 1.0
+package: test.diff.added
+version: 0.1.0
+
+node test.node.a
+type: facts
+summary: fact node alpha
+
+node test.node.b
+type: rules
+summary: rule node beta
+
+node test.node.c
+type: workflow
+summary: new workflow node

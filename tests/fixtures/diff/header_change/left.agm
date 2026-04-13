@@ -1,0 +1,8 @@
+agm: 1.0
+package: test.diff.header
+version: 0.1.0
+status: draft
+
+node test.node.a
+type: facts
+summary: a test node

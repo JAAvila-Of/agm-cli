@@ -1,0 +1,16 @@
+agm: 1.0
+package: test.diff.modified
+version: 0.1.0
+
+node test.node.a
+type: facts
+summary: updated summary
+priority: high
+items:
+  - item one
+  - item two
+
+node test.node.b
+type: rules
+summary: rule node beta
+stability: volatile

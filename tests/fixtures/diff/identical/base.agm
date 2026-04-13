@@ -1,0 +1,16 @@
+agm: 1.0
+package: test.diff.identical
+version: 0.1.0
+
+node test.node.a
+type: facts
+summary: fact node alpha
+items:
+  - item one
+  - item two
+depends: [test.node.b]
+
+node test.node.b
+type: rules
+summary: rule node beta
+priority: high

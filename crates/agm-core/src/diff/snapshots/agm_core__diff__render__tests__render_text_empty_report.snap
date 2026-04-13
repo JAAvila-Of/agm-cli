@@ -1,0 +1,9 @@
+---
+source: crates/agm-core/src/diff/render.rs
+expression: output
+---
+=== AGM Semantic Diff ===
+
+--- Summary ---
+  Added: 0 | Removed: 0 | Modified: 0 | Unchanged: 0
+  Breaking changes: NO

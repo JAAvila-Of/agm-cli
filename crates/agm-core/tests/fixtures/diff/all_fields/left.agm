@@ -1,0 +1,58 @@
+agm: 1.0
+package: test.diff.allfields
+version: 1.0.0
+
+node support.deps
+type: facts
+summary: Dependency support node
+
+node support.ctx
+type: facts
+summary: Context support node
+
+node main.workflow
+type: workflow
+summary: Original workflow with all fields
+priority: normal
+stability: medium
+confidence: medium
+status: active
+depends: [support.deps]
+related_to: [support.ctx]
+tags: [auth, api]
+items:
+  - validate request
+  - process payload
+  - return response
+steps:
+  - step one
+  - step two
+  - step three
+input: [support.deps]
+output: [support.ctx]
+detail:
+  This is the original detailed explanation of the workflow.
+rationale:
+  - Original rationale entry
+notes:
+  Original implementation notes here.
+memory:
+  - action: upsert
+    topic: workflow.state
+    key: main.workflow.result
+    value: pending
+    scope: session
+    ttl: 3600
+code:
+  lang: bash
+  action: full
+  body: |
+    echo "original run"
+verify:
+  - type: file_exists
+    file: output.txt
+agent_context:
+  system_hint: Original system hint for the agent.
+  max_tokens: 2000
+execution_status: pending
+target: agent-alpha

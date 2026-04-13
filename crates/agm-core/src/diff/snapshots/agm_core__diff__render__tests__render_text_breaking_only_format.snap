@@ -1,0 +1,16 @@
+---
+source: crates/agm-core/src/diff/render.rs
+expression: output
+---
+=== AGM Semantic Diff ===
+
+--- Nodes Removed (1) ---
+  - auth.legacy [BREAKING]
+
+--- Nodes Modified (1) ---
+  ~ auth.login (1 changes, 1 breaking)
+    ~ type: workflow -> rules [BREAKING]
+
+--- Summary ---
+  Added: 0 | Removed: 1 | Modified: 1 | Unchanged: 5
+  Breaking changes: YES

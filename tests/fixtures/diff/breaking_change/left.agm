@@ -1,0 +1,12 @@
+agm: 1.0
+package: test.diff.breaking
+version: 0.1.0
+
+node auth.login
+type: workflow
+summary: login workflow
+depends: [auth.session, auth.constraints]
+
+node auth.session
+type: facts
+summary: session management facts

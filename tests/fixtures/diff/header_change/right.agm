@@ -1,0 +1,9 @@
+agm: 1.0
+package: test.diff.header
+version: 0.2.0
+title: Test Header Package
+status: stable
+
+node test.node.a
+type: facts
+summary: a test node

@@ -1,0 +1,17 @@
+agm: 1.0
+package: test.diff.modified
+version: 0.1.0
+
+node test.node.a
+type: facts
+summary: original summary
+priority: low
+items:
+  - item one
+  - item two
+  - item three
+
+node test.node.b
+type: rules
+summary: rule node beta
+stability: high

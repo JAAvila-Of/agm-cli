@@ -1,0 +1,92 @@
+agm: 1.0
+package: platform.auth
+version: 1.2.0
+title: Authentication Platform
+status: active
+tags: [auth, security]
+
+node auth.stack
+type: facts
+stability: medium
+priority: high
+summary: next14 frontend; net7 backend; identityserver4 local idp
+items:
+  - frontend=next14
+  - backend=net7
+  - local_idp=identityserver4
+detail:
+  Legacy stack running Next.js 14 and .NET 7.
+  IdentityServer4 for local authentication.
+
+node auth.constraints
+type: rules
+stability: high
+priority: critical
+summary: no browser tokens; sensitive calls server-side only
+items:
+  - no_client_tokens
+  - server_side_sensitive_calls
+  - host_based_tenant_selection
+
+node auth.session
+type: entity
+stability: medium
+priority: high
+summary: opaque sid maps to server-side token pair
+fields:
+  - sid: opaque string
+  - user_id: string
+  - access_token: secure server secret
+  - refresh_token: secure server secret
+  - expires_at: datetime
+
+node auth.login
+type: workflow
+stability: medium
+priority: critical
+depends: [auth.constraints, auth.session]
+input: [host, return_url]
+output: [redirect_url, sid_cookie]
+summary: resolve tenant -> oidc redirect -> callback -> create session
+steps:
+  - resolve tenant from host
+  - select oidc config
+  - redirect to identity provider
+  - validate callback
+  - persist tokens server-side
+  - create sid session
+  - emit httpOnly cookie
+
+node auth.logout
+type: workflow
+stability: medium
+priority: high
+depends: [auth.session]
+input: [sid]
+output: [session_revoked]
+summary: revoke session and clear cookie
+steps:
+  - locate session by sid
+  - revoke local session
+  - clear sid cookie
+
+node auth.mfa
+type: workflow
+stability: low
+priority: normal
+depends: [auth.login]
+input: [user_id, mfa_code]
+output: [mfa_verified]
+summary: verify totp code after primary authentication
+steps:
+  - lookup user mfa secret
+  - validate totp code
+  - mark session as mfa verified
+
+node auth.token.storage.antipattern
+type: anti_pattern
+stability: high
+priority: high
+summary: browser-stored tokens increase exposure surface
+detail:
+  Storing tokens in localStorage weakens security posture.

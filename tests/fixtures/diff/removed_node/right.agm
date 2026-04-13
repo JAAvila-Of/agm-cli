@@ -1,0 +1,7 @@
+agm: 1.0
+package: test.diff.removed
+version: 0.1.0
+
+node test.node.a
+type: facts
+summary: fact node alpha

@@ -1,0 +1,65 @@
+agm: 1.0
+package: test.diff.allfields
+version: 2.0.0
+
+node support.deps
+type: facts
+summary: Dependency support node
+
+node support.ctx
+type: facts
+summary: Context support node
+
+node main.workflow
+type: workflow
+summary: Updated workflow with all fields changed
+priority: high
+stability: high
+confidence: high
+status: deprecated
+depends: [support.deps]
+related_to: [support.ctx]
+tags: [auth, api, updated]
+items:
+  - validate request
+  - sanitize payload
+  - transform data
+  - return response
+steps:
+  - step one revised
+  - step two revised
+  - step three revised
+  - step four added
+input: [support.deps]
+output: [support.ctx]
+detail:
+  This is the updated detailed explanation of the workflow after revision.
+rationale:
+  - Updated rationale entry
+  - Additional rationale added
+notes:
+  Updated implementation notes with new considerations.
+memory:
+  - action: upsert
+    topic: workflow.state
+    key: main.workflow.result
+    value: completed
+    scope: project
+    ttl: 7200
+code:
+  lang: bash
+  action: full
+  body: |
+    echo "updated run"
+    exit 0
+verify:
+  - type: file_exists
+    file: output.txt
+  - type: command
+    run: cat output.txt
+    expect: exit_code_0
+agent_context:
+  system_hint: Updated system hint with more guidance for the agent.
+  max_tokens: 4000
+execution_status: completed
+target: agent-beta

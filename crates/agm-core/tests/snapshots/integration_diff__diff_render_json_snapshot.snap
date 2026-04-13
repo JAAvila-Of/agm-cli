@@ -1,0 +1,59 @@
+---
+source: crates/agm-core/tests/integration_diff.rs
+expression: output
+---
+{
+  "header_changes": [],
+  "added_nodes": [],
+  "removed_nodes": [],
+  "modified_nodes": [
+    {
+      "node_id": "test.node.a",
+      "field_changes": [
+        {
+          "field": "summary",
+          "kind": "modified",
+          "severity": "minor",
+          "old_value": "original summary",
+          "new_value": "updated summary"
+        },
+        {
+          "field": "priority",
+          "kind": "modified",
+          "severity": "minor",
+          "old_value": "low",
+          "new_value": "high"
+        },
+        {
+          "field": "items",
+          "kind": "removed",
+          "severity": "minor",
+          "old_value": "item three"
+        }
+      ],
+      "has_breaking_change": false
+    },
+    {
+      "node_id": "test.node.b",
+      "field_changes": [
+        {
+          "field": "stability",
+          "kind": "modified",
+          "severity": "minor",
+          "old_value": "high",
+          "new_value": "volatile"
+        }
+      ],
+      "has_breaking_change": false
+    }
+  ],
+  "summary": {
+    "nodes_added": 0,
+    "nodes_removed": 0,
+    "nodes_modified": 2,
+    "nodes_unchanged": 0,
+    "header_changes": 0,
+    "total_field_changes": 4,
+    "has_breaking_changes": false
+  }
+}
