@@ -199,17 +199,13 @@ impl ImportResolver for KnownPackageResolver {
         import: &ValidatedImport,
     ) -> Result<ResolvedPackage, agm_core::error::diagnostic::AgmError> {
         let pkg = import.package();
-        let node_ids = self
-            .known
-            .get(pkg)
-            .cloned()
-            .ok_or_else(|| {
-                agm_core::error::diagnostic::AgmError::new(
-                    ErrorCode::I001,
-                    format!("unknown: {pkg}"),
-                    agm_core::error::diagnostic::ErrorLocation::default(),
-                )
-            })?;
+        let node_ids = self.known.get(pkg).cloned().ok_or_else(|| {
+            agm_core::error::diagnostic::AgmError::new(
+                ErrorCode::I001,
+                format!("unknown: {pkg}"),
+                agm_core::error::diagnostic::ErrorLocation::default(),
+            )
+        })?;
 
         // Build a fake AgmFile exposing those nodes.
         let nodes: Vec<Node> = node_ids
@@ -315,11 +311,8 @@ fn test_validate_imports_cross_package_ref_missing_node_emits_i004() {
     known.insert("shared.security".to_owned(), vec!["login".to_owned()]);
     let resolver = KnownPackageResolver { known };
 
-    let file = file_with_import_and_cross_ref(
-        "shared.security",
-        "shared.security.missing_node",
-        None,
-    );
+    let file =
+        file_with_import_and_cross_ref("shared.security", "shared.security.missing_node", None);
     let errors = validate_imports(&file, &resolver, "t.agm");
     assert!(
         errors.iter().any(|e| e.code == ErrorCode::I004),

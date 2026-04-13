@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use agm_core::diff::{self, render::render_diff, render::DiffFormat};
+use agm_core::diff::{self, render::DiffFormat, render::render_diff};
 use agm_core::model::code::{CodeAction, CodeBlock};
 use agm_core::model::context::AgentContext;
 use agm_core::model::fields::{NodeType, Span};

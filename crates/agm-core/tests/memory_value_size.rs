@@ -132,7 +132,8 @@ fn test_memory_value_v027_message_contains_byte_counts() {
         v027.message
     );
     assert!(
-        v027.message.contains(&format!("{}", MAX_MEMORY_VALUE_BYTES)),
+        v027.message
+            .contains(&format!("{}", MAX_MEMORY_VALUE_BYTES)),
         "V027 message should mention the limit ({}): {}",
         MAX_MEMORY_VALUE_BYTES,
         v027.message

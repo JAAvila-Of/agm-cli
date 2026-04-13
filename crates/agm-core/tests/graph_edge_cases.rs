@@ -7,8 +7,8 @@
 use std::collections::HashSet;
 
 use agm_core::graph::{
-    build_graph, detect_cycles, find_conflicts, topological_sort, transitive_deps,
-    transitive_dependents,
+    build_graph, detect_cycles, find_conflicts, topological_sort, transitive_dependents,
+    transitive_deps,
 };
 use agm_core::model::fields::{NodeType, Span};
 use agm_core::model::file::{AgmFile, Header};
@@ -127,7 +127,11 @@ fn test_large_linear_chain_topo_sort_valid_ordering() {
     assert_eq!(graph.node_count(), count, "expected {count} nodes");
 
     let sorted = topological_sort(&graph).expect("linear chain is acyclic");
-    assert_eq!(sorted.len(), count, "topo sort should return all {count} nodes");
+    assert_eq!(
+        sorted.len(),
+        count,
+        "topo sort should return all {count} nodes"
+    );
 
     // Every node must appear before its dependent (the one that depends on it).
     // node[i] depends on node[i+1] → node[i+1] must appear before node[i]
@@ -461,7 +465,11 @@ fn test_multiple_conflict_pairs_all_detected() {
     let graph = build_graph(&make_file(vec![a, b, c, d, e]));
     let conflicts = find_conflicts(&graph);
 
-    assert_eq!(conflicts.len(), 3, "expected 3 conflict pairs, got: {conflicts:?}");
+    assert_eq!(
+        conflicts.len(),
+        3,
+        "expected 3 conflict pairs, got: {conflicts:?}"
+    );
 }
 
 #[test]
@@ -523,7 +531,9 @@ fn test_star_topology_all_leaf_nodes_depend_on_center() {
     // 20 leaf nodes, each depending on one central hub
     let hub = make_node("star.hub");
     let leaf_count = 20;
-    let leaf_ids: Vec<String> = (0..leaf_count).map(|i| format!("star.leaf.{i:02}")).collect();
+    let leaf_ids: Vec<String> = (0..leaf_count)
+        .map(|i| format!("star.leaf.{i:02}"))
+        .collect();
 
     let mut nodes = vec![hub];
     for id in &leaf_ids {
@@ -542,7 +552,9 @@ fn test_star_topology_all_leaf_nodes_depend_on_center() {
 fn test_star_topology_topo_sort_hub_comes_first() {
     let hub = make_node("stts.hub");
     let leaf_count = 20;
-    let leaf_ids: Vec<String> = (0..leaf_count).map(|i| format!("stts.leaf.{i:02}")).collect();
+    let leaf_ids: Vec<String> = (0..leaf_count)
+        .map(|i| format!("stts.leaf.{i:02}"))
+        .collect();
 
     let mut nodes = vec![hub];
     for id in &leaf_ids {
@@ -566,7 +578,9 @@ fn test_star_topology_topo_sort_hub_comes_first() {
 fn test_star_topology_transitive_dependents_of_hub_includes_all_leaves() {
     let hub = make_node("sttd.hub");
     let leaf_count = 20;
-    let leaf_ids: Vec<String> = (0..leaf_count).map(|i| format!("sttd.leaf.{i:02}")).collect();
+    let leaf_ids: Vec<String> = (0..leaf_count)
+        .map(|i| format!("sttd.leaf.{i:02}"))
+        .collect();
 
     let mut nodes = vec![hub];
     for id in &leaf_ids {
@@ -639,7 +653,11 @@ fn test_graph_200_node_linear_chain_topo_sort_order() {
     assert_eq!(graph.node_count(), count);
 
     let sorted = topological_sort(&graph).expect("200-node linear chain is acyclic");
-    assert_eq!(sorted.len(), count, "all 200 nodes should appear in topo sort");
+    assert_eq!(
+        sorted.len(),
+        count,
+        "all 200 nodes should appear in topo sort"
+    );
 
     // nodes[i+1] must appear before nodes[i] (because nodes[i] depends on nodes[i+1])
     for i in 0..(count - 1) {
@@ -652,7 +670,9 @@ fn test_graph_wide_fan_out_100_children() {
     let parent_id = "fan.parent";
     let parent = make_node(parent_id);
     let child_count = 100;
-    let child_ids: Vec<String> = (0..child_count).map(|i| format!("fan.child.{i:03}")).collect();
+    let child_ids: Vec<String> = (0..child_count)
+        .map(|i| format!("fan.child.{i:03}"))
+        .collect();
 
     let mut nodes = vec![parent];
     for id in &child_ids {
@@ -693,9 +713,15 @@ fn test_graph_200_nodes_complex_dag_no_cycles() {
     // Each node depends on up to 3 prior nodes (forming a dense but acyclic DAG)
     for i in 1..count {
         let mut deps = Vec::new();
-        if i >= 1 { deps.push(ids[i - 1].clone()); }
-        if i >= 2 { deps.push(ids[i - 2].clone()); }
-        if i >= 3 { deps.push(ids[i - 3].clone()); }
+        if i >= 1 {
+            deps.push(ids[i - 1].clone());
+        }
+        if i >= 2 {
+            deps.push(ids[i - 2].clone());
+        }
+        if i >= 3 {
+            deps.push(ids[i - 3].clone());
+        }
         nodes[i].depends = Some(deps);
     }
 
@@ -706,7 +732,11 @@ fn test_graph_200_nodes_complex_dag_no_cycles() {
     assert!(cycles.is_empty(), "dense forward DAG should have no cycles");
 
     let sorted = topological_sort(&graph).expect("complex DAG is acyclic");
-    assert_eq!(sorted.len(), count, "all 200 nodes should appear in topo sort");
+    assert_eq!(
+        sorted.len(),
+        count,
+        "all 200 nodes should appear in topo sort"
+    );
 }
 
 #[test]
@@ -737,10 +767,18 @@ fn test_graph_50_disconnected_components() {
     let file = make_file(all_nodes);
     let graph = build_graph(&file);
 
-    assert_eq!(graph.node_count(), 200, "expected 200 nodes (50 groups x 4)");
+    assert_eq!(
+        graph.node_count(),
+        200,
+        "expected 200 nodes (50 groups x 4)"
+    );
 
     let sorted = topological_sort(&graph).expect("50 disconnected components should be acyclic");
-    assert_eq!(sorted.len(), 200, "all 200 nodes should appear in topo sort");
+    assert_eq!(
+        sorted.len(),
+        200,
+        "all 200 nodes should appear in topo sort"
+    );
 
     // Within each group, ordering must be maintained
     for g in 0..50usize {
@@ -826,7 +864,11 @@ fn test_graph_200_node_dag_leaves_have_no_outgoing_depends_edges() {
     // A leaf node has no outgoing Depends edges.
     let leaves: Vec<&String> = ids
         .iter()
-        .filter(|id| graph.edges_of_kind(id, agm_core::graph::RelationKind::Depends).is_empty())
+        .filter(|id| {
+            graph
+                .edges_of_kind(id, agm_core::graph::RelationKind::Depends)
+                .is_empty()
+        })
         .collect();
 
     // Nodes 10-199 all depend on a root (outgoing Depends edge), so they are

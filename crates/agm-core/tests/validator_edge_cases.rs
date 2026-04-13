@@ -152,7 +152,10 @@ fn test_validate_version_prerelease_alpha_returns_no_version_error() {
     // The validator should not reject pre-release version strings at the
     // file level (P001 is about missing fields, not format).
     assert!(
-        !result.diagnostics().iter().any(|d| d.code == ErrorCode::P001),
+        !result
+            .diagnostics()
+            .iter()
+            .any(|d| d.code == ErrorCode::P001),
         "Pre-release version should not trigger P001"
     );
 }
@@ -167,7 +170,10 @@ fn test_validate_version_build_metadata_returns_no_version_error() {
     };
     let result = validate(&file, "", "edge.agm", &Default::default());
     assert!(
-        !result.diagnostics().iter().any(|d| d.code == ErrorCode::P001),
+        !result
+            .diagnostics()
+            .iter()
+            .any(|d| d.code == ErrorCode::P001),
         "Build-metadata version should not trigger P001"
     );
 }

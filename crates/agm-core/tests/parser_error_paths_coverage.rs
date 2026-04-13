@@ -279,10 +279,7 @@ body: |
   line two
 "#;
     let file = parse(input).expect("must parse");
-    assert_eq!(
-        file.nodes[0].detail.as_deref(),
-        Some("line one\nline two")
-    );
+    assert_eq!(file.nodes[0].detail.as_deref(), Some("line one\nline two"));
 }
 
 #[test]

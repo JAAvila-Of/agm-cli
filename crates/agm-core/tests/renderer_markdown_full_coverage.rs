@@ -256,7 +256,10 @@ fn kitchen_sink_file() -> AgmFile {
 
     // Custom type (hits the `Custom(_)` branch + `capitalize_first` + custom
     // types section iteration)
-    nodes.push(blank_node("n.custom", NodeType::Custom("policy".to_owned())));
+    nodes.push(blank_node(
+        "n.custom",
+        NodeType::Custom("policy".to_owned()),
+    ));
 
     AgmFile {
         header: full_header(),

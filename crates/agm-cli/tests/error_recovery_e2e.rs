@@ -49,7 +49,10 @@ fn test_retry_after_node_failure_succeeds_after_fix() {
         .failure();
 
     let state_file = PathBuf::from(format!("{}.state", agm_file.display()));
-    assert!(state_file.exists(), ".state file must exist after failed run");
+    assert!(
+        state_file.exists(),
+        ".state file must exist after failed run"
+    );
 
     let state_content = fs::read_to_string(&state_file).unwrap();
     assert!(
@@ -80,11 +83,7 @@ fn test_status_no_state_file_reports_graceful_error() {
     let agm_file = copy_fixture("orchestration/linear-chain.agm", dir.path());
 
     // Do NOT run first — no .state file exists
-    let output = agm_cmd()
-        .arg("status")
-        .arg(&agm_file)
-        .output()
-        .unwrap();
+    let output = agm_cmd().arg("status").arg(&agm_file).output().unwrap();
 
     // Must exit non-zero (no state), but must NOT panic (signal)
     assert!(
@@ -110,13 +109,13 @@ fn test_status_corrupted_state_file_reports_error_not_panic() {
     let state_file = PathBuf::from(format!("{}.state", agm_file.display()));
 
     // Write garbage
-    fs::write(&state_file, b"\x00\xff\xfe this is not valid state content !!!").unwrap();
+    fs::write(
+        &state_file,
+        b"\x00\xff\xfe this is not valid state content !!!",
+    )
+    .unwrap();
 
-    let output = agm_cmd()
-        .arg("status")
-        .arg(&agm_file)
-        .output()
-        .unwrap();
+    let output = agm_cmd().arg("status").arg(&agm_file).output().unwrap();
 
     // Must exit non-zero — corrupt state is an error
     assert!(
@@ -192,11 +191,7 @@ fn test_status_empty_state_file_handled_gracefully() {
     // Write empty file
     fs::write(&state_file, "").unwrap();
 
-    let output = agm_cmd()
-        .arg("status")
-        .arg(&agm_file)
-        .output()
-        .unwrap();
+    let output = agm_cmd().arg("status").arg(&agm_file).output().unwrap();
 
     // Must exit with a code (not a signal / panic)
     assert!(
@@ -253,9 +248,7 @@ fn test_retry_non_failed_node_reports_error() {
         .arg(dir.path())
         .assert()
         .failure()
-        .stderr(
-            predicate::str::contains("not").or(predicate::str::contains("error")),
-        );
+        .stderr(predicate::str::contains("not").or(predicate::str::contains("error")));
 }
 
 /// Retry a node that does not exist in the AGM file: verify error message.

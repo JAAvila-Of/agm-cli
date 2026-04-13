@@ -293,7 +293,8 @@ fn test_parse_code_block_with_agm_like_syntax_inside_accepted() {
         ),
         header()
     );
-    let file = parser::parse(&input).expect("AGM-like field syntax in code block body should parse");
+    let file =
+        parser::parse(&input).expect("AGM-like field syntax in code block body should parse");
     let code = file.nodes[0].code.as_ref().unwrap();
     assert!(
         code.body.contains("agm: 1.0"),
@@ -513,9 +514,7 @@ fn test_parse_500_nodes_with_all_field_types() {
     let mut input = header().to_owned();
     for i in 0..500usize {
         input.push('\n');
-        let mut node = format!(
-            "node s.n{i:03}\ntype: facts\nsummary: Stress node {i}\n"
-        );
+        let mut node = format!("node s.n{i:03}\ntype: facts\nsummary: Stress node {i}\n");
         node.push_str("detail:\n  This is a detail block.\n  Second line of detail.\n");
         node.push_str("tags: [stress, generated]\n");
         if i > 0 {
@@ -532,15 +531,16 @@ fn test_parse_500_nodes_with_all_field_types() {
 fn test_parse_node_with_10kb_detail_block() {
     let detail_line = "x".repeat(80);
     // ~10KB: 128 lines of 80 chars each
-    let detail_body: String = (0..128)
-        .map(|_| format!("  {detail_line}\n"))
-        .collect();
+    let detail_body: String = (0..128).map(|_| format!("  {detail_line}\n")).collect();
     let input = format!(
         "{}node s.bignode\ntype: facts\nsummary: Big detail node\ndetail:\n{detail_body}",
         header()
     );
     let file = parser::parse(&input).expect("10KB detail block should parse");
-    let detail = file.nodes[0].detail.as_deref().expect("detail should be set");
+    let detail = file.nodes[0]
+        .detail
+        .as_deref()
+        .expect("detail should be set");
     assert!(detail.len() >= 10_000, "detail should be at least 10KB");
 }
 
@@ -563,7 +563,10 @@ fn test_parse_deeply_nested_relationships_100_chain() {
     let file = parser::parse(&input).expect("100-node chain should parse");
     assert_eq!(file.nodes.len(), 100, "expected 100 nodes");
     for i in 1..100usize {
-        let deps = file.nodes[i].depends.as_ref().expect("depends should be set");
+        let deps = file.nodes[i]
+            .depends
+            .as_ref()
+            .expect("depends should be set");
         assert_eq!(
             deps[0],
             format!("s.n{:03}", i - 1),
@@ -604,7 +607,10 @@ fn test_parse_code_body_1000_lines_accepted() {
     );
 
     let file = parser::parse(&input).expect("1000-line code body should parse without error");
-    let code = file.nodes[0].code.as_ref().expect("code field should be present");
+    let code = file.nodes[0]
+        .code
+        .as_ref()
+        .expect("code field should be present");
 
     // The body is joined with '\n' by collect_pipe_body, so 1000 lines produce
     // 999 newlines separating them (trailing blank lines are trimmed).
@@ -632,7 +638,16 @@ fn test_parse_node_with_10_code_blocks_accepted() {
     // action: create.  The list-item sub-fields must be indented more than
     // the dash line (which sits at 2-space indent inside code_blocks:).
     let langs = [
-        "rust", "python", "typescript", "go", "sql", "bash", "java", "cpp", "kotlin", "swift",
+        "rust",
+        "python",
+        "typescript",
+        "go",
+        "sql",
+        "bash",
+        "java",
+        "cpp",
+        "kotlin",
+        "swift",
     ];
 
     let mut blocks = String::new();
@@ -661,7 +676,12 @@ fn test_parse_node_with_10_code_blocks_accepted() {
         .as_ref()
         .expect("code_blocks field should be present");
 
-    assert_eq!(cbs.len(), 10, "expected exactly 10 code blocks, got {}", cbs.len());
+    assert_eq!(
+        cbs.len(),
+        10,
+        "expected exactly 10 code blocks, got {}",
+        cbs.len()
+    );
 
     for (i, (block, &expected_lang)) in cbs.iter().zip(langs.iter()).enumerate() {
         assert_eq!(
@@ -698,7 +718,12 @@ fn test_parse_items_50_entries_block_format_accepted() {
         .as_ref()
         .expect("items field should be present");
 
-    assert_eq!(items.len(), 50, "expected exactly 50 items, got {}", items.len());
+    assert_eq!(
+        items.len(),
+        50,
+        "expected exactly 50 items, got {}",
+        items.len()
+    );
     assert_eq!(items[0], "item 0");
     assert_eq!(items[49], "item 49");
 }
@@ -728,7 +753,12 @@ fn test_parse_steps_50_entries_block_format_accepted() {
         .as_ref()
         .expect("steps field should be present");
 
-    assert_eq!(steps.len(), 50, "expected exactly 50 steps, got {}", steps.len());
+    assert_eq!(
+        steps.len(),
+        50,
+        "expected exactly 50 steps, got {}",
+        steps.len()
+    );
     assert_eq!(steps[0], "step 0");
     assert_eq!(steps[49], "step 49");
 }
@@ -737,8 +767,7 @@ fn test_parse_steps_50_entries_block_format_accepted() {
 
 #[test]
 fn test_parse_node_all_fields_populated_at_scale() {
-    let input =
-        include_str!("fixtures/valid/fully_populated_node.agm");
+    let input = include_str!("fixtures/valid/fully_populated_node.agm");
 
     let file = parser::parse(input).expect("fully_populated_node.agm should parse without error");
 
@@ -773,13 +802,19 @@ fn test_parse_node_all_fields_populated_at_scale() {
     assert!(node.verify.is_some(), "verify should be Some");
     assert!(node.agent_context.is_some(), "agent_context should be Some");
     assert!(node.target.is_some(), "target should be Some");
-    assert!(node.execution_status.is_some(), "execution_status should be Some");
+    assert!(
+        node.execution_status.is_some(),
+        "execution_status should be Some"
+    );
     assert!(node.executed_by.is_some(), "executed_by should be Some");
     assert!(node.executed_at.is_some(), "executed_at should be Some");
     assert!(node.execution_log.is_some(), "execution_log should be Some");
     assert!(node.retry_count.is_some(), "retry_count should be Some");
     assert!(node.memory.is_some(), "memory should be Some");
-    assert!(node.parallel_groups.is_some(), "parallel_groups should be Some");
+    assert!(
+        node.parallel_groups.is_some(),
+        "parallel_groups should be Some"
+    );
     assert!(node.scope.is_some(), "scope should be Some");
     assert!(node.applies_when.is_some(), "applies_when should be Some");
     assert!(node.valid_from.is_some(), "valid_from should be Some");

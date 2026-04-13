@@ -21,7 +21,7 @@ use agm_core::parser::parse;
 use agm_core::renderer::canonical::render_canonical;
 use agm_core::renderer::mem::{render_mem, render_mem_json};
 use agm_core::renderer::state::{render_state, render_state_json};
-use agm_core::renderer::{render, RenderFormat};
+use agm_core::renderer::{RenderFormat, render};
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -125,10 +125,7 @@ fn make_mem_entry(topic: &str, scope: MemoryScope, ttl: MemoryTtl, value: &str) 
 /// Build a rich node with items, detail, code, and verify populated.
 fn rich_node(id: &str, node_type: NodeType) -> Node {
     let mut n = make_node(id, node_type);
-    n.items = Some(vec![
-        format!("{id}.item_a"),
-        format!("{id}.item_b"),
-    ]);
+    n.items = Some(vec![format!("{id}.item_a"), format!("{id}.item_b")]);
     n.detail = Some(format!("Detail text for {id}."));
     n.code = Some(make_code_block("rust", &format!("fn {id}() {{}}")));
     n.verify = Some(vec![
@@ -179,7 +176,10 @@ fn test_render_markdown_20_nodes_mixed_types_groups_correctly() {
     assert!(output.contains("## Rules"), "missing Rules section");
     assert!(output.contains("## Workflow"), "missing Workflow section");
     assert!(output.contains("## Entity"), "missing Entity section");
-    assert!(output.contains("## Orchestration"), "missing Orchestration section");
+    assert!(
+        output.contains("## Orchestration"),
+        "missing Orchestration section"
+    );
 
     // Facts section must come before Rules, Rules before Workflow, etc.
     let facts_pos = output.find("## Facts").unwrap();
@@ -205,7 +205,10 @@ fn test_render_markdown_20_nodes_mixed_types_groups_correctly() {
     assert!(output.contains("```rust"), "fenced code block missing");
 
     // Verify section must appear.
-    assert!(output.contains("#### Verification"), "Verification heading missing");
+    assert!(
+        output.contains("#### Verification"),
+        "Verification heading missing"
+    );
 }
 
 #[test]
@@ -300,13 +303,19 @@ fn test_render_markdown_node_with_code_blocks_and_verify() {
     );
 
     // All 5 verify checks must appear.
-    assert!(output.contains("#### Verification"), "Verification heading missing");
+    assert!(
+        output.contains("#### Verification"),
+        "Verification heading missing"
+    );
     assert!(output.contains("`cargo test`"), "cargo test verify missing");
     assert!(
         output.contains("target/debug/app"),
         "file_exists verify missing"
     );
-    assert!(output.contains("Cargo.toml"), "file_contains verify missing");
+    assert!(
+        output.contains("Cargo.toml"),
+        "file_contains verify missing"
+    );
     assert!(
         output.contains("todo!()"),
         "file_not_contains verify missing"
@@ -379,8 +388,11 @@ fn test_render_mem_100_entries_all_present_in_output() {
 
     // JSON output must parse and have 100 entries.
     let json = render_mem_json(&mem);
-    let parsed: serde_json::Value = serde_json::from_str(&json).expect("render_mem_json not valid JSON");
-    let entries_obj = parsed["entries"].as_object().expect("entries must be object");
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json).expect("render_mem_json not valid JSON");
+    let entries_obj = parsed["entries"]
+        .as_object()
+        .expect("entries must be object");
     assert_eq!(
         entries_obj.len(),
         100,
@@ -501,9 +513,7 @@ fn test_render_canonical_roundtrip_20_nodes() {
     let canonical1 = render_canonical(&file);
 
     let reparsed = parse(&canonical1).unwrap_or_else(|errs| {
-        panic!(
-            "re-parse of canonical output failed: {errs:?}\n\nOutput:\n{canonical1}"
-        )
+        panic!("re-parse of canonical output failed: {errs:?}\n\nOutput:\n{canonical1}")
     });
 
     let canonical2 = render_canonical(&reparsed);

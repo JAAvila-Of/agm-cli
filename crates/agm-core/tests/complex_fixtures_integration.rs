@@ -92,8 +92,14 @@ fn test_ecommerce_platform_has_all_node_types() {
     assert!(type_strings.contains("exception"), "missing exception node");
     assert!(type_strings.contains("example"), "missing example node");
     assert!(type_strings.contains("glossary"), "missing glossary node");
-    assert!(type_strings.contains("anti_pattern"), "missing anti_pattern node");
-    assert!(type_strings.contains("orchestration"), "missing orchestration node");
+    assert!(
+        type_strings.contains("anti_pattern"),
+        "missing anti_pattern node"
+    );
+    assert!(
+        type_strings.contains("orchestration"),
+        "missing orchestration node"
+    );
 }
 
 #[test]
@@ -109,10 +115,7 @@ fn test_ecommerce_platform_header_fields() {
     assert_eq!(file.header.owner.as_deref(), Some("platform-engineering"));
     assert!(file.header.tags.is_some());
     assert!(file.header.load_profiles.is_some());
-    assert_eq!(
-        file.header.target_runtime.as_deref(),
-        Some("octopus")
-    );
+    assert_eq!(file.header.target_runtime.as_deref(), Some("octopus"));
 }
 
 #[test]
@@ -151,7 +154,13 @@ fn test_ecommerce_platform_structured_fields() {
     assert!(inv.code.is_some(), "should have code block");
     assert!(inv.verify.is_some(), "should have verify checks");
     assert!(inv.agent_context.is_some(), "should have agent_context");
-    assert_eq!(inv.execution_status.as_ref().map(|s| s.to_string()).as_deref(), Some("pending"));
+    assert_eq!(
+        inv.execution_status
+            .as_ref()
+            .map(|s| s.to_string())
+            .as_deref(),
+        Some("pending")
+    );
 
     // deploy.canary should have code_blocks (multiple)
     let deploy = file
@@ -159,7 +168,10 @@ fn test_ecommerce_platform_structured_fields() {
         .iter()
         .find(|n| n.id == "deploy.canary.workflow")
         .expect("deploy.canary.workflow node should exist");
-    let blocks = deploy.code_blocks.as_ref().expect("should have code_blocks");
+    let blocks = deploy
+        .code_blocks
+        .as_ref()
+        .expect("should have code_blocks");
     assert!(blocks.len() >= 2, "should have at least 2 code blocks");
 
     // shipping should have memory
@@ -272,11 +284,20 @@ fn test_cicd_pipeline_orchestration_groups() {
     let group_names: Vec<_> = groups.iter().map(|g| g.group.as_str()).collect();
     assert_eq!(
         group_names,
-        vec!["1-build", "2-quality-gates", "3-integration", "4-staging", "5-production"]
+        vec![
+            "1-build",
+            "2-quality-gates",
+            "3-integration",
+            "4-staging",
+            "5-production"
+        ]
     );
 
     // Quality gates should run in parallel
-    let qg = groups.iter().find(|g| g.group == "2-quality-gates").unwrap();
+    let qg = groups
+        .iter()
+        .find(|g| g.group == "2-quality-gates")
+        .unwrap();
     assert_eq!(qg.strategy.to_string(), "parallel");
     assert_eq!(qg.nodes.len(), 2);
 }
@@ -297,10 +318,7 @@ fn test_cicd_pipeline_code_blocks_variety() {
         .expect("should have code_blocks");
     assert_eq!(blocks.len(), 2);
 
-    let langs: Vec<_> = blocks
-        .iter()
-        .filter_map(|b| b.lang.as_deref())
-        .collect();
+    let langs: Vec<_> = blocks.iter().filter_map(|b| b.lang.as_deref()).collect();
     assert!(langs.contains(&"yaml"));
     assert!(langs.contains(&"toml"));
 
@@ -369,10 +387,9 @@ fn test_json_forward_full_platform() {
     let file = parse_fixture("json/forward/full_platform.agm");
     let actual = agm_to_json(&file);
     let path = fixtures_root().join("json/forward/full_platform.json");
-    let expected: serde_json::Value = serde_json::from_str(
-        &std::fs::read_to_string(&path).expect("cannot read golden JSON"),
-    )
-    .expect("invalid JSON in golden file");
+    let expected: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&path).expect("cannot read golden JSON"))
+            .expect("invalid JSON in golden file");
     assert_eq!(
         actual, expected,
         "forward conversion mismatch for full_platform"
@@ -386,10 +403,9 @@ fn test_json_forward_full_platform() {
 #[test]
 fn test_json_roundtrip_full_platform() {
     let path = fixtures_root().join("json/roundtrip/full_platform.json");
-    let json1: serde_json::Value = serde_json::from_str(
-        &std::fs::read_to_string(&path).expect("cannot read roundtrip JSON"),
-    )
-    .expect("invalid JSON");
+    let json1: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&path).expect("cannot read roundtrip JSON"))
+            .expect("invalid JSON");
     let file = json_to_agm(&json1).expect("json_to_agm should succeed");
     let json2 = agm_to_json(&file);
     assert_eq!(json1, json2, "JSON round-trip failed for full_platform");
@@ -418,7 +434,11 @@ fn test_diff_full_platform_evolution_summary() {
     );
 
     // Modified nodes should include auth.stack, auth.constraints, auth.session, auth.login, auth.logout
-    let modified_ids: Vec<_> = report.modified_nodes.iter().map(|n| n.node_id.as_str()).collect();
+    let modified_ids: Vec<_> = report
+        .modified_nodes
+        .iter()
+        .map(|n| n.node_id.as_str())
+        .collect();
     assert!(
         modified_ids.contains(&"auth.stack"),
         "auth.stack should be modified"
@@ -525,8 +545,7 @@ mod compiler_tests {
 
     #[test]
     fn test_compile_microservices_migration_produces_nodes() {
-        let md =
-            include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
+        let md = include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
         let result = compile(md, &default_opts("migration.plan"));
         assert!(
             result.file.nodes.len() >= 7,
@@ -537,21 +556,16 @@ mod compiler_tests {
 
     #[test]
     fn test_compile_microservices_migration_roundtrip_parses() {
-        let md =
-            include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
+        let md = include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
         let result = compile(md, &default_opts("migration.plan"));
         let agm_text = render_canonical(&result.file);
         let parsed = parser::parse(&agm_text);
-        assert!(
-            parsed.is_ok(),
-            "Compiled AGM failed to parse: {parsed:?}"
-        );
+        assert!(parsed.is_ok(), "Compiled AGM failed to parse: {parsed:?}");
     }
 
     #[test]
     fn test_compile_microservices_migration_has_code_and_entity() {
-        let md =
-            include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
+        let md = include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
         let result = compile(md, &default_opts("migration.plan"));
 
         // Should have extracted code blocks from SQL and YAML examples
@@ -563,10 +577,15 @@ mod compiler_tests {
         assert!(has_code, "Should extract code blocks from SQL/YAML");
 
         // Should have entity nodes from the entity sections
-        let has_entity = result.file.nodes.iter().any(|n| {
-            n.node_type.to_string() == "entity"
-        });
-        assert!(has_entity, "Should detect entity node from user service section");
+        let has_entity = result
+            .file
+            .nodes
+            .iter()
+            .any(|n| n.node_type.to_string() == "entity");
+        assert!(
+            has_entity,
+            "Should detect entity node from user service section"
+        );
     }
 
     #[test]
@@ -579,8 +598,7 @@ mod compiler_tests {
 
     #[test]
     fn test_compile_microservices_migration_snapshot() {
-        let md =
-            include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
+        let md = include_str!("../../../tests/fixtures/compiler/valid/microservices_migration.md");
         let result = compile(md, &default_opts("migration.plan"));
         let agm_text = render_canonical(&result.file);
         insta::assert_snapshot!("compiler__microservices_migration", agm_text);

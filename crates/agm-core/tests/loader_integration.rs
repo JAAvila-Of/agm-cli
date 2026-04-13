@@ -127,9 +127,18 @@ fn test_load_summary_mode_strips_operational_executable_full_fields() {
     assert_eq!(node.id, "auth.login");
     assert_eq!(node.node_type, NodeType::Workflow);
     assert!(!node.summary.is_empty());
-    assert!(node.priority.is_some(), "priority should be present in Summary");
-    assert!(node.stability.is_some(), "stability should be present in Summary");
-    assert!(node.depends.is_some(), "depends should be present in Summary");
+    assert!(
+        node.priority.is_some(),
+        "priority should be present in Summary"
+    );
+    assert!(
+        node.stability.is_some(),
+        "stability should be present in Summary"
+    );
+    assert!(
+        node.depends.is_some(),
+        "depends should be present in Summary"
+    );
     assert!(node.tags.is_some(), "tags should be present in Summary");
 
     // --- Operational fields absent ---
@@ -142,15 +151,30 @@ fn test_load_summary_mode_strips_operational_executable_full_fields() {
     // --- Executable fields absent ---
     assert!(node.code.is_none(), "code must be absent in Summary");
     assert!(node.verify.is_none(), "verify must be absent in Summary");
-    assert!(node.agent_context.is_none(), "agent_context must be absent in Summary");
-    assert!(node.execution_status.is_none(), "execution_status must be absent in Summary");
+    assert!(
+        node.agent_context.is_none(),
+        "agent_context must be absent in Summary"
+    );
+    assert!(
+        node.execution_status.is_none(),
+        "execution_status must be absent in Summary"
+    );
     assert!(node.memory.is_none(), "memory must be absent in Summary");
 
     // --- Full fields absent ---
-    assert!(node.confidence.is_none(), "confidence must be absent in Summary");
+    assert!(
+        node.confidence.is_none(),
+        "confidence must be absent in Summary"
+    );
     assert!(node.detail.is_none(), "detail must be absent in Summary");
-    assert!(node.rationale.is_none(), "rationale must be absent in Summary");
-    assert!(node.related_to.is_none(), "related_to must be absent in Summary");
+    assert!(
+        node.rationale.is_none(),
+        "rationale must be absent in Summary"
+    );
+    assert!(
+        node.related_to.is_none(),
+        "related_to must be absent in Summary"
+    );
     assert!(node.notes.is_none(), "notes must be absent in Summary");
 }
 
@@ -162,21 +186,51 @@ fn test_load_operational_mode_includes_operational_strips_executable_full() {
     let node = result.nodes.iter().find(|n| n.id == "auth.login").unwrap();
 
     // --- Operational fields present ---
-    assert!(node.items.is_some(), "items should be present in Operational");
-    assert!(node.steps.is_some(), "steps should be present in Operational");
-    assert!(node.fields.is_some(), "fields should be present in Operational");
-    assert!(node.input.is_some(), "input should be present in Operational");
-    assert!(node.output.is_some(), "output should be present in Operational");
+    assert!(
+        node.items.is_some(),
+        "items should be present in Operational"
+    );
+    assert!(
+        node.steps.is_some(),
+        "steps should be present in Operational"
+    );
+    assert!(
+        node.fields.is_some(),
+        "fields should be present in Operational"
+    );
+    assert!(
+        node.input.is_some(),
+        "input should be present in Operational"
+    );
+    assert!(
+        node.output.is_some(),
+        "output should be present in Operational"
+    );
 
     // --- Executable fields absent ---
     assert!(node.code.is_none(), "code must be absent in Operational");
-    assert!(node.verify.is_none(), "verify must be absent in Operational");
-    assert!(node.execution_status.is_none(), "execution_status must be absent in Operational");
+    assert!(
+        node.verify.is_none(),
+        "verify must be absent in Operational"
+    );
+    assert!(
+        node.execution_status.is_none(),
+        "execution_status must be absent in Operational"
+    );
 
     // --- Full fields absent ---
-    assert!(node.confidence.is_none(), "confidence must be absent in Operational");
-    assert!(node.detail.is_none(), "detail must be absent in Operational");
-    assert!(node.related_to.is_none(), "related_to must be absent in Operational");
+    assert!(
+        node.confidence.is_none(),
+        "confidence must be absent in Operational"
+    );
+    assert!(
+        node.detail.is_none(),
+        "detail must be absent in Operational"
+    );
+    assert!(
+        node.related_to.is_none(),
+        "related_to must be absent in Operational"
+    );
 }
 
 #[test]
@@ -188,20 +242,38 @@ fn test_load_executable_mode_includes_executable_strips_full() {
 
     // --- Executable fields present ---
     assert!(node.code.is_some(), "code should be present in Executable");
-    assert!(node.verify.is_some(), "verify should be present in Executable");
-    assert!(node.agent_context.is_some(), "agent_context should be present in Executable");
+    assert!(
+        node.verify.is_some(),
+        "verify should be present in Executable"
+    );
+    assert!(
+        node.agent_context.is_some(),
+        "agent_context should be present in Executable"
+    );
     assert!(
         node.execution_status.is_some(),
         "execution_status should be present in Executable"
     );
-    assert!(node.memory.is_some(), "memory should be present in Executable");
+    assert!(
+        node.memory.is_some(),
+        "memory should be present in Executable"
+    );
 
     // --- Full fields absent ---
-    assert!(node.confidence.is_none(), "confidence must be absent in Executable");
+    assert!(
+        node.confidence.is_none(),
+        "confidence must be absent in Executable"
+    );
     assert!(node.detail.is_none(), "detail must be absent in Executable");
-    assert!(node.related_to.is_none(), "related_to must be absent in Executable");
+    assert!(
+        node.related_to.is_none(),
+        "related_to must be absent in Executable"
+    );
     assert!(node.notes.is_none(), "notes must be absent in Executable");
-    assert!(node.parallel_groups.is_none(), "parallel_groups must be absent in Executable");
+    assert!(
+        node.parallel_groups.is_none(),
+        "parallel_groups must be absent in Executable"
+    );
 }
 
 #[test]
@@ -301,7 +373,12 @@ fn make_profiled_file(n: usize) -> AgmFile {
         NodeType::Rules,
         NodeType::Decision,
     ];
-    let priorities = [Priority::Critical, Priority::High, Priority::Normal, Priority::Low];
+    let priorities = [
+        Priority::Critical,
+        Priority::High,
+        Priority::Normal,
+        Priority::Low,
+    ];
 
     let nodes: Vec<Node> = (0..n)
         .map(|i| {
@@ -324,8 +401,7 @@ fn make_profiled_file(n: usize) -> AgmFile {
 /// Each profile filters by a different type (cycling through 4 types).
 fn make_10_profiles() -> BTreeMap<String, LoadProfile> {
     let filter_types = [
-        "workflow", "facts", "rules", "decision",
-        "workflow", "facts", "rules", "decision",
+        "workflow", "facts", "rules", "decision", "workflow", "facts", "rules", "decision",
         "workflow", "facts",
     ];
 
@@ -403,7 +479,11 @@ fn test_load_profile_default_load_with_10_profiles_resolves_correctly() {
         .expect("load_profile with None should resolve default_load");
 
     // profile_02 = "type in [rules]" → 5 nodes of type Rules.
-    assert_eq!(result.nodes.len(), 5, "default profile should return 5 rules nodes");
+    assert_eq!(
+        result.nodes.len(),
+        5,
+        "default profile should return 5 rules nodes"
+    );
 
     for node in &result.nodes {
         assert_eq!(

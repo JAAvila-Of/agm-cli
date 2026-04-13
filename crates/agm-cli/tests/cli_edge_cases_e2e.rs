@@ -59,11 +59,7 @@ fn test_validate_nonexistent_file_exits_nonzero_with_error() {
 fn test_validate_directory_path_exits_nonzero_with_error() {
     let dir = tempdir().unwrap();
     // Pass the directory path itself as the file argument
-    agm_cmd()
-        .arg("validate")
-        .arg(dir.path())
-        .assert()
-        .failure();
+    agm_cmd().arg("validate").arg(dir.path()).assert().failure();
 }
 
 /// Render with an invalid format flag: `agm render file.agm --format invalid` —
@@ -216,11 +212,7 @@ fn test_multiple_commands_in_sequence_are_consistent() {
     fs::write(&agm_file, agm_content).unwrap();
 
     // Step 1: validate
-    agm_cmd()
-        .arg("validate")
-        .arg(&agm_file)
-        .assert()
-        .success();
+    agm_cmd().arg("validate").arg(&agm_file).assert().success();
 
     // Step 2: render to JSON
     let render_output = agm_cmd()
@@ -268,11 +260,7 @@ fn test_validate_large_file_with_100_nodes_succeeds() {
     let agm_file = dir.path().join("large_file.agm");
     fs::write(&agm_file, &content).unwrap();
 
-    agm_cmd()
-        .arg("validate")
-        .arg(&agm_file)
-        .assert()
-        .success();
+    agm_cmd().arg("validate").arg(&agm_file).assert().success();
 }
 
 /// Render with all supported formats succeeds.
@@ -410,11 +398,7 @@ fn test_validate_200_node_file_succeeds() {
     let agm_file = dir.path().join("stress_200.agm");
     fs::write(&agm_file, build_200_node_agm()).unwrap();
 
-    agm_cmd()
-        .arg("validate")
-        .arg(&agm_file)
-        .assert()
-        .success();
+    agm_cmd().arg("validate").arg(&agm_file).assert().success();
 }
 
 /// Render a 200-node AGM file as JSON: must succeed and output all node IDs.

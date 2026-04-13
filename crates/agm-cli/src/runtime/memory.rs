@@ -1431,9 +1431,7 @@ mod tests {
 
         // Set updated_at to 2 minutes in the past
         let two_minutes_ago = OffsetDateTime::now_utc() - time::Duration::minutes(2);
-        let ts = two_minutes_ago
-            .format(&Rfc3339)
-            .expect("format failed");
+        let ts = two_minutes_ago.format(&Rfc3339).expect("format failed");
 
         runtime.session_store.insert(
             "short_ttl".to_owned(),
@@ -1462,9 +1460,30 @@ mod tests {
         let (mut runtime, _dir) = test_runtime();
         let key = "shared_key";
         upsert_entry(&mut runtime, "n1", MemoryScope::Node, key, "t", "node_val");
-        upsert_entry(&mut runtime, "n1", MemoryScope::Session, key, "t", "session_val");
-        upsert_entry(&mut runtime, "n1", MemoryScope::Project, key, "t", "project_val");
-        upsert_entry(&mut runtime, "n1", MemoryScope::Global, key, "t", "global_val");
+        upsert_entry(
+            &mut runtime,
+            "n1",
+            MemoryScope::Session,
+            key,
+            "t",
+            "session_val",
+        );
+        upsert_entry(
+            &mut runtime,
+            "n1",
+            MemoryScope::Project,
+            key,
+            "t",
+            "project_val",
+        );
+        upsert_entry(
+            &mut runtime,
+            "n1",
+            MemoryScope::Global,
+            key,
+            "t",
+            "global_val",
+        );
 
         let node_v = get_entry(&runtime, "n1", MemoryScope::Node, key).unwrap();
         let sess_v = get_entry(&runtime, "n1", MemoryScope::Session, key).unwrap();
@@ -1486,13 +1505,23 @@ mod tests {
         {
             let mut rt =
                 MemoryRuntime::new(project_path.clone(), global_path.clone(), "pkg").unwrap();
-            upsert_entry(&mut rt, "n", MemoryScope::Project, "persist_key", "t", "persist_val");
+            upsert_entry(
+                &mut rt,
+                "n",
+                MemoryScope::Project,
+                "persist_key",
+                "t",
+                "persist_val",
+            );
             rt.flush().unwrap();
         }
 
         let rt2 = MemoryRuntime::new(project_path, global_path, "pkg").unwrap();
         let entry = rt2.project_store.entries.get("persist_key");
-        assert!(entry.is_some(), "Project-scoped entry should survive reload");
+        assert!(
+            entry.is_some(),
+            "Project-scoped entry should survive reload"
+        );
         assert_eq!(entry.unwrap().value, "persist_val");
     }
 
@@ -1505,7 +1534,14 @@ mod tests {
         {
             let mut rt =
                 MemoryRuntime::new(project_path.clone(), global_path.clone(), "pkg").unwrap();
-            upsert_entry(&mut rt, "n", MemoryScope::Global, "global_persist", "t", "gval");
+            upsert_entry(
+                &mut rt,
+                "n",
+                MemoryScope::Global,
+                "global_persist",
+                "t",
+                "gval",
+            );
             rt.flush().unwrap();
         }
 
@@ -1581,7 +1617,10 @@ mod tests {
         }
 
         let report = runtime.gc();
-        assert_eq!(report.expired_removed, 3, "GC should remove exactly 3 expired entries");
+        assert_eq!(
+            report.expired_removed, 3,
+            "GC should remove exactly 3 expired entries"
+        );
         assert_eq!(report.orphan_removed, 0);
 
         // Permanent entries must still be present
@@ -1611,12 +1650,18 @@ mod tests {
         atomic_write(&target, "atomic content").unwrap();
 
         // Target must exist with correct content
-        assert!(target.exists(), "Target file should exist after atomic_write");
+        assert!(
+            target.exists(),
+            "Target file should exist after atomic_write"
+        );
         let content = std::fs::read_to_string(&target).unwrap();
         assert_eq!(content, "atomic content");
 
         // Temp file must be gone (was renamed away)
-        assert!(!tmp.exists(), "Temp file should not remain after atomic rename");
+        assert!(
+            !tmp.exists(),
+            "Temp file should not remain after atomic rename"
+        );
     }
 
     #[test]
@@ -1625,13 +1670,24 @@ mod tests {
         upsert_entry(&mut runtime, "n", MemoryScope::Project, "k", "t", "first");
         upsert_entry(&mut runtime, "n", MemoryScope::Project, "k", "t", "second");
         let entry = get_entry(&runtime, "n", MemoryScope::Project, "k");
-        assert_eq!(entry.unwrap().value, "second", "Second upsert should overwrite first");
+        assert_eq!(
+            entry.unwrap().value,
+            "second",
+            "Second upsert should overwrite first"
+        );
     }
 
     #[test]
     fn test_delete_entry_makes_it_unretrievable() {
         let (mut runtime, _dir) = test_runtime();
-        upsert_entry(&mut runtime, "n", MemoryScope::Project, "del_key", "t", "to_delete");
+        upsert_entry(
+            &mut runtime,
+            "n",
+            MemoryScope::Project,
+            "del_key",
+            "t",
+            "to_delete",
+        );
         let before = get_entry(&runtime, "n", MemoryScope::Project, "del_key");
         assert!(before.is_some(), "Entry should exist before delete");
 
@@ -1661,10 +1717,7 @@ mod tests {
         // All 100 must be retrievable
         for i in 0..100 {
             let entry = get_entry(&runtime, "n", MemoryScope::Session, &format!("key_{i:03}"));
-            assert!(
-                entry.is_some(),
-                "Entry key_{i:03} should be retrievable"
-            );
+            assert!(entry.is_some(), "Entry key_{i:03} should be retrievable");
             assert_eq!(
                 entry.unwrap().value,
                 format!("val_{i}"),
@@ -1689,7 +1742,10 @@ mod tests {
 
         // GC should remove exactly the 20 expired entries, leaving 100 permanent
         let report = runtime.gc();
-        assert_eq!(report.expired_removed, 20, "GC should remove exactly the 20 expired entries");
+        assert_eq!(
+            report.expired_removed, 20,
+            "GC should remove exactly the 20 expired entries"
+        );
 
         // All 100 permanent entries must still be present
         for i in 0..100 {
@@ -1703,7 +1759,9 @@ mod tests {
         // All 20 expired entries must be gone
         for i in 0..20 {
             assert!(
-                !runtime.session_store.contains_key(&format!("expired_{i:03}")),
+                !runtime
+                    .session_store
+                    .contains_key(&format!("expired_{i:03}")),
                 "Expired entry expired_{i:03} should be removed by GC"
             );
         }
@@ -1756,9 +1814,8 @@ mod tests {
         });
 
         // Reload and verify: file must parse without error and have >= 1 entry
-        let rt_final =
-            MemoryRuntime::new((*project_path).clone(), (*global_path).clone(), "pkg")
-                .expect("final runtime");
+        let rt_final = MemoryRuntime::new((*project_path).clone(), (*global_path).clone(), "pkg")
+            .expect("final runtime");
         assert!(
             !rt_final.project_store.entries.is_empty(),
             "At least some entries must survive concurrent flush (last-writer-wins)"
@@ -1801,9 +1858,8 @@ mod tests {
             }
         });
 
-        let rt_final =
-            MemoryRuntime::new((*project_path).clone(), (*global_path).clone(), "pkg")
-                .expect("final runtime");
+        let rt_final = MemoryRuntime::new((*project_path).clone(), (*global_path).clone(), "pkg")
+            .expect("final runtime");
         assert!(
             !rt_final.global_store.entries.is_empty(),
             "At least some global entries must survive concurrent flush"
@@ -1820,12 +1876,8 @@ mod tests {
         let global_path = dir.path().join("rapid_global.mem");
 
         for i in 0..50usize {
-            let mut rt = MemoryRuntime::new(
-                project_path.clone(),
-                global_path.clone(),
-                "pkg",
-            )
-            .expect("rt");
+            let mut rt =
+                MemoryRuntime::new(project_path.clone(), global_path.clone(), "pkg").expect("rt");
             for k in 0..5usize {
                 upsert_entry(
                     &mut rt,
@@ -1885,7 +1937,9 @@ mod tests {
         let rt2 = MemoryRuntime::new(project_path, global_path, "pkg").expect("rt2");
         for i in 0..1000usize {
             assert!(
-                rt2.project_store.entries.contains_key(&format!("key_{i:04}")),
+                rt2.project_store
+                    .entries
+                    .contains_key(&format!("key_{i:04}")),
                 "key_{i:04} should be present after reload"
             );
         }
@@ -2086,9 +2140,8 @@ mod tests {
 
         // Pre-create the file so the reader always finds something
         {
-            let mut rt =
-                MemoryRuntime::new((*project_path).clone(), (*global_path).clone(), "pkg")
-                    .expect("rt");
+            let mut rt = MemoryRuntime::new((*project_path).clone(), (*global_path).clone(), "pkg")
+                .expect("rt");
             upsert_entry(&mut rt, "n", MemoryScope::Project, "seed", "t", "seed_val");
             rt.flush().expect("initial flush");
         }
@@ -2104,9 +2157,8 @@ mod tests {
             // Writer thread: flush many times
             s.spawn(move || {
                 barrier_writer.wait();
-                let mut rt =
-                    MemoryRuntime::new((*pp_writer).clone(), (*gp_writer).clone(), "pkg")
-                        .expect("rt writer");
+                let mut rt = MemoryRuntime::new((*pp_writer).clone(), (*gp_writer).clone(), "pkg")
+                    .expect("rt writer");
                 upsert_entry(&mut rt, "n", MemoryScope::Project, "wr_key", "t", "wr_val");
                 for _ in 0..10 {
                     rt.flush().expect("writer flush");
@@ -2211,8 +2263,7 @@ mod tests {
                 let gp3 = Arc::clone(&proj_gp);
                 s.spawn(move || {
                     let mut rt =
-                        MemoryRuntime::new((*pp3).clone(), (*gp3).clone(), "pkg")
-                            .expect("rt proj");
+                        MemoryRuntime::new((*pp3).clone(), (*gp3).clone(), "pkg").expect("rt proj");
                     for k in 0..100usize {
                         upsert_entry(
                             &mut rt,
@@ -2233,8 +2284,7 @@ mod tests {
                 let gp4 = Arc::clone(&glob_gp);
                 s.spawn(move || {
                     let mut rt =
-                        MemoryRuntime::new((*pp4).clone(), (*gp4).clone(), "pkg")
-                            .expect("rt glob");
+                        MemoryRuntime::new((*pp4).clone(), (*gp4).clone(), "pkg").expect("rt glob");
                     for k in 0..100usize {
                         upsert_entry(
                             &mut rt,
@@ -2251,9 +2301,8 @@ mod tests {
         });
 
         // Post-join: verify project scope isolation
-        let rt_proj =
-            MemoryRuntime::new((*proj_pp).clone(), (*proj_gp).clone(), "pkg")
-                .expect("check proj rt");
+        let rt_proj = MemoryRuntime::new((*proj_pp).clone(), (*proj_gp).clone(), "pkg")
+            .expect("check proj rt");
 
         for k in 0..100usize {
             let key = format!("proj_k{k:03}");
@@ -2280,9 +2329,8 @@ mod tests {
         }
 
         // Post-join: verify global scope isolation
-        let rt_glob =
-            MemoryRuntime::new((*glob_pp).clone(), (*glob_gp).clone(), "pkg")
-                .expect("check glob rt");
+        let rt_glob = MemoryRuntime::new((*glob_pp).clone(), (*glob_gp).clone(), "pkg")
+            .expect("check glob rt");
 
         for k in 0..100usize {
             let key = format!("glob_k{k:03}");

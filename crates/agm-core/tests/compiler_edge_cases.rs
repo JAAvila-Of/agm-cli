@@ -386,8 +386,7 @@ Must enforce rate limits.
         // Should produce two nodes or fewer (collision handled)
         if result.file.nodes.len() == 2 {
             assert_ne!(
-                result.file.nodes[0].id,
-                result.file.nodes[1].id,
+                result.file.nodes[0].id, result.file.nodes[1].id,
                 "Duplicate headings must produce unique IDs"
             );
             // Should produce an IdCollision warning
@@ -497,8 +496,16 @@ Must authenticate all users.
     #[test]
     fn test_compile_large_section_with_50_code_blocks() {
         let langs = [
-            "rust", "python", "javascript", "typescript", "go", "java", "c", "cpp",
-            "bash", "sql",
+            "rust",
+            "python",
+            "javascript",
+            "typescript",
+            "go",
+            "java",
+            "c",
+            "cpp",
+            "bash",
+            "sql",
         ];
         let mut md = String::from("## Implementation Details\n\nMust implement all steps.\n\n");
         for i in 0..50usize {

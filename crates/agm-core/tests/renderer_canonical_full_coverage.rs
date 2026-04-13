@@ -367,9 +367,8 @@ fn test_canonical_kitchen_sink_emits_and_is_reparseable() {
     assert!(out.contains("    max_results: 10"));
 
     // Re-parse succeeds
-    let reparsed = parse(&out).unwrap_or_else(|e| {
-        panic!("canonical output did not round-trip:\n{out}\nerrors: {e:?}")
-    });
+    let reparsed = parse(&out)
+        .unwrap_or_else(|e| panic!("canonical output did not round-trip:\n{out}\nerrors: {e:?}"));
     assert_eq!(reparsed.nodes.len(), 1);
     assert_eq!(reparsed.nodes[0].id, "mod.kitchen");
 }

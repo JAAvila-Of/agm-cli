@@ -12,7 +12,7 @@
 
 use std::collections::BTreeMap;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use agm_core::model::code::{CodeAction, CodeBlock};
 use agm_core::model::context::{AgentContext, FileRange, LoadFile};
@@ -26,8 +26,8 @@ use agm_core::model::memory::{MemoryAction, MemoryEntry, MemoryScope, MemoryTtl}
 use agm_core::model::node::Node;
 use agm_core::model::orchestration::{ParallelGroup, Strategy};
 use agm_core::model::verify::VerifyCheck;
-use agm_core::renderer::json_canonical::{agm_to_json, json_to_agm, render_json_canonical};
 use agm_core::renderer::RenderError;
+use agm_core::renderer::json_canonical::{agm_to_json, json_to_agm, render_json_canonical};
 
 fn blank_node(id: &str, t: NodeType) -> Node {
     Node {
@@ -552,10 +552,8 @@ fn test_agm_to_json_scalar_coercions_for_bool_int_string_in_extra_fields() {
         .insert("x_num".into(), FieldValue::Scalar("-17".into()));
     n.extra_fields
         .insert("x_str".into(), FieldValue::Scalar("hi".into()));
-    n.extra_fields.insert(
-        "x_block".into(),
-        FieldValue::Block("line1\nline2".into()),
-    );
+    n.extra_fields
+        .insert("x_block".into(), FieldValue::Block("line1\nline2".into()));
     n.extra_fields.insert(
         "x_list".into(),
         FieldValue::List(vec!["a".into(), "b".into()]),

@@ -1937,10 +1937,7 @@ mod tests {
         let (entries, errors) = parse_structured(input, parse_memory);
         assert!(errors.is_empty(), "unexpected errors: {errors:?}");
         assert_eq!(entries[0].scope, Some(MemoryScope::Session));
-        assert_eq!(
-            entries[0].ttl,
-            Some(MemoryTtl::Duration("P1D".to_owned()))
-        );
+        assert_eq!(entries[0].ttl, Some(MemoryTtl::Duration("P1D".to_owned())));
     }
 
     // --- H24. parse_file_range all branches (via parse_load_files_list) -

@@ -65,7 +65,12 @@ fn write_file_contains_agm(
 #[test]
 fn test_verify_file_exists_check_passes_when_file_present() {
     let dir = tempdir().unwrap();
-    let agm_file = write_file_exists_agm(&dir, "test.verify.fepresent", "check_present", "expected.txt");
+    let agm_file = write_file_exists_agm(
+        &dir,
+        "test.verify.fepresent",
+        "check_present",
+        "expected.txt",
+    );
     fs::write(dir.path().join("expected.txt"), "content").unwrap();
 
     agm_cmd()
@@ -236,12 +241,7 @@ fn test_verify_all_no_checks_file_exits_nonzero() {
 #[test]
 fn test_verify_json_output_is_valid_json() {
     let dir = tempdir().unwrap();
-    let agm_file = write_file_exists_agm(
-        &dir,
-        "test.verify.jsonout",
-        "json_node",
-        "marker.txt",
-    );
+    let agm_file = write_file_exists_agm(&dir, "test.verify.jsonout", "json_node", "marker.txt");
     fs::write(dir.path().join("marker.txt"), "present").unwrap();
 
     let output = agm_cmd()
@@ -264,7 +264,10 @@ fn test_verify_json_output_is_valid_json() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let parsed: serde_json::Value =
         serde_json::from_str(stdout.trim()).expect("verify --json output must be valid JSON");
-    assert!(parsed.is_array(), "verify --json output must be a JSON array");
+    assert!(
+        parsed.is_array(),
+        "verify --json output must be a JSON array"
+    );
     let arr = parsed.as_array().unwrap();
     assert!(!arr.is_empty(), "verify --json array must not be empty");
     assert!(
@@ -374,13 +377,8 @@ fn test_verify_command_check_fails_when_command_fails() {
     #[cfg(not(windows))]
     let fail_cmd = "exit 1";
 
-    let agm_file = write_command_verify_agm(
-        &dir,
-        "test.verify.cmd.fail",
-        "cmd_fail",
-        fail_cmd,
-        None,
-    );
+    let agm_file =
+        write_command_verify_agm(&dir, "test.verify.cmd.fail", "cmd_fail", fail_cmd, None);
 
     agm_cmd()
         .arg("verify")
@@ -584,8 +582,7 @@ fn test_verify_all_on_10_node_file_one_node_fails() {
         fs::write(dir.path().join(format!("node{i}_marker.txt")), "ok").unwrap();
     }
 
-    let mut content =
-        "agm: 1.0\npackage: test.verify.all10.fail\nversion: 1.0.0\n\n".to_owned();
+    let mut content = "agm: 1.0\npackage: test.verify.all10.fail\nversion: 1.0.0\n\n".to_owned();
     for i in 1..=10 {
         content.push_str(&format!(
             "node workflow_{i}\ntype: workflow\nsummary: Node {i}\ncode:\n  lang: sh\n  action: full\n  body: echo done\nverify:\n  - type: file_exists\n    file: node{i}_marker.txt\n  - type: command\n    run: echo ok\n\n"

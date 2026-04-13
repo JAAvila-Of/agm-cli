@@ -135,7 +135,14 @@ fn test_diff_identical_large_file_50_nodes_returns_empty() {
 #[test]
 fn test_diff_identical_large_file_no_breaking_changes() {
     let nodes: Vec<Node> = (0..55)
-        .map(|i| minimal_node(&format!("pkg.node{i:02}"), NodeType::Rules, "rule summary", i * 4 + 1))
+        .map(|i| {
+            minimal_node(
+                &format!("pkg.node{i:02}"),
+                NodeType::Rules,
+                "rule summary",
+                i * 4 + 1,
+            )
+        })
         .collect();
 
     let file = AgmFile {
@@ -170,7 +177,10 @@ fn test_diff_reordered_nodes_detects_no_content_change() {
     let report = diff::diff(&left, &right);
     // Nodes matched by ID — same content, different order means no modifications
     assert!(report.added_nodes.is_empty(), "No nodes should be added");
-    assert!(report.removed_nodes.is_empty(), "No nodes should be removed");
+    assert!(
+        report.removed_nodes.is_empty(),
+        "No nodes should be removed"
+    );
     assert!(
         report.modified_nodes.is_empty(),
         "Reordered nodes with identical content should have no modifications"
@@ -196,8 +206,14 @@ fn test_diff_reordered_with_one_content_change_detects_modification() {
     };
 
     let report = diff::diff(&left, &right);
-    assert_eq!(report.summary.nodes_modified, 1, "One node should be modified");
-    assert_eq!(report.summary.nodes_unchanged, 1, "One node should be unchanged");
+    assert_eq!(
+        report.summary.nodes_modified, 1,
+        "One node should be modified"
+    );
+    assert_eq!(
+        report.summary.nodes_unchanged, 1,
+        "One node should be unchanged"
+    );
     assert!(report.added_nodes.is_empty());
     assert!(report.removed_nodes.is_empty());
 }
@@ -234,7 +250,11 @@ fn test_diff_single_field_change_only_that_field_reported() {
     assert_eq!(node_diff.node_id, "auth.login");
 
     // Only "priority" should appear as a field change
-    let field_names: Vec<&str> = node_diff.field_changes.iter().map(|fc| fc.field.as_str()).collect();
+    let field_names: Vec<&str> = node_diff
+        .field_changes
+        .iter()
+        .map(|fc| fc.field.as_str())
+        .collect();
     assert!(
         field_names.contains(&"priority"),
         "priority should be in field changes, got: {field_names:?}"
@@ -288,11 +308,20 @@ fn test_diff_type_change_is_breaking() {
     let mut right_node = left_node.clone();
     right_node.node_type = NodeType::Workflow; // type changed
 
-    let left = AgmFile { header: valid_header("test.breaking"), nodes: vec![left_node] };
-    let right = AgmFile { header: valid_header("test.breaking"), nodes: vec![right_node] };
+    let left = AgmFile {
+        header: valid_header("test.breaking"),
+        nodes: vec![left_node],
+    };
+    let right = AgmFile {
+        header: valid_header("test.breaking"),
+        nodes: vec![right_node],
+    };
 
     let report = diff::diff(&left, &right);
-    assert!(report.has_breaking_changes(), "Type change must be breaking");
+    assert!(
+        report.has_breaking_changes(),
+        "Type change must be breaking"
+    );
 
     let type_change = report.modified_nodes[0]
         .field_changes
@@ -308,14 +337,20 @@ fn test_diff_removed_node_is_breaking() {
     let node_a = minimal_node("auth.a", NodeType::Facts, "node a", 1);
     let node_b = minimal_node("auth.b", NodeType::Rules, "node b", 5);
 
-    let left = AgmFile { header: valid_header("test.breaking"), nodes: vec![node_a, node_b] };
+    let left = AgmFile {
+        header: valid_header("test.breaking"),
+        nodes: vec![node_a, node_b],
+    };
     let right = AgmFile {
         header: valid_header("test.breaking"),
         nodes: vec![minimal_node("auth.a", NodeType::Facts, "node a", 1)],
     };
 
     let report = diff::diff(&left, &right);
-    assert!(report.has_breaking_changes(), "Removing a node must be breaking");
+    assert!(
+        report.has_breaking_changes(),
+        "Removing a node must be breaking"
+    );
     assert!(report.removed_nodes.contains(&"auth.b".to_owned()));
 }
 
@@ -355,9 +390,19 @@ fn test_diff_mixed_add_remove_modify_all_detected() {
     let report = diff::diff(&left, &right);
     assert_eq!(report.added_nodes.len(), 1, "One node should be added");
     assert_eq!(report.removed_nodes.len(), 1, "One node should be removed");
-    assert_eq!(report.modified_nodes.len(), 1, "One node should be modified");
-    assert_eq!(report.summary.nodes_unchanged, 1, "One node should be unchanged");
-    assert!(report.has_breaking_changes(), "Removed node makes this breaking");
+    assert_eq!(
+        report.modified_nodes.len(),
+        1,
+        "One node should be modified"
+    );
+    assert_eq!(
+        report.summary.nodes_unchanged, 1,
+        "One node should be unchanged"
+    );
+    assert!(
+        report.has_breaking_changes(),
+        "Removed node makes this breaking"
+    );
 
     assert!(report.added_nodes.contains(&"pkg.add".to_owned()));
     assert!(report.removed_nodes.contains(&"pkg.remove".to_owned()));
@@ -378,10 +423,21 @@ fn test_diff_mixed_summary_adds_up_correctly() {
     right_nodes[1].summary = "changed".to_owned(); // pkg.n2
     // Add two new nodes
     right_nodes.push(minimal_node("pkg.new1", NodeType::Rules, "new rule", 50));
-    right_nodes.push(minimal_node("pkg.new2", NodeType::Glossary, "new glossary", 55));
+    right_nodes.push(minimal_node(
+        "pkg.new2",
+        NodeType::Glossary,
+        "new glossary",
+        55,
+    ));
 
-    let left = AgmFile { header: valid_header("test.mixed2"), nodes: left_nodes };
-    let right = AgmFile { header: valid_header("test.mixed2"), nodes: right_nodes };
+    let left = AgmFile {
+        header: valid_header("test.mixed2"),
+        nodes: left_nodes,
+    };
+    let right = AgmFile {
+        header: valid_header("test.mixed2"),
+        nodes: right_nodes,
+    };
 
     let report = diff::diff(&left, &right);
     assert_eq!(report.summary.nodes_added, 2);
@@ -402,7 +458,10 @@ fn test_diff_both_empty_files_returns_empty_diff() {
         nodes: vec![],
     };
     let report = diff::diff(&empty, &empty);
-    assert!(report.is_empty(), "Two empty files should produce empty diff");
+    assert!(
+        report.is_empty(),
+        "Two empty files should produce empty diff"
+    );
     assert_eq!(report.summary.nodes_unchanged, 0);
 }
 
@@ -422,7 +481,11 @@ fn test_diff_empty_left_vs_populated_right_all_nodes_added() {
     };
 
     let report = diff::diff(&empty_left, &right);
-    assert_eq!(report.added_nodes.len(), 3, "All right-side nodes should be added");
+    assert_eq!(
+        report.added_nodes.len(),
+        3,
+        "All right-side nodes should be added"
+    );
     assert!(report.removed_nodes.is_empty());
     assert!(report.modified_nodes.is_empty());
     // Adding nodes is not breaking
@@ -445,9 +508,16 @@ fn test_diff_populated_left_vs_empty_right_all_nodes_removed_breaking() {
     };
 
     let report = diff::diff(&left, &empty_right);
-    assert_eq!(report.removed_nodes.len(), 2, "All left-side nodes should be removed");
+    assert_eq!(
+        report.removed_nodes.len(),
+        2,
+        "All left-side nodes should be removed"
+    );
     assert!(report.added_nodes.is_empty());
-    assert!(report.has_breaking_changes(), "Removing all nodes must be breaking");
+    assert!(
+        report.has_breaking_changes(),
+        "Removing all nodes must be breaking"
+    );
     assert_eq!(report.summary.nodes_removed, 2);
 }
 
@@ -479,7 +549,10 @@ fn test_diff_breaking_only_excludes_added_nodes_and_minor_changes() {
     let breaking = full_report.breaking_only();
 
     // breaking_only never includes added_nodes
-    assert!(breaking.added_nodes.is_empty(), "breaking_only should not include added nodes");
+    assert!(
+        breaking.added_nodes.is_empty(),
+        "breaking_only should not include added nodes"
+    );
 
     // All field changes in breaking_only must be Breaking severity
     for nd in &breaking.modified_nodes {
@@ -516,8 +589,16 @@ fn test_diff_added_dependency_classified_as_minor() {
     };
 
     let report = diff::diff(&left, &right);
-    if let Some(main_diff) = report.modified_nodes.iter().find(|nd| nd.node_id == "auth.main") {
-        if let Some(dep_change) = main_diff.field_changes.iter().find(|fc| fc.field == "depends") {
+    if let Some(main_diff) = report
+        .modified_nodes
+        .iter()
+        .find(|nd| nd.node_id == "auth.main")
+    {
+        if let Some(dep_change) = main_diff
+            .field_changes
+            .iter()
+            .find(|fc| fc.field == "depends")
+        {
             // Dependency changes should be at most Breaking (not Info)
             assert!(
                 dep_change.severity >= ChangeSeverity::Minor,
@@ -567,7 +648,10 @@ fn test_diff_version_change_in_header_detected_as_info() {
         .header_changes
         .iter()
         .find(|hc| hc.field == "version");
-    assert!(version_change.is_some(), "Version change should be detected");
+    assert!(
+        version_change.is_some(),
+        "Version change should be detected"
+    );
     assert_eq!(
         version_change.unwrap().severity,
         ChangeSeverity::Info,
@@ -582,12 +666,14 @@ fn test_diff_version_change_in_header_detected_as_info() {
 #[test]
 fn test_diff_200_nodes_identical_no_changes() {
     let nodes: Vec<Node> = (0..200usize)
-        .map(|i| minimal_node(
-            &format!("pkg.n{i:03}"),
-            NodeType::Facts,
-            &format!("summary for node {i}"),
-            i * 5 + 1,
-        ))
+        .map(|i| {
+            minimal_node(
+                &format!("pkg.n{i:03}"),
+                NodeType::Facts,
+                &format!("summary for node {i}"),
+                i * 5 + 1,
+            )
+        })
         .collect();
 
     let file = AgmFile {
@@ -612,25 +698,35 @@ fn test_diff_200_nodes_identical_no_changes() {
 #[test]
 fn test_diff_200_nodes_all_modified() {
     let left_nodes: Vec<Node> = (0..200usize)
-        .map(|i| minimal_node(
-            &format!("pkg.n{i:03}"),
-            NodeType::Facts,
-            &format!("original summary {i}"),
-            i * 5 + 1,
-        ))
+        .map(|i| {
+            minimal_node(
+                &format!("pkg.n{i:03}"),
+                NodeType::Facts,
+                &format!("original summary {i}"),
+                i * 5 + 1,
+            )
+        })
         .collect();
 
     let right_nodes: Vec<Node> = (0..200usize)
-        .map(|i| minimal_node(
-            &format!("pkg.n{i:03}"),
-            NodeType::Facts,
-            &format!("updated summary {i}"),
-            i * 5 + 1,
-        ))
+        .map(|i| {
+            minimal_node(
+                &format!("pkg.n{i:03}"),
+                NodeType::Facts,
+                &format!("updated summary {i}"),
+                i * 5 + 1,
+            )
+        })
         .collect();
 
-    let left = AgmFile { header: valid_header("stress.modify"), nodes: left_nodes };
-    let right = AgmFile { header: valid_header("stress.modify"), nodes: right_nodes };
+    let left = AgmFile {
+        header: valid_header("stress.modify"),
+        nodes: left_nodes,
+    };
+    let right = AgmFile {
+        header: valid_header("stress.modify"),
+        nodes: right_nodes,
+    };
 
     let report = diff::diff(&left, &right);
     assert_eq!(
@@ -646,25 +742,35 @@ fn test_diff_200_nodes_all_modified() {
 #[test]
 fn test_diff_100_added_100_removed() {
     let left_nodes: Vec<Node> = (0..100usize)
-        .map(|i| minimal_node(
-            &format!("left.n{i:03}"),
-            NodeType::Facts,
-            &format!("left node {i}"),
-            i * 5 + 1,
-        ))
+        .map(|i| {
+            minimal_node(
+                &format!("left.n{i:03}"),
+                NodeType::Facts,
+                &format!("left node {i}"),
+                i * 5 + 1,
+            )
+        })
         .collect();
 
     let right_nodes: Vec<Node> = (0..100usize)
-        .map(|i| minimal_node(
-            &format!("right.n{i:03}"),
-            NodeType::Facts,
-            &format!("right node {i}"),
-            i * 5 + 1,
-        ))
+        .map(|i| {
+            minimal_node(
+                &format!("right.n{i:03}"),
+                NodeType::Facts,
+                &format!("right node {i}"),
+                i * 5 + 1,
+            )
+        })
         .collect();
 
-    let left = AgmFile { header: valid_header("stress.addremove"), nodes: left_nodes };
-    let right = AgmFile { header: valid_header("stress.addremove"), nodes: right_nodes };
+    let left = AgmFile {
+        header: valid_header("stress.addremove"),
+        nodes: left_nodes,
+    };
+    let right = AgmFile {
+        header: valid_header("stress.addremove"),
+        nodes: right_nodes,
+    };
 
     let report = diff::diff(&left, &right);
     assert_eq!(
@@ -689,19 +795,40 @@ fn test_diff_large_mixed_changes() {
     //   - 50 removed    (rem.n000..n049): only in left
     //   - 50 added      (add.n000..n049): only in right
     let unchanged_left: Vec<Node> = (0..100usize)
-        .map(|i| minimal_node(&format!("shared.n{i:03}"), NodeType::Facts, "shared summary", i * 5 + 1))
+        .map(|i| {
+            minimal_node(
+                &format!("shared.n{i:03}"),
+                NodeType::Facts,
+                "shared summary",
+                i * 5 + 1,
+            )
+        })
         .collect();
     let unchanged_right = unchanged_left.clone();
 
     let modified_left: Vec<Node> = (0..100usize)
-        .map(|i| minimal_node(&format!("mod.n{i:03}"), NodeType::Facts, "before", i * 5 + 1))
+        .map(|i| {
+            minimal_node(
+                &format!("mod.n{i:03}"),
+                NodeType::Facts,
+                "before",
+                i * 5 + 1,
+            )
+        })
         .collect();
     let modified_right: Vec<Node> = (0..100usize)
         .map(|i| minimal_node(&format!("mod.n{i:03}"), NodeType::Facts, "after", i * 5 + 1))
         .collect();
 
     let removed: Vec<Node> = (0..50usize)
-        .map(|i| minimal_node(&format!("rem.n{i:03}"), NodeType::Facts, "removed", i * 5 + 1))
+        .map(|i| {
+            minimal_node(
+                &format!("rem.n{i:03}"),
+                NodeType::Facts,
+                "removed",
+                i * 5 + 1,
+            )
+        })
         .collect();
     let added: Vec<Node> = (0..50usize)
         .map(|i| minimal_node(&format!("add.n{i:03}"), NodeType::Facts, "added", i * 5 + 1))
@@ -717,12 +844,27 @@ fn test_diff_large_mixed_changes() {
     right_nodes.extend(modified_right);
     right_nodes.extend(added);
 
-    let left = AgmFile { header: valid_header("stress.mixed"), nodes: left_nodes };
-    let right = AgmFile { header: valid_header("stress.mixed"), nodes: right_nodes };
+    let left = AgmFile {
+        header: valid_header("stress.mixed"),
+        nodes: left_nodes,
+    };
+    let right = AgmFile {
+        header: valid_header("stress.mixed"),
+        nodes: right_nodes,
+    };
 
     let report = diff::diff(&left, &right);
-    assert_eq!(report.summary.nodes_unchanged, 100, "100 unchanged nodes expected");
-    assert_eq!(report.summary.nodes_modified, 100, "100 modified nodes expected");
+    assert_eq!(
+        report.summary.nodes_unchanged, 100,
+        "100 unchanged nodes expected"
+    );
+    assert_eq!(
+        report.summary.nodes_modified, 100,
+        "100 modified nodes expected"
+    );
     assert_eq!(report.summary.nodes_added, 50, "50 added nodes expected");
-    assert_eq!(report.summary.nodes_removed, 50, "50 removed nodes expected");
+    assert_eq!(
+        report.summary.nodes_removed, 50,
+        "50 removed nodes expected"
+    );
 }

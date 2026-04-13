@@ -290,7 +290,10 @@ fn test_memory_list_topic_filtering_30_entries() {
 
     // Empty topic string returns all 30
     let total = list_scope(&mut rt, "n", MemoryScope::Project, "");
-    assert_eq!(total, 30, "listing all (empty topic) should return 30 entries");
+    assert_eq!(
+        total, 30,
+        "listing all (empty topic) should return 30 entries"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -329,23 +332,13 @@ fn test_memory_delete_20_of_50_keys_leaves_30() {
 
     // Deleted keys return None
     for i in 0..20 {
-        let val = get(
-            &mut rt,
-            "n",
-            MemoryScope::Session,
-            &format!("del.key{i}"),
-        );
+        let val = get(&mut rt, "n", MemoryScope::Session, &format!("del.key{i}"));
         assert!(val.is_none(), "del.key{i} should be absent after delete");
     }
 
     // Surviving keys still exist
     for i in 20..50 {
-        let val = get(
-            &mut rt,
-            "n",
-            MemoryScope::Session,
-            &format!("del.key{i}"),
-        );
+        let val = get(&mut rt, "n", MemoryScope::Session, &format!("del.key{i}"));
         assert!(val.is_some(), "del.key{i} should still exist");
     }
 }

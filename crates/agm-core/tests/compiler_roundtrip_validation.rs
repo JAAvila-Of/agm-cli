@@ -41,9 +41,7 @@ mod compiler_roundtrip_tests {
                 "Workflow" => md.push_str(&format!(
                     "1. Step A for section {i}.\n2. Step B for section {i}.\n\n"
                 )),
-                "Glossary" => md.push_str(&format!(
-                    "**Term {i}**: Definition of term {i}.\n\n"
-                )),
+                "Glossary" => md.push_str(&format!("**Term {i}**: Definition of term {i}.\n\n")),
                 "Anti-Pattern" => md.push_str(&format!(
                     "Avoid doing X in scenario {i}. Never use pattern {i}.\n\n"
                 )),
@@ -72,7 +70,12 @@ mod compiler_roundtrip_tests {
         );
 
         let file = parsed.unwrap();
-        let collection = validate(&file, &agm_text, "compiled.agm", &ValidateOptions::default());
+        let collection = validate(
+            &file,
+            &agm_text,
+            "compiled.agm",
+            &ValidateOptions::default(),
+        );
         assert!(
             !collection.has_errors(),
             "Compiled 200-section output has validation errors: {:?}",
@@ -101,7 +104,12 @@ mod compiler_roundtrip_tests {
         );
 
         let file = parsed.unwrap();
-        let collection = validate(&file, &agm_text, "compiled.agm", &ValidateOptions::default());
+        let collection = validate(
+            &file,
+            &agm_text,
+            "compiled.agm",
+            &ValidateOptions::default(),
+        );
         assert!(
             !collection.has_errors(),
             "Compiled mixed-types output has validation errors: {:?}",
@@ -118,7 +126,9 @@ mod compiler_roundtrip_tests {
         let mut md = String::new();
         for i in 0..100 {
             md.push_str(&format!("## Rules Section {i}\n\n"));
-            md.push_str(&format!("- Must enforce rule {i}.\n- Shall validate input {i}.\n\n"));
+            md.push_str(&format!(
+                "- Must enforce rule {i}.\n- Shall validate input {i}.\n\n"
+            ));
         }
 
         let result = compile(
@@ -141,8 +151,8 @@ mod compiler_roundtrip_tests {
 
         // The merged node should have items from all 100 sections
         let node = &result.file.nodes[0];
-        let item_count = node.items.as_ref().map_or(0, |v| v.len())
-            + node.steps.as_ref().map_or(0, |v| v.len());
+        let item_count =
+            node.items.as_ref().map_or(0, |v| v.len()) + node.steps.as_ref().map_or(0, |v| v.len());
         assert!(
             item_count >= 100,
             "Merged node should have at least 100 items (2 per section × 100 sections), got {item_count}"
@@ -155,10 +165,14 @@ mod compiler_roundtrip_tests {
         for i in 0..100 {
             if i % 2 == 0 {
                 md.push_str(&format!("## Rules Section {i}\n\n"));
-                md.push_str(&format!("- Must enforce rule {i}.\n- Shall validate input {i}.\n\n"));
+                md.push_str(&format!(
+                    "- Must enforce rule {i}.\n- Shall validate input {i}.\n\n"
+                ));
             } else {
                 md.push_str(&format!("## Workflow Section {i}\n\n"));
-                md.push_str(&format!("1. Step A for section {i}.\n2. Step B for section {i}.\n\n"));
+                md.push_str(&format!(
+                    "1. Step A for section {i}.\n2. Step B for section {i}.\n\n"
+                ));
             }
         }
 

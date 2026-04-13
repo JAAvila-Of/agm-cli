@@ -2086,8 +2086,14 @@ mod tests {
         let agent = RecordingAgent::new();
         let report = run_topological(&mut tracker, &file, &agent, &mut memory, &config).unwrap();
         let _ = graph; // kept alive
-        assert_eq!(report.executed, 0, "No nodes should execute when all are already completed");
-        assert!(agent.calls().is_empty(), "Agent should not be called when all nodes are completed");
+        assert_eq!(
+            report.executed, 0,
+            "No nodes should execute when all are already completed"
+        );
+        assert!(
+            agent.calls().is_empty(),
+            "Agent should not be called when all nodes are completed"
+        );
     }
 
     #[test]
@@ -2097,7 +2103,9 @@ mod tests {
         let nodes = vec![test_node("A"), test_node("B"), test_node("C")];
         let (file, _graph, mut tracker, mut memory, _dir, config) = setup_test_env(nodes);
         // Pre-complete A
-        tracker.transition("A", ExecutionStatus::InProgress).unwrap();
+        tracker
+            .transition("A", ExecutionStatus::InProgress)
+            .unwrap();
         tracker.mark_completed("A", "pre-run", None).unwrap();
 
         let agent = RecordingAgent::new();
