@@ -1,0 +1,31 @@
+[package]
+name = "agm-lsp"
+version = "1.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "LSP server for AGM (Agent Graph Memory) files"
+readme = "../../README.md"
+keywords = ["agm", "lsp", "language-server", "ide"]
+categories = ["development-tools", "text-editors"]
+
+[[bin]]
+name = "agm-lsp"
+path = "src/main.rs"
+
+[lib]
+name = "agm_lsp"
+path = "src/lib.rs"
+
+[dependencies]
+agm-core = { path = "../agm-core", version = "1.0.0" }
+tower-lsp.workspace = true
+tokio.workspace = true
+dashmap.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/agm-core", "crates/agm-cli"]
+members = ["crates/agm-core", "crates/agm-cli", "crates/agm-lsp"]
 
 [workspace.package]
 edition = "2024"
@@ -24,3 +24,6 @@ insta = { version = "1", features = ["yaml"] }
 tempfile = "3"
 self_update = { version = "0.42", features = ["archive-zip", "archive-tar", "compression-zip-deflate"] }
 pulldown-cmark = "0.12"
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["full"] }
+dashmap = "6"

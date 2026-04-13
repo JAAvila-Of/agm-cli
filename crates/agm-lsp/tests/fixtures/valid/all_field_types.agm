@@ -1,0 +1,18 @@
+agm: 1.0
+package: test
+version: 0.1.0
+
+node auth.login
+type: workflow
+summary: Full authentication login workflow with all field categories
+priority: high
+stability: medium
+confidence: high
+status: active
+steps:
+  - Validate credentials
+  - Issue token
+  - Log event
+depends: []
+tags: [auth, login]
+notes: This node exercises many field types.

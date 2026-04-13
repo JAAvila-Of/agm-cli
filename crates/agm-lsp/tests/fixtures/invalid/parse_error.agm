@@ -1,0 +1,6 @@
+package: test
+version: 0.1.0
+
+node auth.login
+type: facts
+summary: Missing agm header field causes parse error

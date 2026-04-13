@@ -1,0 +1,6 @@
+agm: 1.0
+package: test
+version: 0.1.0
+
+node auth.login
+summary: Authentication login facts
