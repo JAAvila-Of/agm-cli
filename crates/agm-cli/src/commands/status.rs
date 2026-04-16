@@ -65,11 +65,7 @@ pub fn run(file: &Path, json: bool, node: Option<&str>) -> i32 {
     let p = tracker.progress();
     let total = p.total;
     let completed = p.completed;
-    let pct = if total == 0 {
-        0
-    } else {
-        completed * 100 / total
-    };
+    let pct = (completed * 100).checked_div(total).unwrap_or(0);
 
     println!("Status: {}/{} completed ({}%)", completed, total, pct);
     println!();
