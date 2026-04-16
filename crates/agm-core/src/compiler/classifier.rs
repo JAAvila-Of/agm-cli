@@ -97,6 +97,19 @@ static TYPE_PATTERNS: &[TypePattern] = &[
             "pitfall",
         ],
     },
+    TypePattern {
+        node_type: NodeType::Ticket,
+        heading_patterns: &["ticket", "issue", "task", "bug", "feature request", "story"],
+        body_patterns: &[
+            "priority:",
+            "assignee:",
+            "as a user",
+            "acceptance criteria",
+            "closes #",
+            "fixes #",
+            "resolves #",
+        ],
+    },
 ];
 
 // ---------------------------------------------------------------------------
