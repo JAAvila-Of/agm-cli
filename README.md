@@ -5,7 +5,7 @@
 <h1 align="center">AGM CLI</h1>
 
 <p align="center">
-  A command-line tool and Rust library for parsing, validating, loading, rendering, and orchestrating <a href="docs/spec/agm_spec_v1.1.0.md">AGM (Agent Graph Memory)</a> files.
+  A command-line tool and Rust library for parsing, validating, loading, rendering, and orchestrating <a href="docs/spec/agm_spec_v1.2.0.md">AGM (Agent Graph Memory)</a> files.
 </p>
 
 ## Origin
@@ -132,7 +132,7 @@ if diagnostics.iter().all(|d| !d.is_error()) {
 ## Documentation
 
 - [CLI API Reference](docs/api.md) -- Complete command reference with examples, options, and edge cases
-- [AGM Specification v1.1.0](docs/spec/agm_spec_v1.1.0.md) -- Full format specification
+- [AGM Specification v1.2.0](docs/spec/agm_spec_v1.2.0.md) -- Full format specification
 - [Library API (docs.rs)](https://docs.rs/agm-core) -- Auto-generated Rust API docs for `agm-core`
 - [Contributing](CONTRIBUTING.md) -- How to contribute
 

@@ -55,7 +55,7 @@ Every validation rule in the spec must have at least one corresponding test.
 - Use `thiserror` for error types in `agm-core`, `anyhow` in `agm-cli`
 - Derive `Debug`, `Clone`, `PartialEq` on all model types
 - Never panic in library code; return `Result`
-- See the [AGM Specification](docs/spec/agm_spec_v1.1.0.md) for format rules and design decisions
+- See the [AGM Specification](docs/spec/agm_spec_v1.2.0.md) for format rules and design decisions
 
 ## Contribution Workflow
 
