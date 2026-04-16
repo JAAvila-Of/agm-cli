@@ -1,6 +1,5 @@
 //! Node parser: reads a single AGM node declaration and its fields.
 
-use std::collections::BTreeMap;
 use std::sync::LazyLock;
 
 use regex::Regex;
@@ -8,7 +7,7 @@ use regex::Regex;
 use crate::error::{AgmError, ErrorCode, ErrorLocation};
 use crate::model::execution::ExecutionStatus;
 use crate::model::fields::{
-    Confidence, FieldValue, NodeStatus, NodeType, Priority, Span, Stability,
+    Confidence, FieldValue, NodeStatus, Priority, SddPhase, Span, Stability, TicketAction,
 };
 use crate::model::node::Node;
 
@@ -40,49 +39,8 @@ static NODE_ID_RE: LazyLock<Regex> =
 fn default_node(id: String, start_line: usize) -> Node {
     Node {
         id,
-        node_type: NodeType::Facts,
-        summary: String::new(),
-        priority: None,
-        stability: None,
-        confidence: None,
-        status: None,
-        depends: None,
-        related_to: None,
-        replaces: None,
-        conflicts: None,
-        see_also: None,
-        items: None,
-        steps: None,
-        fields: None,
-        input: None,
-        output: None,
-        detail: None,
-        rationale: None,
-        tradeoffs: None,
-        resolution: None,
-        examples: None,
-        notes: None,
-        code: None,
-        code_blocks: None,
-        verify: None,
-        agent_context: None,
-        target: None,
-        execution_status: None,
-        executed_by: None,
-        executed_at: None,
-        execution_log: None,
-        retry_count: None,
-        parallel_groups: None,
-        memory: None,
-        scope: None,
-        applies_when: None,
-        valid_from: None,
-        valid_until: None,
-        tags: None,
-        aliases: None,
-        keywords: None,
-        extra_fields: BTreeMap::new(),
         span: Span::new(start_line, start_line),
+        ..Default::default()
     }
 }
 
@@ -352,6 +310,28 @@ fn assign_scalar_field(
         "applies_when" => node.applies_when = Some(value.to_owned()),
         "valid_from" => node.valid_from = Some(value.to_owned()),
         "valid_until" => node.valid_until = Some(value.to_owned()),
+        // Ticket fields (v1.2.0)
+        "title" => node.title = Some(value.to_owned()),
+        "description" => node.description = Some(value.to_owned()),
+        "action" => match value.parse::<TicketAction>() {
+            Ok(a) => node.action = Some(a),
+            Err(_) => errors.push(AgmError::new(
+                ErrorCode::V029,
+                format!("Invalid `action` value: {value:?}"),
+                ErrorLocation::new(None, Some(line_number), Some(node.id.clone())),
+            )),
+        },
+        "sdd_phase" => match value.parse::<SddPhase>() {
+            Ok(p) => node.sdd_phase = Some(p),
+            Err(_) => errors.push(AgmError::new(
+                ErrorCode::V030,
+                format!("Invalid `sdd_phase` value: {value:?}"),
+                ErrorLocation::new(None, Some(line_number), Some(node.id.clone())),
+            )),
+        },
+        "prompt" => node.prompt = Some(value.to_owned()),
+        "assignee" => node.assignee = Some(value.to_owned()),
+        "ticket_id" => node.ticket_id = Some(value.to_owned()),
         "execution_status" => match value.parse::<ExecutionStatus>() {
             Ok(es) => node.execution_status = Some(es),
             Err(_) => {
@@ -405,6 +385,8 @@ fn assign_list_field(node: &mut Node, key: &str, items: Vec<String>) {
         "tags" => node.tags = Some(items),
         "aliases" => node.aliases = Some(items),
         "keywords" => node.keywords = Some(items),
+        // Ticket fields (v1.2.0)
+        "labels" => node.labels = Some(items),
         _ => {
             node.extra_fields
                 .insert(key.to_owned(), FieldValue::List(items));
@@ -423,6 +405,10 @@ fn assign_block_field(node: &mut Node, key: &str, text: String) {
         "notes" => node.notes = Some(text),
         "execution_log" => node.execution_log = Some(text),
         "applies_when" => node.applies_when = Some(text),
+        // Ticket fields (v1.2.0)
+        "title" => node.title = Some(text),
+        "description" => node.description = Some(text),
+        "prompt" => node.prompt = Some(text),
         _ => {
             node.extra_fields
                 .insert(key.to_owned(), FieldValue::Block(text));

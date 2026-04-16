@@ -74,6 +74,16 @@ fn field_is_present(node: &Node, field_name: &str) -> bool {
         "aliases" => node.aliases.is_some(),
         "keywords" => node.keywords.is_some(),
 
+        // Ticket fields (v1.2.0)
+        "title" => node.title.is_some(),
+        "description" => node.description.is_some(),
+        "action" => node.action.is_some(),
+        "sdd_phase" => node.sdd_phase.is_some(),
+        "prompt" => node.prompt.is_some(),
+        "assignee" => node.assignee.is_some(),
+        "labels" => node.labels.is_some(),
+        "ticket_id" => node.ticket_id.is_some(),
+
         // Extension fields
         other => node.extra_fields.contains_key(other),
     }
@@ -222,6 +232,32 @@ fn present_fields(node: &Node) -> Vec<&str> {
         present.push("keywords");
     }
 
+    // Ticket fields (v1.2.0)
+    if node.title.is_some() {
+        present.push("title");
+    }
+    if node.description.is_some() {
+        present.push("description");
+    }
+    if node.action.is_some() {
+        present.push("action");
+    }
+    if node.sdd_phase.is_some() {
+        present.push("sdd_phase");
+    }
+    if node.prompt.is_some() {
+        present.push("prompt");
+    }
+    if node.assignee.is_some() {
+        present.push("assignee");
+    }
+    if node.labels.is_some() {
+        present.push("labels");
+    }
+    if node.ticket_id.is_some() {
+        present.push("ticket_id");
+    }
+
     // Extension fields
     for key in node.extra_fields.keys() {
         present.push(key.as_str());
@@ -331,10 +367,8 @@ pub fn validate_schema(node: &Node, level: &EnforcementLevel, file_name: &str) -
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use super::*;
-    use crate::model::fields::{FieldValue, NodeType, Span};
+    use crate::model::fields::{FieldValue, NodeType};
     use crate::model::node::Node;
     use crate::model::schema::EnforcementLevel;
 
@@ -343,47 +377,7 @@ mod tests {
             id: "test.node".to_owned(),
             node_type: NodeType::Facts,
             summary: "a test node".to_owned(),
-            priority: None,
-            stability: None,
-            confidence: None,
-            status: None,
-            depends: None,
-            related_to: None,
-            replaces: None,
-            conflicts: None,
-            see_also: None,
-            items: None,
-            steps: None,
-            fields: None,
-            input: None,
-            output: None,
-            detail: None,
-            rationale: None,
-            tradeoffs: None,
-            resolution: None,
-            examples: None,
-            notes: None,
-            code: None,
-            code_blocks: None,
-            verify: None,
-            agent_context: None,
-            target: None,
-            execution_status: None,
-            executed_by: None,
-            executed_at: None,
-            execution_log: None,
-            retry_count: None,
-            parallel_groups: None,
-            memory: None,
-            scope: None,
-            applies_when: None,
-            valid_from: None,
-            valid_until: None,
-            tags: None,
-            aliases: None,
-            keywords: None,
-            extra_fields: BTreeMap::new(),
-            span: Span::new(1, 1),
+            ..Default::default()
         }
     }
 

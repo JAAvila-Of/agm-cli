@@ -35,6 +35,7 @@ pub mod memory;
 pub mod node;
 pub mod orchestration;
 pub mod references;
+pub mod ticket;
 pub mod type_schema;
 pub mod verify;
 
@@ -126,6 +127,7 @@ pub fn validate(
         ));
         all_errors.extend(execution::validate_execution(n, file_name));
         all_errors.extend(memory::validate_memory(n, file_name));
+        all_errors.extend(ticket::validate_ticket(n, file_name));
     }
 
     // Pass 4: Type schema enforcement
@@ -191,8 +193,6 @@ fn severity_rank(sev: crate::error::diagnostic::Severity) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use super::*;
     use crate::error::codes::ErrorCode;
     use crate::model::fields::{NodeType, Span};
@@ -221,47 +221,8 @@ mod tests {
             id: id.to_owned(),
             node_type: NodeType::Facts,
             summary: "a test node".to_owned(),
-            priority: None,
-            stability: None,
-            confidence: None,
-            status: None,
-            depends: None,
-            related_to: None,
-            replaces: None,
-            conflicts: None,
-            see_also: None,
-            items: None,
-            steps: None,
-            fields: None,
-            input: None,
-            output: None,
-            detail: None,
-            rationale: None,
-            tradeoffs: None,
-            resolution: None,
-            examples: None,
-            notes: None,
-            code: None,
-            code_blocks: None,
-            verify: None,
-            agent_context: None,
-            target: None,
-            execution_status: None,
-            executed_by: None,
-            executed_at: None,
-            execution_log: None,
-            retry_count: None,
-            parallel_groups: None,
-            memory: None,
-            scope: None,
-            applies_when: None,
-            valid_from: None,
-            valid_until: None,
-            tags: None,
-            aliases: None,
-            keywords: None,
-            extra_fields: BTreeMap::new(),
             span: Span::new(line, line + 2),
+            ..Default::default()
         }
     }
 
