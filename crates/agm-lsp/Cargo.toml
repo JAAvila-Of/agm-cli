@@ -1,6 +1,6 @@
 [package]
 name = "agm-lsp"
-version = "1.1.0"
+version = "1.2.0"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -21,7 +21,7 @@ name = "agm_lsp"
 path = "src/lib.rs"
 
 [dependencies]
-agm-core = { path = "../agm-core", version = "1.1.0" }
+agm-core = { path = "../agm-core", version = "1.2.0" }
 tower-lsp.workspace = true
 tokio.workspace = true
 dashmap.workspace = true
