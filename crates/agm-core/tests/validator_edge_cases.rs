@@ -3,8 +3,6 @@
 //! Exercises boundary conditions, cross-node relationships, schema enforcement,
 //! duplicate detection, reference resolution, orchestration, and security paths.
 
-use std::collections::BTreeMap;
-
 use agm_core::error::codes::ErrorCode;
 use agm_core::error::diagnostic::Severity;
 use agm_core::model::fields::{NodeStatus, NodeType, Span};
@@ -39,47 +37,8 @@ fn minimal_node(id: &str, line: usize) -> Node {
         id: id.to_owned(),
         node_type: NodeType::Facts,
         summary: "a test node".to_owned(),
-        priority: None,
-        stability: None,
-        confidence: None,
-        status: None,
-        depends: None,
-        related_to: None,
-        replaces: None,
-        conflicts: None,
-        see_also: None,
-        items: None,
-        steps: None,
-        fields: None,
-        input: None,
-        output: None,
-        detail: None,
-        rationale: None,
-        tradeoffs: None,
-        resolution: None,
-        examples: None,
-        notes: None,
-        code: None,
-        code_blocks: None,
-        verify: None,
-        agent_context: None,
-        target: None,
-        execution_status: None,
-        executed_by: None,
-        executed_at: None,
-        execution_log: None,
-        retry_count: None,
-        parallel_groups: None,
-        memory: None,
-        scope: None,
-        applies_when: None,
-        valid_from: None,
-        valid_until: None,
-        tags: None,
-        aliases: None,
-        keywords: None,
-        extra_fields: BTreeMap::new(),
         span: Span::new(line, line + 2),
+        ..Default::default()
     }
 }
 

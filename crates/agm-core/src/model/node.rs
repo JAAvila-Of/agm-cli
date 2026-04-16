@@ -7,7 +7,9 @@ use serde::{Deserialize, Serialize};
 use super::code::CodeBlock;
 use super::context::AgentContext;
 use super::execution::ExecutionStatus;
-use super::fields::{Confidence, FieldValue, NodeStatus, NodeType, Priority, Span, Stability};
+use super::fields::{
+    Confidence, FieldValue, NodeStatus, NodeType, Priority, SddPhase, Span, Stability, TicketAction,
+};
 use super::memory::MemoryEntry;
 use super::orchestration::ParallelGroup;
 use super::verify::VerifyCheck;
@@ -116,6 +118,24 @@ pub struct Node {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
 
+    // Ticket fields (v1.2.0)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub action: Option<TicketAction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sdd_phase: Option<SddPhase>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prompt: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assignee: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ticket_id: Option<String>,
+
     // Extension fields
     #[serde(flatten)]
     pub extra_fields: BTreeMap<String, FieldValue>,
@@ -125,15 +145,12 @@ pub struct Node {
     pub span: Span,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn minimal_node() -> Node {
-        Node {
-            id: "test.node".to_owned(),
+impl Default for Node {
+    fn default() -> Self {
+        Self {
+            id: String::new(),
             node_type: NodeType::Facts,
-            summary: "a test node".to_owned(),
+            summary: String::new(),
             priority: None,
             stability: None,
             confidence: None,
@@ -173,8 +190,30 @@ mod tests {
             tags: None,
             aliases: None,
             keywords: None,
+            title: None,
+            description: None,
+            action: None,
+            sdd_phase: None,
+            prompt: None,
+            assignee: None,
+            labels: None,
+            ticket_id: None,
             extra_fields: BTreeMap::new(),
-            span: Span::new(1, 1),
+            span: Span::new(0, 0),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn minimal_node() -> Node {
+        Node {
+            id: "test.node".to_owned(),
+            node_type: NodeType::Facts,
+            summary: "a test node".to_owned(),
+            ..Default::default()
         }
     }
 

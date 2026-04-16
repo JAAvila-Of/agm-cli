@@ -94,6 +94,16 @@ pub fn filter_node(node: &Node, mode: LoadMode) -> Node {
             BTreeMap::new()
         },
 
+        // --- Ticket fields (v1.2.0) — included in Full mode ---
+        title: if full { node.title.clone() } else { None },
+        description: if full { node.description.clone() } else { None },
+        action: if full { node.action.clone() } else { None },
+        sdd_phase: if full { node.sdd_phase.clone() } else { None },
+        prompt: if full { node.prompt.clone() } else { None },
+        assignee: if full { node.assignee.clone() } else { None },
+        labels: if full { node.labels.clone() } else { None },
+        ticket_id: if full { node.ticket_id.clone() } else { None },
+
         // --- Always preserved (metadata) ---
         span: node.span.clone(),
     }
@@ -105,8 +115,6 @@ pub fn filter_node(node: &Node, mode: LoadMode) -> Node {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use crate::model::code::CodeBlock;
     use crate::model::execution::ExecutionStatus;
     use crate::model::fields::{
@@ -117,6 +125,7 @@ mod tests {
     use super::*;
 
     fn full_node() -> Node {
+        use std::collections::BTreeMap;
         Node {
             id: "test.node".to_owned(),
             node_type: NodeType::Workflow,
@@ -149,17 +158,12 @@ mod tests {
                 anchor: None,
                 old: None,
             }),
-            code_blocks: None,
-            verify: None,
-            agent_context: None,
             target: Some("agent-01".to_owned()),
             execution_status: Some(ExecutionStatus::Completed),
             executed_by: Some("agent-01".to_owned()),
             executed_at: Some("2026-04-06T00:00:00Z".to_owned()),
             execution_log: Some("log entry".to_owned()),
             retry_count: Some(1),
-            parallel_groups: None,
-            memory: None,
             scope: Some(vec!["scope1".to_owned()]),
             applies_when: Some("condition".to_owned()),
             valid_from: Some("2026-01-01".to_owned()),
@@ -173,6 +177,7 @@ mod tests {
                 m
             },
             span: Span::new(5, 20),
+            ..Default::default()
         }
     }
 
@@ -308,47 +313,8 @@ mod tests {
             id: "empty".to_owned(),
             node_type: NodeType::Facts,
             summary: "empty".to_owned(),
-            priority: None,
-            stability: None,
-            confidence: None,
-            status: None,
-            depends: None,
-            related_to: None,
-            replaces: None,
-            conflicts: None,
-            see_also: None,
-            items: None,
-            steps: None,
-            fields: None,
-            input: None,
-            output: None,
-            detail: None,
-            rationale: None,
-            tradeoffs: None,
-            resolution: None,
-            examples: None,
-            notes: None,
-            code: None,
-            code_blocks: None,
-            verify: None,
-            agent_context: None,
-            target: None,
-            execution_status: None,
-            executed_by: None,
-            executed_at: None,
-            execution_log: None,
-            retry_count: None,
-            parallel_groups: None,
-            memory: None,
-            scope: None,
-            applies_when: None,
-            valid_from: None,
-            valid_until: None,
-            tags: None,
-            aliases: None,
-            keywords: None,
-            extra_fields: BTreeMap::new(),
             span: Span::new(1, 1),
+            ..Default::default()
         };
         for mode in [
             LoadMode::Summary,

@@ -67,6 +67,7 @@ pub enum NodeType {
     Glossary,
     AntiPattern,
     Orchestration,
+    Ticket,
     Custom(String),
 }
 
@@ -83,6 +84,7 @@ impl fmt::Display for NodeType {
             Self::Glossary => write!(f, "glossary"),
             Self::AntiPattern => write!(f, "anti_pattern"),
             Self::Orchestration => write!(f, "orchestration"),
+            Self::Ticket => write!(f, "ticket"),
             Self::Custom(s) => write!(f, "{s}"),
         }
     }
@@ -103,8 +105,116 @@ impl FromStr for NodeType {
             "glossary" => Self::Glossary,
             "anti_pattern" => Self::AntiPattern,
             "orchestration" => Self::Orchestration,
+            "ticket" => Self::Ticket,
             other => Self::Custom(other.to_owned()),
         })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// TicketAction
+// ---------------------------------------------------------------------------
+
+/// Declares the intent of a ticket emission (spec §14.4.1).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum TicketAction {
+    #[default]
+    Create,
+    Edit,
+    Close,
+    Archive,
+    Split,
+    Link,
+}
+
+impl fmt::Display for TicketAction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Create => write!(f, "create"),
+            Self::Edit => write!(f, "edit"),
+            Self::Close => write!(f, "close"),
+            Self::Archive => write!(f, "archive"),
+            Self::Split => write!(f, "split"),
+            Self::Link => write!(f, "link"),
+        }
+    }
+}
+
+impl FromStr for TicketAction {
+    type Err = ParseEnumError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "create" => Ok(Self::Create),
+            "edit" => Ok(Self::Edit),
+            "close" => Ok(Self::Close),
+            "archive" => Ok(Self::Archive),
+            "split" => Ok(Self::Split),
+            "link" => Ok(Self::Link),
+            _ => Err(ParseEnumError {
+                type_name: "TicketAction",
+                value: s.to_owned(),
+            }),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SddPhase
+// ---------------------------------------------------------------------------
+
+/// Suggests the SDD pipeline phase the ticket belongs to (spec §14.4.2).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum SddPhase {
+    #[default]
+    Backlog,
+    Explore,
+    Propose,
+    Spec,
+    Design,
+    Tasks,
+    Apply,
+    Verify,
+    Archive,
+}
+
+impl fmt::Display for SddPhase {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Backlog => write!(f, "backlog"),
+            Self::Explore => write!(f, "explore"),
+            Self::Propose => write!(f, "propose"),
+            Self::Spec => write!(f, "spec"),
+            Self::Design => write!(f, "design"),
+            Self::Tasks => write!(f, "tasks"),
+            Self::Apply => write!(f, "apply"),
+            Self::Verify => write!(f, "verify"),
+            Self::Archive => write!(f, "archive"),
+        }
+    }
+}
+
+impl FromStr for SddPhase {
+    type Err = ParseEnumError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "backlog" => Ok(Self::Backlog),
+            "explore" => Ok(Self::Explore),
+            "propose" => Ok(Self::Propose),
+            "spec" => Ok(Self::Spec),
+            "design" => Ok(Self::Design),
+            "tasks" => Ok(Self::Tasks),
+            "apply" => Ok(Self::Apply),
+            "verify" => Ok(Self::Verify),
+            "archive" => Ok(Self::Archive),
+            _ => Err(ParseEnumError {
+                type_name: "SddPhase",
+                value: s.to_owned(),
+            }),
+        }
     }
 }
 
@@ -304,6 +414,7 @@ mod tests {
             "orchestration".parse::<NodeType>().unwrap(),
             NodeType::Orchestration
         );
+        assert_eq!("ticket".parse::<NodeType>().unwrap(), NodeType::Ticket);
     }
 
     #[test]
@@ -327,6 +438,7 @@ mod tests {
             NodeType::Glossary,
             NodeType::AntiPattern,
             NodeType::Orchestration,
+            NodeType::Ticket,
             NodeType::Custom("my_type".to_owned()),
         ];
         for t in &types {
@@ -495,5 +607,97 @@ mod tests {
         let s = Span::new(1, 10);
         assert_eq!(s.start_line, 1);
         assert_eq!(s.end_line, 10);
+    }
+
+    #[test]
+    fn test_ticket_action_from_str_valid_returns_ok() {
+        assert_eq!(
+            "create".parse::<TicketAction>().unwrap(),
+            TicketAction::Create
+        );
+        assert_eq!("edit".parse::<TicketAction>().unwrap(), TicketAction::Edit);
+        assert_eq!(
+            "close".parse::<TicketAction>().unwrap(),
+            TicketAction::Close
+        );
+        assert_eq!(
+            "archive".parse::<TicketAction>().unwrap(),
+            TicketAction::Archive
+        );
+        assert_eq!(
+            "split".parse::<TicketAction>().unwrap(),
+            TicketAction::Split
+        );
+        assert_eq!("link".parse::<TicketAction>().unwrap(), TicketAction::Link);
+    }
+
+    #[test]
+    fn test_ticket_action_from_str_invalid_returns_error() {
+        let err = "delete".parse::<TicketAction>().unwrap_err();
+        assert_eq!(err.type_name, "TicketAction");
+        assert_eq!(err.value, "delete");
+    }
+
+    #[test]
+    fn test_ticket_action_display_roundtrip() {
+        for a in [
+            TicketAction::Create,
+            TicketAction::Edit,
+            TicketAction::Close,
+            TicketAction::Archive,
+            TicketAction::Split,
+            TicketAction::Link,
+        ] {
+            let s = a.to_string();
+            assert_eq!(s.parse::<TicketAction>().unwrap(), a);
+        }
+    }
+
+    #[test]
+    fn test_ticket_action_default_is_create() {
+        assert_eq!(TicketAction::default(), TicketAction::Create);
+    }
+
+    #[test]
+    fn test_sdd_phase_from_str_valid_returns_ok() {
+        assert_eq!("backlog".parse::<SddPhase>().unwrap(), SddPhase::Backlog);
+        assert_eq!("explore".parse::<SddPhase>().unwrap(), SddPhase::Explore);
+        assert_eq!("propose".parse::<SddPhase>().unwrap(), SddPhase::Propose);
+        assert_eq!("spec".parse::<SddPhase>().unwrap(), SddPhase::Spec);
+        assert_eq!("design".parse::<SddPhase>().unwrap(), SddPhase::Design);
+        assert_eq!("tasks".parse::<SddPhase>().unwrap(), SddPhase::Tasks);
+        assert_eq!("apply".parse::<SddPhase>().unwrap(), SddPhase::Apply);
+        assert_eq!("verify".parse::<SddPhase>().unwrap(), SddPhase::Verify);
+        assert_eq!("archive".parse::<SddPhase>().unwrap(), SddPhase::Archive);
+    }
+
+    #[test]
+    fn test_sdd_phase_from_str_invalid_returns_error() {
+        let err = "unknown".parse::<SddPhase>().unwrap_err();
+        assert_eq!(err.type_name, "SddPhase");
+        assert_eq!(err.value, "unknown");
+    }
+
+    #[test]
+    fn test_sdd_phase_display_roundtrip() {
+        for p in [
+            SddPhase::Backlog,
+            SddPhase::Explore,
+            SddPhase::Propose,
+            SddPhase::Spec,
+            SddPhase::Design,
+            SddPhase::Tasks,
+            SddPhase::Apply,
+            SddPhase::Verify,
+            SddPhase::Archive,
+        ] {
+            let s = p.to_string();
+            assert_eq!(s.parse::<SddPhase>().unwrap(), p);
+        }
+    }
+
+    #[test]
+    fn test_sdd_phase_default_is_backlog() {
+        assert_eq!(SddPhase::default(), SddPhase::Backlog);
     }
 }

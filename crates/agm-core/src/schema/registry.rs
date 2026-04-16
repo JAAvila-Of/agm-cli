@@ -46,6 +46,7 @@ pub fn get_schema(node_type: &NodeType) -> Option<TypeSchema> {
         NodeType::Glossary => Some(glossary_schema()),
         NodeType::AntiPattern => Some(anti_pattern_schema()),
         NodeType::Orchestration => Some(orchestration_schema()),
+        NodeType::Ticket => Some(ticket_schema()),
         NodeType::Custom(_) => None,
     }
 }
@@ -167,6 +168,30 @@ fn orchestration_schema() -> TypeSchema {
             "code",
             "code_blocks",
             "verify",
+            "rationale",
+            "resolution",
+        ]),
+    }
+}
+
+fn ticket_schema() -> TypeSchema {
+    TypeSchema {
+        required: s(&["summary", "title", "description", "priority"]),
+        recommended: s(&["action", "sdd_phase", "labels"]),
+        allowed: s(&[
+            "prompt",
+            "assignee",
+            "ticket_id",
+            "detail",
+            "agent_context",
+            "code_blocks",
+        ]),
+        disallowed: s(&[
+            "steps",
+            "parallel_groups",
+            "fields",
+            "input",
+            "output",
             "rationale",
             "resolution",
         ]),
@@ -341,6 +366,39 @@ mod tests {
     #[test]
     fn test_get_schema_custom_type_returns_none() {
         assert!(get_schema(&NodeType::Custom("my_type".to_owned())).is_none());
+    }
+
+    #[test]
+    fn test_get_schema_ticket_returns_correct_schema() {
+        let schema = get_schema(&NodeType::Ticket).unwrap();
+        assert_eq!(
+            schema.required,
+            vec!["summary", "title", "description", "priority"]
+        );
+        assert_eq!(schema.recommended, vec!["action", "sdd_phase", "labels"]);
+        assert_eq!(
+            schema.allowed,
+            vec![
+                "prompt",
+                "assignee",
+                "ticket_id",
+                "detail",
+                "agent_context",
+                "code_blocks"
+            ]
+        );
+        assert_eq!(
+            schema.disallowed,
+            vec![
+                "steps",
+                "parallel_groups",
+                "fields",
+                "input",
+                "output",
+                "rationale",
+                "resolution"
+            ]
+        );
     }
 
     #[test]

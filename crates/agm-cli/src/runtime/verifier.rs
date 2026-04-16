@@ -596,11 +596,10 @@ pub fn format_verify_log(result: &VerifyResult) -> String {
 mod tests {
     use super::*;
     use agm_core::graph::build_graph;
-    use agm_core::model::fields::{NodeType, Span};
+    use agm_core::model::fields::NodeType;
     use agm_core::model::file::{AgmFile, Header};
     use agm_core::model::node::Node as AgmNode;
     use agm_core::model::verify::VerifyCheck;
-    use std::collections::BTreeMap;
     use tempfile::tempdir;
 
     // -----------------------------------------------------------------------
@@ -618,46 +617,7 @@ mod tests {
             } else {
                 Some(checks)
             },
-            priority: None,
-            stability: None,
-            confidence: None,
-            status: None,
-            depends: None,
-            related_to: None,
-            replaces: None,
-            conflicts: None,
-            see_also: None,
-            items: None,
-            steps: None,
-            fields: None,
-            input: None,
-            output: None,
-            detail: None,
-            rationale: None,
-            tradeoffs: None,
-            resolution: None,
-            examples: None,
-            notes: None,
-            code: None,
-            code_blocks: None,
-            agent_context: None,
-            target: None,
-            execution_status: None,
-            executed_by: None,
-            executed_at: None,
-            execution_log: None,
-            retry_count: None,
-            parallel_groups: None,
-            memory: None,
-            scope: None,
-            applies_when: None,
-            valid_from: None,
-            valid_until: None,
-            tags: None,
-            aliases: None,
-            keywords: None,
-            extra_fields: BTreeMap::new(),
-            span: Span::new(0, 0),
+            ..Default::default()
         }
     }
 

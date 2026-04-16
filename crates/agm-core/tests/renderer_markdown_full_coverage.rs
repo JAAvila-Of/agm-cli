@@ -3,12 +3,10 @@
 //! Exercises every optional field, every verify variant, every FileRange
 //! variant, the custom node-type path, and execution-state rendering.
 
-use std::collections::BTreeMap;
-
 use agm_core::model::code::{CodeAction, CodeBlock};
 use agm_core::model::context::{AgentContext, FileRange, LoadFile};
 use agm_core::model::execution::ExecutionStatus;
-use agm_core::model::fields::{Confidence, NodeStatus, NodeType, Priority, Span, Stability};
+use agm_core::model::fields::{Confidence, NodeStatus, NodeType, Priority, Stability};
 use agm_core::model::file::{AgmFile, Header};
 use agm_core::model::imports::ImportEntry;
 use agm_core::model::memory::{MemoryAction, MemoryEntry, MemoryScope, MemoryTtl};
@@ -42,47 +40,7 @@ fn blank_node(id: &str, node_type: NodeType) -> Node {
         id: id.to_owned(),
         node_type,
         summary: format!("summary for {id}"),
-        priority: None,
-        stability: None,
-        confidence: None,
-        status: None,
-        depends: None,
-        related_to: None,
-        replaces: None,
-        conflicts: None,
-        see_also: None,
-        items: None,
-        steps: None,
-        fields: None,
-        input: None,
-        output: None,
-        detail: None,
-        rationale: None,
-        tradeoffs: None,
-        resolution: None,
-        examples: None,
-        notes: None,
-        code: None,
-        code_blocks: None,
-        verify: None,
-        agent_context: None,
-        target: None,
-        execution_status: None,
-        executed_by: None,
-        executed_at: None,
-        execution_log: None,
-        retry_count: None,
-        parallel_groups: None,
-        memory: None,
-        scope: None,
-        applies_when: None,
-        valid_from: None,
-        valid_until: None,
-        tags: None,
-        aliases: None,
-        keywords: None,
-        extra_fields: BTreeMap::new(),
-        span: Span::default(),
+        ..Default::default()
     }
 }
 

@@ -1,7 +1,5 @@
 //! Field mapper: converts MarkdownSection content to Node fields.
 
-use std::collections::BTreeMap;
-
 use crate::model::code::{CodeAction, CodeBlock};
 use crate::model::fields::{NodeType, Span};
 use crate::model::node::Node;
@@ -38,47 +36,13 @@ impl FieldMapper {
             id: id.to_owned(),
             node_type,
             summary,
-            priority: None,
-            stability: None,
-            confidence: None,
-            status: None,
-            depends: None,
-            related_to: None,
-            replaces: None,
-            conflicts: None,
-            see_also: None,
             items,
             steps,
-            fields: None,
-            input: None,
-            output: None,
             detail,
-            rationale: None,
-            tradeoffs: None,
-            resolution: None,
-            examples: None,
-            notes: None,
             code,
             code_blocks,
-            verify: None,
-            agent_context: None,
-            target: None,
-            execution_status: None,
-            executed_by: None,
-            executed_at: None,
-            execution_log: None,
-            retry_count: None,
-            parallel_groups: None,
-            memory: None,
-            scope: None,
-            applies_when: None,
-            valid_from: None,
-            valid_until: None,
-            tags: None,
-            aliases: None,
-            keywords: None,
-            extra_fields: BTreeMap::new(),
             span: Span::new(section.source_line_start, section.source_line_end),
+            ..Default::default()
         }
     }
 

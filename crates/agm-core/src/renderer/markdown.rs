@@ -147,21 +147,56 @@ pub fn render_markdown(file: &AgmFile) -> String {
 
 fn render_node_section(buf: &mut String, node: &Node) {
     buf.push_str(&format!("### `{}`\n\n", node.id));
+
+    // Ticket-specific header
+    if node.node_type == NodeType::Ticket {
+        if let Some(ref title) = node.title {
+            buf.push_str(&format!("**Ticket:** {title}\n\n"));
+        }
+        let has_ticket_meta =
+            node.priority.is_some() || node.action.is_some() || node.sdd_phase.is_some();
+        if has_ticket_meta {
+            buf.push_str("| Field | Value |\n");
+            buf.push_str("|-------|-------|\n");
+            if let Some(ref p) = node.priority {
+                buf.push_str(&format!("| Priority | {p} |\n"));
+            }
+            if let Some(ref a) = node.action {
+                buf.push_str(&format!("| Action | {a} |\n"));
+            }
+            if let Some(ref ph) = node.sdd_phase {
+                buf.push_str(&format!("| Phase | {ph} |\n"));
+            }
+            buf.push('\n');
+        }
+        if let Some(ref desc) = node.description {
+            buf.push_str(desc);
+            buf.push('\n');
+        }
+    }
+
     buf.push_str(&node.summary);
     buf.push('\n');
 
-    // Control table
-    let has_control = node.priority.is_some()
-        || node.stability.is_some()
-        || node.confidence.is_some()
-        || node.status.is_some();
+    // Control table (for ticket: skip priority since it's in the ticket meta table above)
+    let has_control = if node.node_type == NodeType::Ticket {
+        node.stability.is_some() || node.confidence.is_some() || node.status.is_some()
+    } else {
+        node.priority.is_some()
+            || node.stability.is_some()
+            || node.confidence.is_some()
+            || node.status.is_some()
+    };
 
     if has_control {
         buf.push('\n');
         buf.push_str("| Control | Value |\n");
         buf.push_str("|---------|-------|\n");
-        if let Some(ref p) = node.priority {
-            buf.push_str(&format!("| Priority | {p} |\n"));
+        // For tickets, priority is shown in the ticket meta table above — skip here
+        if node.node_type != NodeType::Ticket {
+            if let Some(ref p) = node.priority {
+                buf.push_str(&format!("| Priority | {p} |\n"));
+            }
         }
         if let Some(ref s) = node.stability {
             buf.push_str(&format!("| Stability | {s} |\n"));
@@ -171,6 +206,30 @@ fn render_node_section(buf: &mut String, node: &Node) {
         }
         if let Some(ref s) = node.status {
             buf.push_str(&format!("| Status | {s} |\n"));
+        }
+    }
+
+    // Ticket assignee and labels (after control table)
+    if node.node_type == NodeType::Ticket {
+        if let Some(ref assignee) = node.assignee {
+            buf.push('\n');
+            buf.push_str(&format!("**Assignee:** {assignee}\n"));
+        }
+        if let Some(ref labels) = node.labels {
+            if !labels.is_empty() {
+                buf.push('\n');
+                buf.push_str(&format!("**Labels:** {}\n", labels.join(", ")));
+            }
+        }
+        if let Some(ref ticket_id) = node.ticket_id {
+            buf.push('\n');
+            buf.push_str(&format!("**Ticket ID:** {ticket_id}\n"));
+        }
+        if let Some(ref prompt) = node.prompt {
+            buf.push('\n');
+            buf.push_str("#### Prompt\n\n");
+            buf.push_str(prompt);
+            buf.push('\n');
         }
     }
 
@@ -501,6 +560,7 @@ fn type_order() -> Vec<NodeType> {
         NodeType::Glossary,
         NodeType::AntiPattern,
         NodeType::Orchestration,
+        NodeType::Ticket,
     ]
 }
 
@@ -516,6 +576,7 @@ fn type_display_name(node_type: &NodeType) -> &'static str {
         NodeType::Glossary => "Glossary",
         NodeType::AntiPattern => "Anti-Pattern",
         NodeType::Orchestration => "Orchestration",
+        NodeType::Ticket => "Tickets",
         NodeType::Custom(_) => "Custom",
     }
 }
@@ -535,10 +596,9 @@ fn capitalize_first(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::fields::{NodeType, Priority, Span, Stability};
+    use crate::model::fields::{NodeType, Priority, Stability};
     use crate::model::file::{AgmFile, Header};
     use crate::model::node::Node;
-    use std::collections::BTreeMap;
 
     fn minimal_file() -> AgmFile {
         AgmFile {
@@ -560,47 +620,7 @@ mod tests {
                 id: "test.node".to_owned(),
                 node_type: NodeType::Facts,
                 summary: "a minimal test node".to_owned(),
-                priority: None,
-                stability: None,
-                confidence: None,
-                status: None,
-                depends: None,
-                related_to: None,
-                replaces: None,
-                conflicts: None,
-                see_also: None,
-                items: None,
-                steps: None,
-                fields: None,
-                input: None,
-                output: None,
-                detail: None,
-                rationale: None,
-                tradeoffs: None,
-                resolution: None,
-                examples: None,
-                notes: None,
-                code: None,
-                code_blocks: None,
-                verify: None,
-                agent_context: None,
-                target: None,
-                execution_status: None,
-                executed_by: None,
-                executed_at: None,
-                execution_log: None,
-                retry_count: None,
-                parallel_groups: None,
-                memory: None,
-                scope: None,
-                applies_when: None,
-                valid_from: None,
-                valid_until: None,
-                tags: None,
-                aliases: None,
-                keywords: None,
-                extra_fields: BTreeMap::new(),
-                span: Span::default(),
+                ..Default::default()
             }],
         }
     }

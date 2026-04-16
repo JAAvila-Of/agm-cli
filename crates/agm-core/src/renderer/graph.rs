@@ -142,57 +142,16 @@ fn mermaid_id(node_id: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::fields::{NodeType, Span};
+    use crate::model::fields::NodeType;
     use crate::model::file::{AgmFile, Header};
     use crate::model::node::Node;
-    use std::collections::BTreeMap;
 
     fn make_node(id: &str, node_type: NodeType) -> Node {
         Node {
             id: id.to_owned(),
             node_type,
             summary: format!("node {id}"),
-            priority: None,
-            stability: None,
-            confidence: None,
-            status: None,
-            depends: None,
-            related_to: None,
-            replaces: None,
-            conflicts: None,
-            see_also: None,
-            items: None,
-            steps: None,
-            fields: None,
-            input: None,
-            output: None,
-            detail: None,
-            rationale: None,
-            tradeoffs: None,
-            resolution: None,
-            examples: None,
-            notes: None,
-            code: None,
-            code_blocks: None,
-            verify: None,
-            agent_context: None,
-            target: None,
-            execution_status: None,
-            executed_by: None,
-            executed_at: None,
-            execution_log: None,
-            retry_count: None,
-            parallel_groups: None,
-            memory: None,
-            scope: None,
-            applies_when: None,
-            valid_from: None,
-            valid_until: None,
-            tags: None,
-            aliases: None,
-            keywords: None,
-            extra_fields: BTreeMap::new(),
-            span: Span::default(),
+            ..Default::default()
         }
     }
 
