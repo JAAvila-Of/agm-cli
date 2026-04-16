@@ -74,6 +74,24 @@ agm graph myfile.agm --format dot
 agm load myfile.agm --mode summary
 ```
 
+### Ticket node example (AGM v1.2)
+
+```agm
+agm: 1.2
+package: my.project
+version: 1.0.0
+
+node auth.ticket.add-login
+type: ticket
+title: Add OAuth2 login endpoint
+description: Implement /login with Google OAuth2 and JWT token issuance.
+priority: high
+action: create
+sdd_phase: propose
+labels: [auth, api]
+summary: add OAuth2 login endpoint
+```
+
 ## Commands
 
 | Command | Description |
