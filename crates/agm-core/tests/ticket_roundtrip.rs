@@ -9,9 +9,7 @@ use agm_core::parser::parse;
 use agm_core::renderer::canonical::render_canonical;
 
 fn fixtures_root() -> std::path::PathBuf {
-    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .join("tests/fixtures")
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures")
 }
 
 fn read_fixture(relative: &str) -> String {

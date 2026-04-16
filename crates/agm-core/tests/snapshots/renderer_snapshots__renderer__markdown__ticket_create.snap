@@ -1,6 +1,5 @@
 ---
 source: crates/agm-core/tests/renderer_snapshots.rs
-assertion_line: 120
 expression: output
 ---
 # test.ticket v1.0.0
@@ -17,7 +16,7 @@ expression: output
 | Action | create |
 | Phase | backlog |
 
-Add Google OAuth2 login to the dashboard.
+Add Google OAuth2 login to the dashboard, including session handling and CSRF protection.
 add OAuth2 login with CSRF-safe callback
 
 **Labels:** auth, security

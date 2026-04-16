@@ -19,6 +19,10 @@ fn fixtures_root() -> std::path::PathBuf {
         .join("tests/fixtures")
 }
 
+fn crate_fixtures_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures")
+}
+
 fn read_fixture(relative: &str) -> String {
     let path = fixtures_root().join(relative);
     std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("cannot read {relative}: {e}"))
@@ -26,6 +30,13 @@ fn read_fixture(relative: &str) -> String {
 
 fn parse_fixture(relative: &str) -> agm_core::model::file::AgmFile {
     let text = read_fixture(relative);
+    parse(&text).unwrap_or_else(|errs| panic!("parse errors in {relative}: {errs:?}"))
+}
+
+fn parse_crate_fixture(relative: &str) -> agm_core::model::file::AgmFile {
+    let path = crate_fixtures_root().join(relative);
+    let text =
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("cannot read {relative}: {e}"));
     parse(&text).unwrap_or_else(|errs| panic!("parse errors in {relative}: {errs:?}"))
 }
 
@@ -94,28 +105,28 @@ fn test_render_mermaid_auth_platform_snapshot() {
 
 #[test]
 fn test_render_canonical_ticket_create_snapshot() {
-    let file = parse_fixture("valid/ticket_create.agm");
+    let file = parse_crate_fixture("valid/ticket_create.agm");
     let output = render_canonical(&file);
     insta::assert_snapshot!("renderer__canonical__ticket_create", output);
 }
 
 #[test]
 fn test_render_canonical_ticket_full_snapshot() {
-    let file = parse_fixture("valid/ticket_full.agm");
+    let file = parse_crate_fixture("valid/ticket_full.agm");
     let output = render_canonical(&file);
     insta::assert_snapshot!("renderer__canonical__ticket_full", output);
 }
 
 #[test]
 fn test_render_json_ticket_create_snapshot() {
-    let file = parse_fixture("valid/ticket_create.agm");
+    let file = parse_crate_fixture("valid/ticket_create.agm");
     let output = render_json(&file);
     insta::assert_snapshot!("renderer__json__ticket_create", output);
 }
 
 #[test]
 fn test_render_markdown_ticket_create_snapshot() {
-    let file = parse_fixture("valid/ticket_create.agm");
+    let file = parse_crate_fixture("valid/ticket_create.agm");
     let output = render_markdown(&file);
     insta::assert_snapshot!("renderer__markdown__ticket_create", output);
 }

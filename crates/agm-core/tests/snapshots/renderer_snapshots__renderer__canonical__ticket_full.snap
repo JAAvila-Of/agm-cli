@@ -1,6 +1,5 @@
 ---
 source: crates/agm-core/tests/renderer_snapshots.rs
-assertion_line: 106
 expression: output
 ---
 agm: 1.2
@@ -16,10 +15,12 @@ description:
 action: create
 sdd_phase: propose
 assignee: dev-team
+ticket_id: octopus.ticket.parent-ref
 labels: [backend, api, security]
 prompt:
   Design a minimal OAuth2 flow that reuses our existing session cookies.
   Emit a workflow node for the implementation steps.
+  Focus on security best practices.
 priority: critical
 summary: full-featured ticket demonstrating every allowed field
 detail: Extended detail about implementation approach.
