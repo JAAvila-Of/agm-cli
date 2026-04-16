@@ -1,0 +1,10 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.missing.title
+type: ticket
+description: This ticket has no title field.
+priority: high
+action: create
+summary: ticket missing required title field

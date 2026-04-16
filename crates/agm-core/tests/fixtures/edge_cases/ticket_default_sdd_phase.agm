@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.default.sdd-phase
+type: ticket
+title: Ticket with no sdd_phase field
+description: When sdd_phase is absent, no validation error is produced.
+priority: normal
+action: create
+summary: ticket without sdd_phase field is valid

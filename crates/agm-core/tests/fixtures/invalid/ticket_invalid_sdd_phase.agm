@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.invalid.sdd-phase
+type: ticket
+title: Ticket with invalid sdd_phase
+description: This ticket has an invalid sdd_phase value.
+priority: normal
+sdd_phase: planning
+summary: ticket with invalid sdd_phase enum value triggers V030

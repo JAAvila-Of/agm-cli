@@ -1,0 +1,12 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node octopus.ticket.add-auth.edit-1
+type: ticket
+title: Add OAuth2 login flow
+description: scope reduced to provider=Google only
+priority: medium
+action: edit
+ticket_id: octopus.ticket.add-auth
+summary: reduce scope of auth ticket to Google only

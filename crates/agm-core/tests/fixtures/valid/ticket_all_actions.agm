@@ -1,0 +1,56 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.action.create
+type: ticket
+title: Create a new ticket
+description: Creates a brand new ticket in the system.
+priority: normal
+action: create
+summary: creates a new ticket
+
+node ticket.action.edit
+type: ticket
+title: Edit existing ticket
+description: Modifies an existing ticket.
+priority: normal
+action: edit
+ticket_id: ticket.action.create
+summary: edits an existing ticket
+
+node ticket.action.close
+type: ticket
+title: Close a ticket
+description: Closes an existing ticket marking it as done.
+priority: normal
+action: close
+ticket_id: ticket.action.create
+summary: closes an existing ticket
+
+node ticket.action.archive
+type: ticket
+title: Archive a ticket
+description: Archives an existing ticket for historical reference.
+priority: low
+action: archive
+ticket_id: ticket.action.create
+summary: archives an existing ticket
+
+node ticket.action.split
+type: ticket
+title: Split a ticket
+description: Splits an existing ticket into multiple smaller tickets.
+priority: high
+action: split
+ticket_id: ticket.action.create
+summary: splits an existing ticket into sub-tickets
+
+node ticket.action.link
+type: ticket
+title: Link two tickets
+description: Links two existing tickets to express a relationship.
+priority: normal
+action: link
+ticket_id: ticket.action.create
+summary: links two existing tickets together

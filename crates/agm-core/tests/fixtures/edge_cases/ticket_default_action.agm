@@ -1,0 +1,10 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.default.action
+type: ticket
+title: Ticket with no action field
+description: When action is absent, the validator treats it as create so no ticket_id is required.
+priority: normal
+summary: ticket without action field is valid without ticket_id

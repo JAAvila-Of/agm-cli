@@ -89,6 +89,38 @@ fn test_render_mermaid_auth_platform_snapshot() {
 }
 
 // ---------------------------------------------------------------------------
+// Ticket renderer snapshots
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_render_canonical_ticket_create_snapshot() {
+    let file = parse_fixture("valid/ticket_create.agm");
+    let output = render_canonical(&file);
+    insta::assert_snapshot!("renderer__canonical__ticket_create", output);
+}
+
+#[test]
+fn test_render_canonical_ticket_full_snapshot() {
+    let file = parse_fixture("valid/ticket_full.agm");
+    let output = render_canonical(&file);
+    insta::assert_snapshot!("renderer__canonical__ticket_full", output);
+}
+
+#[test]
+fn test_render_json_ticket_create_snapshot() {
+    let file = parse_fixture("valid/ticket_create.agm");
+    let output = render_json(&file);
+    insta::assert_snapshot!("renderer__json__ticket_create", output);
+}
+
+#[test]
+fn test_render_markdown_ticket_create_snapshot() {
+    let file = parse_fixture("valid/ticket_create.agm");
+    let output = render_markdown(&file);
+    insta::assert_snapshot!("renderer__markdown__ticket_create", output);
+}
+
+// ---------------------------------------------------------------------------
 // render() dispatch function smoke test
 // ---------------------------------------------------------------------------
 

@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.edge.title-200
+type: ticket
+title: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+description: Title is exactly 200 characters, no V032 should be emitted.
+priority: normal
+action: create
+summary: ticket with exactly 200 char title is valid

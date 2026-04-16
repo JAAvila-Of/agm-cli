@@ -1,0 +1,75 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.phase.backlog
+type: ticket
+title: Backlog phase ticket
+description: Ticket in backlog phase.
+priority: low
+sdd_phase: backlog
+summary: ticket in backlog sdd phase
+
+node ticket.phase.explore
+type: ticket
+title: Explore phase ticket
+description: Ticket in explore phase.
+priority: normal
+sdd_phase: explore
+summary: ticket in explore sdd phase
+
+node ticket.phase.propose
+type: ticket
+title: Propose phase ticket
+description: Ticket in propose phase.
+priority: normal
+sdd_phase: propose
+summary: ticket in propose sdd phase
+
+node ticket.phase.spec
+type: ticket
+title: Spec phase ticket
+description: Ticket in spec phase.
+priority: normal
+sdd_phase: spec
+summary: ticket in spec sdd phase
+
+node ticket.phase.design
+type: ticket
+title: Design phase ticket
+description: Ticket in design phase.
+priority: normal
+sdd_phase: design
+summary: ticket in design sdd phase
+
+node ticket.phase.tasks
+type: ticket
+title: Tasks phase ticket
+description: Ticket in tasks phase.
+priority: normal
+sdd_phase: tasks
+summary: ticket in tasks sdd phase
+
+node ticket.phase.apply
+type: ticket
+title: Apply phase ticket
+description: Ticket in apply phase.
+priority: high
+sdd_phase: apply
+summary: ticket in apply sdd phase
+
+node ticket.phase.verify
+type: ticket
+title: Verify phase ticket
+description: Ticket in verify phase.
+priority: high
+sdd_phase: verify
+summary: ticket in verify sdd phase
+
+node ticket.phase.archive
+type: ticket
+title: Archive phase ticket
+description: Completed ticket moved to archive.
+priority: low
+sdd_phase: archive
+summary: ticket in archive sdd phase

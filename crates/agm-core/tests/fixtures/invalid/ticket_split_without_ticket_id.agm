@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.split.no-id
+type: ticket
+title: Split without ticket_id
+description: This split ticket lacks the required ticket_id.
+priority: high
+action: split
+summary: split action without ticket_id triggers V031

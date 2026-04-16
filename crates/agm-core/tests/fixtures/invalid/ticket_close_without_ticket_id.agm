@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.close.no-id
+type: ticket
+title: Close without ticket_id
+description: This close ticket lacks the required ticket_id.
+priority: low
+action: close
+summary: close action without ticket_id triggers V031

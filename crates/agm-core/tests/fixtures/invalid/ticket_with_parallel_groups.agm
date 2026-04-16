@@ -1,0 +1,14 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.disallowed.parallel
+type: ticket
+title: Ticket with disallowed parallel_groups
+description: This ticket incorrectly uses parallel_groups.
+priority: normal
+summary: ticket with parallel_groups triggers disallowed field diagnostic
+parallel_groups:
+  group: g1
+  nodes: [a, b]
+  strategy: parallel

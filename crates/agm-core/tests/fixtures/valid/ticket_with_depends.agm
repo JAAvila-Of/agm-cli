@@ -1,0 +1,16 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node auth.setup
+type: workflow
+summary: sets up the auth infrastructure
+
+node auth.ticket.add-login
+type: ticket
+title: Add login endpoint
+description: Implement the /login route with JWT token issuance.
+priority: high
+action: create
+depends: [auth.setup]
+summary: add login endpoint dependent on auth.setup

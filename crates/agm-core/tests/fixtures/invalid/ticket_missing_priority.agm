@@ -1,0 +1,10 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.missing.priority
+type: ticket
+title: Ticket without priority
+description: This ticket has no priority field.
+action: create
+summary: ticket missing required priority field

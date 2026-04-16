@@ -1,0 +1,13 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.disallowed.fields
+type: ticket
+title: Ticket with disallowed fields field
+description: This ticket incorrectly uses the entity-style fields field.
+priority: normal
+summary: ticket with fields field triggers disallowed field diagnostic
+fields:
+  - name: string
+  - value: any

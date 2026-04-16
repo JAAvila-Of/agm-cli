@@ -1,0 +1,12 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.edge.empty-labels
+type: ticket
+title: Ticket with empty labels list
+description: Empty labels list is accepted silently with no diagnostic.
+priority: normal
+action: create
+labels: []
+summary: ticket with empty labels is valid

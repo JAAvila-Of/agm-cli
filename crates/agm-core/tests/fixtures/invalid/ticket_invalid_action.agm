@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.invalid.action
+type: ticket
+title: Ticket with invalid action
+description: This ticket has an invalid action value.
+priority: normal
+action: destroy
+summary: ticket with invalid action enum value triggers V029

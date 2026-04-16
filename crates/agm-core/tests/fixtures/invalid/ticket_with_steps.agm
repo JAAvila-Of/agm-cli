@@ -1,0 +1,13 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.disallowed.steps
+type: ticket
+title: Ticket with disallowed steps field
+description: This ticket incorrectly uses the steps field.
+priority: normal
+summary: ticket with steps field triggers disallowed field diagnostic
+steps:
+  - step one
+  - step two

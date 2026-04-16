@@ -1,0 +1,10 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.missing.description
+type: ticket
+title: Ticket without description
+priority: high
+action: create
+summary: ticket missing required description field

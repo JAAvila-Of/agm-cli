@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.edit.no-id
+type: ticket
+title: Edit without ticket_id
+description: This edit ticket lacks the required ticket_id.
+priority: normal
+action: edit
+summary: edit action without ticket_id triggers V031

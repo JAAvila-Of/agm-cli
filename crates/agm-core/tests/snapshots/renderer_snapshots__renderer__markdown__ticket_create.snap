@@ -1,0 +1,25 @@
+---
+source: crates/agm-core/tests/renderer_snapshots.rs
+assertion_line: 120
+expression: output
+---
+# test.ticket v1.0.0
+
+## Tickets
+
+### `octopus.ticket.add-auth`
+
+**Ticket:** Add OAuth2 login flow
+
+| Field | Value |
+|-------|-------|
+| Priority | high |
+| Action | create |
+| Phase | backlog |
+
+Add Google OAuth2 login to the dashboard.
+add OAuth2 login with CSRF-safe callback
+
+**Labels:** auth, security
+
+---

@@ -1,0 +1,16 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node impl.auth.flow
+type: workflow
+summary: implements the auth flow
+
+node ticket.depends.on-workflow
+type: ticket
+title: Ticket depending on a workflow node
+description: A ticket that depends on a workflow; topo-sort should resolve correctly.
+priority: high
+action: create
+depends: [impl.auth.flow]
+summary: ticket with depends on a workflow node participates in graph

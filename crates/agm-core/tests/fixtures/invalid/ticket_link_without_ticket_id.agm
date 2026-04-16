@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.link.no-id
+type: ticket
+title: Link without ticket_id
+description: This link ticket lacks the required ticket_id.
+priority: normal
+action: link
+summary: link action without ticket_id triggers V031

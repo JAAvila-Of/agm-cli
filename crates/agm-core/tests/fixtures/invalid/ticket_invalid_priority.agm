@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.invalid.priority
+type: ticket
+title: Ticket with bad priority
+description: This ticket has an invalid priority value.
+priority: super-critical
+action: create
+summary: ticket with invalid priority enum value

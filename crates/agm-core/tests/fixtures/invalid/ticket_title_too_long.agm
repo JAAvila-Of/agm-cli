@@ -1,0 +1,10 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.title.too-long
+type: ticket
+title: This title is way too long and exceeds the two hundred character maximum limit set by the AGM specification for ticket titles so it should trigger a V032 warning diagnostic when validated
+description: This ticket has a title that exceeds 200 characters.
+priority: normal
+summary: ticket with title exceeding 200 chars triggers V032

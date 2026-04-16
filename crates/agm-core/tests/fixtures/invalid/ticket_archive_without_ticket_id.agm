@@ -1,0 +1,11 @@
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node ticket.archive.no-id
+type: ticket
+title: Archive without ticket_id
+description: This archive ticket lacks the required ticket_id.
+priority: low
+action: archive
+summary: archive action without ticket_id triggers V031

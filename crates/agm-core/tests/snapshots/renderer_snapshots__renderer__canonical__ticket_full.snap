@@ -1,0 +1,26 @@
+---
+source: crates/agm-core/tests/renderer_snapshots.rs
+assertion_line: 106
+expression: output
+---
+agm: 1.2
+package: test.ticket
+version: 1.0.0
+
+node octopus.ticket.full-example
+type: ticket
+title: Full ticket example with all allowed fields
+description:
+  This is a multi-line description that spans several lines.
+  It describes the ticket in detail and provides context.
+action: create
+sdd_phase: propose
+assignee: dev-team
+labels: [backend, api, security]
+prompt:
+  Design a minimal OAuth2 flow that reuses our existing session cookies.
+  Emit a workflow node for the implementation steps.
+priority: critical
+summary: full-featured ticket demonstrating every allowed field
+detail: Extended detail about implementation approach.
+tags: [v1.2, milestone-q2]
