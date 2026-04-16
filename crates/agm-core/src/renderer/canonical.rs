@@ -74,6 +74,16 @@ fn emit_node(buf: &mut String, node: &Node) {
     // Group 1: Identity
     emit_scalar(buf, "type", &node.node_type.to_string());
 
+    // Group 1b: Ticket fields (v1.2.0) — emitted early for discoverability
+    emit_opt_block_or_scalar(buf, "title", &node.title);
+    emit_opt_block_or_scalar(buf, "description", &node.description);
+    emit_opt_enum(buf, "action", &node.action);
+    emit_opt_enum(buf, "sdd_phase", &node.sdd_phase);
+    emit_opt_scalar(buf, "assignee", &node.assignee);
+    emit_opt_scalar(buf, "ticket_id", &node.ticket_id);
+    emit_opt_list(buf, "labels", &node.labels);
+    emit_opt_block_or_scalar(buf, "prompt", &node.prompt);
+
     // Group 2: Control
     emit_opt_enum(buf, "status", &node.status);
     emit_opt_enum(buf, "stability", &node.stability);
@@ -630,11 +640,10 @@ fn emit_parallel_groups(buf: &mut String, groups: &[ParallelGroup]) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::fields::{NodeType, Priority, Span, Stability};
+    use crate::model::fields::{NodeType, Priority, Stability};
     use crate::model::file::{AgmFile, Header};
     use crate::model::node::Node;
     use crate::model::verify::VerifyCheck;
-    use std::collections::BTreeMap;
 
     fn minimal_file() -> AgmFile {
         AgmFile {
@@ -656,47 +665,7 @@ mod tests {
                 id: "test.node".to_owned(),
                 node_type: NodeType::Facts,
                 summary: "a minimal test node".to_owned(),
-                priority: None,
-                stability: None,
-                confidence: None,
-                status: None,
-                depends: None,
-                related_to: None,
-                replaces: None,
-                conflicts: None,
-                see_also: None,
-                items: None,
-                steps: None,
-                fields: None,
-                input: None,
-                output: None,
-                detail: None,
-                rationale: None,
-                tradeoffs: None,
-                resolution: None,
-                examples: None,
-                notes: None,
-                code: None,
-                code_blocks: None,
-                verify: None,
-                agent_context: None,
-                target: None,
-                execution_status: None,
-                executed_by: None,
-                executed_at: None,
-                execution_log: None,
-                retry_count: None,
-                parallel_groups: None,
-                memory: None,
-                scope: None,
-                applies_when: None,
-                valid_from: None,
-                valid_until: None,
-                tags: None,
-                aliases: None,
-                keywords: None,
-                extra_fields: BTreeMap::new(),
-                span: Span::default(),
+                ..Default::default()
             }],
         }
     }
