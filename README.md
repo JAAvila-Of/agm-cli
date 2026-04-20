@@ -108,6 +108,7 @@ summary: add OAuth2 login endpoint
 | `mem` | Manage memory sidecars (list, get, export, import, gc) |
 | `context` | Build and display agent context for a node |
 | `verify` | Run verification checks on nodes |
+| `normalize` | Normalize non-canonical synonyms to canonical AGM field and type names |
 | `update` | Update agm to the latest version |
 
 ## Library Usage
@@ -133,6 +134,7 @@ if diagnostics.iter().all(|d| !d.is_error()) {
 
 - [CLI API Reference](docs/api.md) -- Complete command reference with examples, options, and edge cases
 - [AGM Specification v1.2.0](docs/spec/agm_spec_v1.2.0.md) -- Full format specification
+- [Normalize Layer](docs/normalize.md) -- How to rewrite non-canonical AGM input to canonical form
 - [Library API (docs.rs)](https://docs.rs/agm-core) -- Auto-generated Rust API docs for `agm-core`
 - [Contributing](CONTRIBUTING.md) -- How to contribute
 
