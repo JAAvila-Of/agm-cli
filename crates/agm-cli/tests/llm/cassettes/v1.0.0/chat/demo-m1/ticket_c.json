@@ -1,0 +1,9 @@
+{
+  "request_hash": "ffa245f48feb67f4e5e1fa474822aa5c72d56e1be68f7c077662dd75f0a83433",
+  "prompt_preview": "Adversarial case: the following request is intentionally ambiguous.",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode unknown_system_issue\ntype: ticket\nsummary: Investigate unspecified system integration failure\npriority: high\naction: create\nstatus: active\n",
+  "tokens_in": 180,
+  "tokens_out": 145,
+  "latency_ms": 890,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

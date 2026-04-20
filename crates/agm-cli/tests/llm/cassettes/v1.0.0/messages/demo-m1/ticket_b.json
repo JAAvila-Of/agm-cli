@@ -1,0 +1,9 @@
+{
+  "request_hash": "df1c4ec9b20a7f9dea8bbcb489a4ce331d7577c2ae302a12778d385cb299180f",
+  "prompt_preview": "Generate an AGM ticket node for the following feature request:",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode dashboard_dark_mode\ntype: ticket\nsummary: Add dark mode support to web dashboard with session persistence\ntitle: Dark mode for web dashboard\ndescription: Users have requested the ability to toggle between light and dark themes. The preference should persist across sessions using local storage.\npriority: medium\naction: create\nstatus: active\n",
+  "tokens_in": 220,
+  "tokens_out": 185,
+  "latency_ms": 1050,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

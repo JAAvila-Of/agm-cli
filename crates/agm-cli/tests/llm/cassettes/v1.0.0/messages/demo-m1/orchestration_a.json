@@ -1,0 +1,9 @@
+{
+  "request_hash": "5c30fd8697da6278c78446592ac72fc1a70a9869ee6f173b549621ae51082595",
+  "prompt_preview": "Generate an AGM orchestration node for a multi-agent data processing pipeline.",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode data_pipeline_orchestration\ntype: orchestration\nsummary: Multi-agent data processing pipeline orchestration\ndescription: Coordinates agents for ingestion, validation, transformation, and storage in a structured pipeline.\nstatus: active\n",
+  "tokens_in": 230,
+  "tokens_out": 165,
+  "latency_ms": 1200,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

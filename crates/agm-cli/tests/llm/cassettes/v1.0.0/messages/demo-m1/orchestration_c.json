@@ -1,0 +1,9 @@
+{
+  "request_hash": "c2b8d4566c0d5245469538f4ff992b57e349b1e1665c29c25d110f0c70a9ef59",
+  "prompt_preview": "Adversarial case: the following is an ambiguous orchestration request",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode multi_agent_coordination\ntype: orchestration\nsummary: Hierarchical multi-agent coordination with supervisor and worker pattern\ndescription: A supervisor agent dispatches tasks to worker agents, collects results, handles retries on failure, and provides monitoring.\nstatus: active\n",
+  "tokens_in": 210,
+  "tokens_out": 160,
+  "latency_ms": 1050,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

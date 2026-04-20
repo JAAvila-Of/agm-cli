@@ -1,0 +1,9 @@
+{
+  "request_hash": "fe652957631a08e816feab10441bc361959a21fece227831dafbfae4832be7c5",
+  "prompt_preview": "Adversarial case: the following request is intentionally ambiguous.",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode unknown_system_issue\ntype: ticket\nsummary: Investigate and resolve unspecified system communication failure\ntitle: System component communication error\ndescription: An unspecified system communication failure was reported as working yesterday. Priority and ownership are unclear.\npriority: high\naction: create\nstatus: active\n",
+  "tokens_in": 195,
+  "tokens_out": 160,
+  "latency_ms": 980,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

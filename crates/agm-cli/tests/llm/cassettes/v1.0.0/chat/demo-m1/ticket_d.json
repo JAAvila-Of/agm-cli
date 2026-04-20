@@ -1,0 +1,9 @@
+{
+  "request_hash": "3d9925df188b29e492aeddf6a9bfba13d90ba95506d683a7a4b38e2cf5c8dfde",
+  "prompt_preview": "Adversarial case: the following description is a mix of prose narrative and technical content",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode payment_session_bug\ntype: ticket\nsummary: Fix silent drop and partial charge on payment session expiry\ntitle: Payment gateway issue on session timeout\ndescription: Sessions expiring mid-checkout cause silent transaction drops and occasional partial charges to the payment gateway.\npriority: high\naction: create\nstatus: active\n",
+  "tokens_in": 215,
+  "tokens_out": 175,
+  "latency_ms": 1150,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

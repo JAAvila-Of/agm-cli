@@ -1,0 +1,9 @@
+{
+  "request_hash": "b2298eda8df04b6ba257580768f6ad939abc6c0a50dae954c61fbeccfa1f5a12",
+  "prompt_preview": "Generate an AGM orchestration node for a code review and merge automation system.",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode code_review_orchestration\ntype: orchestration\nsummary: Automated code review and merge pipeline orchestration\ndescription: Coordinates static analysis, test execution, security scanning, reviewer assignment, and merge agents. Static analysis, tests, and security scan run in parallel.\nstatus: active\n",
+  "tokens_in": 235,
+  "tokens_out": 180,
+  "latency_ms": 1300,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

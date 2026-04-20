@@ -1,0 +1,9 @@
+{
+  "request_hash": "88c12a3805bb4d02a1382c3d12f9e2e93ab1d0b6a8a877e99151c63177bfaad7",
+  "prompt_preview": "Adversarial case: the following mixes natural language narrative with partial technical specifications.",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode onboarding_orch\ntype: orchestration\nsummary: Customer onboarding orchestration with compliance gate\ndescription: Compliance verification runs first. On pass: CRM update, billing setup, workspace provisioning, welcome email, and CS notification run concurrently.\nstatus: active\n",
+  "tokens_in": 230,
+  "tokens_out": 185,
+  "latency_ms": 1280,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

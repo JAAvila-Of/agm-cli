@@ -1,0 +1,9 @@
+{
+  "request_hash": "856a91220a6309bcd12a41363561a077fbf081f52fcb9b24dd2d8f5ea778128d",
+  "prompt_preview": "Adversarial case: the following description uses inconsistent terminology",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode feature_release_workflow\ntype: workflow\nsummary: Software feature release workflow covering design through production deployment\ndescription: Structured process: design review, development, testing, staging deployment, and production release with optional rollback.\nstatus: active\n",
+  "tokens_in": 195,
+  "tokens_out": 155,
+  "latency_ms": 940,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

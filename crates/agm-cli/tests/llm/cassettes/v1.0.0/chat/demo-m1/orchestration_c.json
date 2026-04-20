@@ -1,0 +1,9 @@
+{
+  "request_hash": "743bbbc8bc20679cf4e2addc003b987df2e9cf7320d6d4d22fb34a8b0a274d14",
+  "prompt_preview": "Adversarial case: the following is an ambiguous orchestration request",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode supervisor_worker_orch\ntype: orchestration\nsummary: Supervisor-worker agent orchestration with retry and monitoring\ndescription: A supervisor agent coordinates worker agents, monitors progress, handles failures with automatic retry, and reports status.\nstatus: active\n",
+  "tokens_in": 205,
+  "tokens_out": 158,
+  "latency_ms": 1010,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

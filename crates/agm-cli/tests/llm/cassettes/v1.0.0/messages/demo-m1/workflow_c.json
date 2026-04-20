@@ -1,0 +1,9 @@
+{
+  "request_hash": "a8a6ad6596339c486ef25acb6ede24d303ae454e015644a792725cbdbce6ae6d",
+  "prompt_preview": "Adversarial case: the following description uses inconsistent terminology",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode feature_delivery_workflow\ntype: workflow\nsummary: Feature delivery workflow from idea to deployment\ndescription: Process covering design, development, testing, deployment, and monitoring. Includes review gates at key stages.\nstatus: active\n",
+  "tokens_in": 200,
+  "tokens_out": 155,
+  "latency_ms": 950,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

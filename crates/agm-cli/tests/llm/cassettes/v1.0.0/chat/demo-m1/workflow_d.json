@@ -1,0 +1,9 @@
+{
+  "request_hash": "b7e8d9b54a76acae5b79e5d3c7ed7b34e00fc6f55951a8d580ef626c446ab98c",
+  "prompt_preview": "Adversarial case: the following request asks for a workflow but provides contradictory information.",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode db_migration_pipeline\ntype: workflow\nsummary: Database migration workflow with automated validation and review gate\ndescription: Automated database migration with schema validation, test execution, review approval, and production promotion.\nstatus: active\n",
+  "tokens_in": 200,
+  "tokens_out": 158,
+  "latency_ms": 980,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

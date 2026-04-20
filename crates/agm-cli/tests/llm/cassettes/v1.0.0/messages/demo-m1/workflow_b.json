@@ -1,0 +1,9 @@
+{
+  "request_hash": "b6d5461c384cf7cd320fe98b3a67edda81aa23fb936ea5e632005844ad98043f",
+  "prompt_preview": "Generate an AGM workflow node for an on-call incident response process.",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode oncall_incident_response\ntype: workflow\nsummary: On-call incident response workflow from alert to post-incident review\ndescription: Structured process for responding to production incidents: acknowledgement within 5 minutes, triage, severity classification, escalation for P0/P1, mitigation, and post-incident review.\nstatus: active\n",
+  "tokens_in": 225,
+  "tokens_out": 175,
+  "latency_ms": 1080,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

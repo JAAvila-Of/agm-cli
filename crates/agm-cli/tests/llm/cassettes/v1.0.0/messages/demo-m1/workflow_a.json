@@ -1,0 +1,9 @@
+{
+  "request_hash": "c481b28e90d2b75843c58341144ded294789dc5daf73a785debe28fb0757cf3d",
+  "prompt_preview": "Generate an AGM workflow node that describes the CI/CD pipeline",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode cicd_pipeline\ntype: workflow\nsummary: CI/CD pipeline for containerized web application deployment\ndescription: Automated pipeline covering build, test, security scan, staging deploy, smoke test, and production deploy stages.\nstatus: active\n",
+  "tokens_in": 215,
+  "tokens_out": 170,
+  "latency_ms": 1150,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

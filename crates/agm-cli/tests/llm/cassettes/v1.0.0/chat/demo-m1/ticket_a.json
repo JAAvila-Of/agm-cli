@@ -1,0 +1,9 @@
+{
+  "request_hash": "b5f4efc2aaaa8a5763b0b840682060c39f88a3ef50b209eeba22151577bfafd5",
+  "prompt_preview": "Generate an AGM ticket node for the following task:",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode auth_null_ptr_fix\ntype: ticket\nsummary: Fix null pointer exception in auth service login handler\ntitle: Fix NullPointerException on login without email\ndescription: The authentication service crashes with a NullPointerException when a user attempts to log in without providing an email address.\npriority: high\naction: create\nstatus: active\n",
+  "tokens_in": 190,
+  "tokens_out": 170,
+  "latency_ms": 1050,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

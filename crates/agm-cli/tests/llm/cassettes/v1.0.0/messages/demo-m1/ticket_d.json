@@ -1,0 +1,9 @@
+{
+  "request_hash": "be0a8a709bff284429fa17b14599d004386ffa1e4ec48049ba54a9ca4a777f68",
+  "prompt_preview": "Adversarial case: the following description is a mix of prose narrative and technical content",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode payment_session_expiry_bug\ntype: ticket\nsummary: Fix silent transaction drop and partial charge on session expiry during checkout\ntitle: Payment gateway partial charge on session expiry\ndescription: When a user session expires during checkout, the transaction is silently dropped without an error message. In some cases, a partial charge is sent to the payment gateway, causing financial discrepancies.\npriority: high\naction: create\nstatus: active\n",
+  "tokens_in": 240,
+  "tokens_out": 190,
+  "latency_ms": 1250,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}

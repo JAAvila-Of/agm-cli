@@ -1,0 +1,9 @@
+{
+  "request_hash": "d7de2479fa46072690e838472668b674929e1c68c395fd96af4b013ab0008fa1",
+  "prompt_preview": "Generate an AGM ticket node for the following feature request:",
+  "response_text": "agm: 1.2\npackage: bench.suite\nversion: 0.1.0\n\nnode dashboard_dark_mode\ntype: ticket\nsummary: Add dark mode to web dashboard with local storage persistence\ntitle: Dark mode for web dashboard\ndescription: Implement theme toggle (light/dark) with local storage persistence for the web dashboard.\npriority: medium\naction: create\nstatus: active\n",
+  "tokens_in": 200,
+  "tokens_out": 165,
+  "latency_ms": 990,
+  "recorded_at": "2026-04-20T00:00:00Z"
+}
