@@ -74,6 +74,13 @@ environment variables — see the table in §Environment Variables below.
 | `AGM_MESSAGES_KEY` | `--provider messages` | API key value |
 | `AGM_CHAT_ENDPOINT` | `--provider chat` | Full URL of the Chat-Completions endpoint |
 | `AGM_CHAT_KEY` | `--provider chat` | API key value |
+| `AGM_MESSAGES_VERSION_HEADER_NAME` | `--provider messages` | Header name for an extra API-version header (optional) |
+| `AGM_MESSAGES_VERSION_HEADER_VALUE` | `--provider messages` | Header value paired with `AGM_MESSAGES_VERSION_HEADER_NAME` (optional) |
+
+Some Messages-style endpoints require an API-version header to be present on every
+request. Set `AGM_MESSAGES_VERSION_HEADER_NAME` to the header name and
+`AGM_MESSAGES_VERSION_HEADER_VALUE` to the required value if your endpoint needs
+this; leave both unset (the default) and no extra header will be sent.
 
 Override the key variable name with `--api-key <VAR>`.
 

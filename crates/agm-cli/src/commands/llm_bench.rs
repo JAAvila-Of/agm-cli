@@ -182,10 +182,28 @@ fn run_inner(
     };
 
     let timeout = Duration::from_secs(timeout_secs);
+
+    // Optional extra version/date header for Messages-style endpoints.
+    // Read from AGM_MESSAGES_VERSION_HEADER_NAME and AGM_MESSAGES_VERSION_HEADER_VALUE.
+    // If either is absent or empty, no extra header is attached.
+    let version_header = {
+        let name = std::env::var("AGM_MESSAGES_VERSION_HEADER_NAME")
+            .ok()
+            .filter(|s| !s.is_empty());
+        let value = std::env::var("AGM_MESSAGES_VERSION_HEADER_VALUE")
+            .ok()
+            .filter(|s| !s.is_empty());
+        match (name, value) {
+            (Some(n), Some(v)) => Some((n, v)),
+            _ => None,
+        }
+    };
+
     let config = ProviderConfig {
         model: model.to_owned(),
         api_key,
         endpoint,
+        version_header,
     };
 
     let cases = load_cases(fixtures_dir, case_glob)?;

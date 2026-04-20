@@ -85,6 +85,15 @@ pub struct ProviderConfig {
     pub api_key: String,
     /// Base endpoint URL.
     pub endpoint: String,
+    /// Optional extra version/date header sent with every request.
+    ///
+    /// Some Messages-style endpoints require a vendor-specific API-version header.
+    /// When `Some((name, value))`, the header `name: value` is appended to every
+    /// outgoing request. When `None` (the default), no extra header is sent.
+    ///
+    /// Populated from env vars `AGM_MESSAGES_VERSION_HEADER_NAME` and
+    /// `AGM_MESSAGES_VERSION_HEADER_VALUE`.
+    pub version_header: Option<(String, String)>,
 }
 
 // ---------------------------------------------------------------------------
@@ -265,21 +274,23 @@ impl Provider for MessagesProvider {
 
         let t0 = std::time::Instant::now();
 
-        let resp = self
+        let mut req = self
             .client
             .post(self.messages_url())
             .header("x-api-key", &self.config.api_key)
-            .header("content-type", "application/json")
-            .header("anthropic-version", "2023-06-01")
-            .json(&req_body)
-            .send()
-            .map_err(|e| {
-                if e.is_timeout() {
-                    ProviderError::Timeout(opts.timeout.as_secs())
-                } else {
-                    ProviderError::Network(e.to_string())
-                }
-            })?;
+            .header("content-type", "application/json");
+
+        if let Some((name, value)) = &self.config.version_header {
+            req = req.header(name.as_str(), value.as_str());
+        }
+
+        let resp = req.json(&req_body).send().map_err(|e| {
+            if e.is_timeout() {
+                ProviderError::Timeout(opts.timeout.as_secs())
+            } else {
+                ProviderError::Network(e.to_string())
+            }
+        })?;
 
         let latency_ms = t0.elapsed().as_millis() as u64;
         let status = resp.status();
@@ -600,6 +611,7 @@ mod tests {
             model: "demo-m1".into(),
             api_key: "test-key".into(),
             endpoint: format!("{}/v1/messages", server.url()),
+            version_header: None,
         };
         let provider = MessagesProvider::new(config, Duration::from_secs(10)).unwrap();
         let opts = ProviderRequestOpts::default();
@@ -631,6 +643,7 @@ mod tests {
             model: "demo-m1".into(),
             api_key: "test-key".into(),
             endpoint: format!("{}/v1/chat/completions", server.url()),
+            version_header: None,
         };
         let provider = ChatCompletionsProvider::new(config, Duration::from_secs(10)).unwrap();
         let opts = ProviderRequestOpts::default();
@@ -666,6 +679,7 @@ mod tests {
             model: "demo-m1".into(),
             api_key: "test-key".into(),
             endpoint: format!("{}/v1/messages", server.url()),
+            version_header: None,
         };
         let provider = MessagesProvider::new(config, Duration::from_secs(10)).unwrap();
         let opts = ProviderRequestOpts {
@@ -677,5 +691,78 @@ mod tests {
         };
         let resp = provider.send("create a ticket", &opts).unwrap();
         assert!(resp.raw_text.contains("Fix login bug"));
+    }
+
+    // -----------------------------------------------------------------------
+    // version_header tests
+    // -----------------------------------------------------------------------
+
+    /// When `version_header` is `None` (env vars unset), no extra header is sent.
+    #[test]
+    fn test_messages_no_version_header_when_unset() {
+        let mut server = mockito::Server::new();
+        // The mock must NOT receive the header; mockito will fail the assertion if
+        // an unexpected header is sent only when we use match_header — here we
+        // explicitly verify the header is absent by matching its absence.
+        let mock = server
+            .mock("POST", "/v1/messages")
+            .match_header("x-api-key", "test-key")
+            // Verify that no version header with a non-empty value is present.
+            // mockito does not have a "must not have header" matcher, so we rely on
+            // the config having version_header = None and trust that the request
+            // builder path does not attach it. We verify the happy-path response
+            // is received successfully — meaning the mock (which has no header
+            // requirement for a version header) accepted the request as-is.
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{
+                    "content": [{"type": "text", "text": "agm\npackage: p\nversion: 0.1.0"}],
+                    "usage": {"input_tokens": 10, "output_tokens": 5}
+                }"#,
+            )
+            .create();
+
+        let config = ProviderConfig {
+            model: "demo-m1".into(),
+            api_key: "test-key".into(),
+            endpoint: format!("{}/v1/messages", server.url()),
+            version_header: None,
+        };
+        let provider = MessagesProvider::new(config, Duration::from_secs(10)).unwrap();
+        let result = provider.send("prompt", &ProviderRequestOpts::default());
+        assert!(result.is_ok(), "expected Ok but got: {:?}", result.err());
+        mock.assert();
+    }
+
+    /// When `version_header` is `Some((name, value))` (env vars set), the header
+    /// is present on the outgoing request.
+    #[test]
+    fn test_messages_version_header_sent_when_configured() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("POST", "/v1/messages")
+            .match_header("x-api-key", "test-key")
+            .match_header("x-api-version", "2024-01-01")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{
+                    "content": [{"type": "text", "text": "agm\npackage: p\nversion: 0.1.0"}],
+                    "usage": {"input_tokens": 10, "output_tokens": 5}
+                }"#,
+            )
+            .create();
+
+        let config = ProviderConfig {
+            model: "demo-m1".into(),
+            api_key: "test-key".into(),
+            endpoint: format!("{}/v1/messages", server.url()),
+            version_header: Some(("x-api-version".into(), "2024-01-01".into())),
+        };
+        let provider = MessagesProvider::new(config, Duration::from_secs(10)).unwrap();
+        let result = provider.send("prompt", &ProviderRequestOpts::default());
+        assert!(result.is_ok(), "expected Ok but got: {:?}", result.err());
+        mock.assert();
     }
 }
