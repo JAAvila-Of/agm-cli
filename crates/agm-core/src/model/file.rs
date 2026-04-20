@@ -130,6 +130,29 @@ pub struct Header {
 // AgmFile
 // ---------------------------------------------------------------------------
 
+/// An AGM file: a header plus an ordered list of nodes.
+///
+/// ## JSON serialization shape (stable public contract)
+///
+/// `AgmFile` uses `#[serde(flatten)]` on `header`, which means header fields
+/// appear at the **top level** of the JSON object alongside `nodes`. This mirrors
+/// the top-level grammar of the `.agm` text format, where `agm:`, `package:`,
+/// `version:`, etc. are top-level keys.
+///
+/// Example JSON output:
+/// ```json
+/// {
+///   "agm": "1.0",
+///   "package": "myapp.auth",
+///   "version": "1.0.0",
+///   "nodes": [...]
+/// }
+/// ```
+///
+/// This flat shape is the **stable public contract** — downstream consumers should
+/// expect header fields at the root, not nested under a `"header"` key. A nested
+/// shape (`{ "header": {...}, "nodes": [...] }`) would require a breaking change
+/// in a future minor version.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AgmFile {
     #[serde(flatten)]

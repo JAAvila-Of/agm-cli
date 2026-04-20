@@ -7,6 +7,28 @@ use crate::model::file::AgmFile;
 /// This is a direct serialization of the Rust model types. It preserves
 /// serde field names (e.g., `"node"` for id, `"type"` for node_type).
 /// Optional fields set to `None` are omitted. `span` is skipped.
+///
+/// ## JSON output shape (flat — stable public contract)
+///
+/// Because `AgmFile` uses `#[serde(flatten)]` on `header`, the header fields
+/// appear at the **top level** of the JSON object, not nested under `"header"`:
+///
+/// ```json
+/// {
+///   "agm": "1.0",
+///   "package": "myapp.auth",
+///   "version": "1.0.0",
+///   "nodes": [
+///     {
+///       "node": "myapp.auth.login",
+///       "type": "workflow",
+///       "summary": "Authenticate user via OAuth2"
+///     }
+///   ]
+/// }
+/// ```
+///
+/// This shape is the **stable public contract**. See `AgmFile` for details.
 #[must_use]
 pub fn render_json(file: &AgmFile) -> String {
     serde_json::to_string_pretty(file).expect("AgmFile is always serializable")
