@@ -1,0 +1,209 @@
+# AGM v1.2.0 — Compact Reference
+
+AGM is a line-oriented format for agent-consumable knowledge graphs. Each file
+contains a header followed by one or more node blocks. Nodes are the atomic
+knowledge units — independently addressable, typed, and progressively
+expandable. An agent should often decide relevance from the `summary` alone.
+
+---
+
+## File Structure
+
+```
+agm: 1.0
+package: <namespace>      # required; dot-separated, lowercase
+version: 0.1.0            # required; semver
+
+node <id>                 # starts a node block; must be unique in package
+type: <node-type>         # required
+summary: <one line>       # required; loaded in every mode
+```
+
+---
+
+## Node Types
+
+| Type | Purpose |
+|------|---------|
+| `facts` | Factual assertions about the domain |
+| `rules` | Normative constraints (MUST / MUST NOT) |
+| `workflow` | Step-by-step procedural knowledge |
+| `entity` | Data model with typed fields |
+| `decision` | Architecture or design decision with rationale |
+| `exception` | Known error condition and resolution |
+| `example` | Illustrative instance |
+| `glossary` | Term definition |
+| `anti_pattern` | What NOT to do and why |
+| `orchestration` | Multi-agent execution plan with parallel groups |
+| `ticket` | Actionable work item |
+
+---
+
+## Grammar Summary
+
+### Required fields
+
+```
+node <id>         # node identity; dot-separated lowercase
+type: <type>      # one of the node types above
+summary: <text>   # one-line description
+```
+
+### Relationship fields
+
+```
+depends: [<id>, ...]       # hard dependencies (DAG enforced)
+related_to: [<id>, ...]    # soft associations
+replaces: [<id>]           # supersedes older node
+conflicts: [<id>, ...]     # incompatible nodes
+see_also: [<id>, ...]      # additional references
+```
+
+### Operational fields
+
+```
+items:                     # unordered list
+  - item_one
+steps:                     # ordered steps
+  - step text
+fields:                    # entity fields with types
+  field_name: type
+input: value
+output: value
+```
+
+### Explanatory fields
+
+```
+detail:
+  Multi-line block. Two-space indent.
+rationale: Why the decision was made.
+tradeoffs:
+  - pro: benefit
+    con: cost
+resolution: How to handle the exception.
+notes: Free-form notes.
+```
+
+### Executable fields
+
+```
+code:
+  target: src/path/file.ext
+  action: create | append | patch | delete
+  lang: rust | python | typescript | ...
+  content: |
+    <source code>
+verify:
+  - check: description of what is verified
+    cmd: shell command
+    expect: expected output fragment
+agent_context:
+  nodes: [<id>, ...]
+  files: [<path>, ...]
+  system_hint: runtime hint text
+```
+
+### Control fields
+
+```
+priority: critical | high | normal | low
+stability: high | medium | low | volatile
+execution_status: pending | ready | in_progress | completed | failed | blocked | skipped
+```
+
+### Multi-value syntax variants
+
+```
+# Inline list
+tags: [auth, api]
+
+# Block list
+items:
+  - first
+  - second
+
+# Multi-line block
+detail:
+  Paragraph one.
+
+  Paragraph two.
+```
+
+---
+
+## Loading Modes
+
+| Mode | Fields Loaded |
+|------|--------------|
+| `summary` | `node`, `type`, `summary`, `priority`, `stability` |
+| `operational` | + `items`, `steps`, `fields`, `input`, `output`, `depends` |
+| `executable` | + `code`, `verify`, `agent_context`, `target` |
+| `full` | all fields |
+
+---
+
+## Example: Rules Node
+
+```agm
+agm: 1.0
+package: auth.platform
+version: 0.2.0
+
+node auth.rule.no_secrets_in_browser
+type: rules
+summary: never expose secrets or tokens to browser-side code
+priority: critical
+stability: high
+items:
+  - secrets_never_in_js_bundles
+  - api_keys_server_side_only
+  - tokens_httponly_cookies_only
+rationale: Browser environment is untrusted; any secret exposed can be exfiltrated.
+```
+
+---
+
+## Example: Workflow Node
+
+```agm
+agm: 1.0
+package: deploy.pipeline
+version: 1.0.0
+
+node deploy.workflow.release
+type: workflow
+summary: standard release workflow for production deployments
+priority: high
+stability: high
+depends: [deploy.decision.feature_flags, deploy.facts.environments]
+steps:
+  - run integration test suite
+  - build release artifact with version tag
+  - deploy to staging and run smoke tests
+  - enable feature flag for 5% of traffic
+  - monitor error rate for 30 minutes
+  - promote to 100% traffic or rollback
+notes: Rollback is automatic if error rate exceeds 1% within the first 15 minutes.
+```
+
+---
+
+## Example: Ticket Node
+
+```agm
+agm: 1.0
+package: backend.tasks
+version: 0.1.0
+
+node backend.ticket.add_rate_limit
+type: ticket
+summary: add per-user rate limiting to the public API endpoints
+priority: high
+stability: high
+depends: [backend.facts.api_endpoints, backend.rules.auth]
+detail:
+  Implement token-bucket rate limiting at the API gateway layer.
+  Limit: 100 requests per minute per authenticated user.
+  Unauthenticated requests share a global bucket of 20 req/min.
+```

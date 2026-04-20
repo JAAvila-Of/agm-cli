@@ -1,0 +1,55 @@
+agm: 1.0
+package: ci.orchestration
+version: 0.1.0
+title: CI Orchestration Plans
+
+node ci.workflow.lint_all
+type: workflow
+summary: run linter and type checker across all packages
+priority: high
+stability: high
+steps:
+  - run cargo clippy across workspace
+  - run cargo fmt check
+  - fail fast on any warning or format violation
+
+node ci.workflow.unit_tests
+type: workflow
+summary: run unit test suite for all crates
+priority: high
+stability: high
+steps:
+  - run cargo test --workspace --lib
+  - report coverage to CI dashboard
+
+node ci.workflow.build_artifact
+type: workflow
+summary: build release artifact and tag with version
+priority: high
+stability: high
+steps:
+  - run cargo build --release --workspace
+  - create compressed archive with version tag
+  - upload artifact to registry
+
+node ci.orch.monorepo_build
+type: orchestration
+summary: parallel build and test orchestration for a monorepo
+priority: high
+stability: high
+parallel_groups:
+  - group: lint_phase
+    nodes: [ci.workflow.lint_all]
+    strategy: sequential
+  - group: test_phase
+    nodes: [ci.workflow.unit_tests]
+    strategy: sequential
+    requires: [lint_phase]
+  - group: build_phase
+    nodes: [ci.workflow.build_artifact]
+    strategy: sequential
+    requires: [test_phase]
+detail:
+  Lint runs first to fail fast on obvious issues.
+  Tests run after lint to avoid wasting compute on untypeable code.
+  The build artifact is produced only after all tests pass.

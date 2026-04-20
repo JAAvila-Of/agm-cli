@@ -1,0 +1,27 @@
+agm: 1.0
+package: payments.model
+version: 0.3.0
+title: Payment Domain Entities
+
+node payments.entity.payment_method
+type: entity
+summary: represents a stored payment method with provider reference and masked display data
+priority: high
+stability: high
+fields:
+  - id: uuid
+  - user_id: uuid
+  - provider: enum[stripe, braintree, paypal]
+  - provider_token: string
+  - card_last4: string
+  - card_brand: enum[visa, mastercard, amex, discover]
+  - expiry_month: integer
+  - expiry_year: integer
+  - is_default: boolean
+  - created_at: timestamp
+  - archived_at: timestamp
+detail:
+  The provider_token is an opaque reference stored by the payment provider.
+  Raw card numbers are never stored in the platform database.
+  Archived payment methods are retained for audit purposes but cannot be used.
+notes: card_last4 and card_brand are display-only; all charge operations use provider_token.

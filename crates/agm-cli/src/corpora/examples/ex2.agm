@@ -1,0 +1,22 @@
+agm: 1.0
+package: deploy.pipeline
+version: 0.2.0
+title: Deployment Pipeline Workflows
+
+node deploy.workflow.canary_release
+type: workflow
+summary: canary release procedure for services with stateful dependencies
+priority: high
+stability: high
+steps:
+  - merge feature branch to main and tag release candidate
+  - build container image and push to registry with rc tag
+  - deploy rc image to canary pod subset (5% of traffic)
+  - monitor latency p99 and error rate for 20 minutes
+  - if metrics are within bounds, promote to full rollout
+  - if metrics degrade, automatically roll back to previous image
+  - update release tag from rc to stable on success
+notes:
+  Canary traffic is selected by a consistent hash on user ID.
+  This ensures the same user always hits canary or stable, not both.
+  Automatic rollback triggers if error rate > 0.5% or p99 latency > 300ms.

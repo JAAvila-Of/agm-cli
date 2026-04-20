@@ -1,0 +1,25 @@
+agm: 1.0
+package: api.patterns
+version: 0.2.0
+title: API Anti-Pattern Catalogue
+
+node api.anti_pattern.god_endpoint
+type: anti_pattern
+summary: do not create single endpoints that handle many unrelated operations via a type parameter
+priority: high
+stability: high
+detail:
+  A god endpoint accepts a generic action field and routes to unrelated logic
+  internally. This pattern defeats HTTP semantics, makes authorization complex,
+  and creates hidden coupling between unrelated features.
+
+  Bad:
+    POST /api/action with body containing a type field dispatching to unrelated logic
+
+  Good:
+    POST /api/users
+    DELETE /api/invoices/{id}
+    POST /api/reports/run
+resolution:
+  Split into separate, purpose-specific endpoints. Use HTTP methods to express
+  the intent (POST for creation, PUT/PATCH for updates, DELETE for removal).

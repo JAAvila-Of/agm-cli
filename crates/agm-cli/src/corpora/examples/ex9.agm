@@ -1,0 +1,24 @@
+agm: 1.0
+package: shared.glossary
+version: 0.1.0
+title: Shared Domain Glossary
+
+node shared.glossary.idempotency_key
+type: glossary
+summary: a client-supplied token that makes a mutating operation safe to retry without duplication
+priority: high
+stability: high
+aliases:
+  - idempotency token
+  - retry key
+detail:
+  An idempotency key is a unique string (UUID recommended) provided by the client
+  in the Idempotency-Key request header. The server stores the result of the first
+  successful execution and returns the stored result for any subsequent request
+  with the same key.
+
+  Typical TTL for stored results: 24 hours.
+  Keys should be per-request, not per-session.
+notes:
+  Idempotency keys apply to the combination of (endpoint, key, request body hash).
+  A key presented with a different body should return 422 Unprocessable Entity.

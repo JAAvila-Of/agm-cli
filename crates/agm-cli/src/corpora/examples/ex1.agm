@@ -1,0 +1,20 @@
+agm: 1.0
+package: auth.platform
+version: 0.1.0
+title: Authentication Platform Core Rules
+
+node auth.facts.jwt_lifecycle
+type: facts
+summary: JWT tokens issued by the auth service have a 15-minute expiry with 7-day refresh tokens
+priority: critical
+stability: high
+items:
+  - access_token_ttl_15_minutes
+  - refresh_token_ttl_7_days
+  - refresh_tokens_are_rotating
+  - revoked_tokens_checked_against_blocklist
+detail:
+  Access tokens are short-lived to limit blast radius on compromise.
+  Refresh tokens rotate on every use; the previous token is immediately invalidated.
+  A token blocklist (Redis, TTL-keyed) stores revoked JTI values.
+notes: Tokens are signed with RS256. Public key rotation happens every 90 days.

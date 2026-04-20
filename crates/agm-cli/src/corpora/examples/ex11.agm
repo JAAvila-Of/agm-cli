@@ -1,0 +1,32 @@
+agm: 1.0
+package: agent.memory
+version: 0.1.0
+title: Agent Memory System
+
+node agent.memory.session_entry
+type: entity
+summary: represents a persisted memory entry scoped to an agent session
+priority: normal
+stability: medium
+fields:
+  - id: uuid
+  - session_id: uuid
+  - agent_id: string
+  - content: string
+  - content_type: enum[fact, decision, observation, task_result]
+  - tags: list[string]
+  - created_at: timestamp
+  - expires_at: timestamp
+  - confidence: float
+  - source_node_id: string
+detail:
+  A memory entry captures something an agent observed, decided, or produced
+  during a session. Entries are tagged for retrieval and optionally expire.
+  Confidence scores allow agents to weight conflicting memories.
+
+  content_type semantics:
+    fact: asserted truth about the world or codebase
+    decision: a choice made and its rationale
+    observation: a measurement or sampled state
+    task_result: the output of a completed task
+notes: Memory entries are vector-indexed for semantic search alongside keyword index.

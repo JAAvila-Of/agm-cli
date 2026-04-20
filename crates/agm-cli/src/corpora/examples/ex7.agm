@@ -1,0 +1,29 @@
+agm: 1.0
+package: api.patterns
+version: 0.2.0
+title: API Pattern Examples
+
+node api.example.pagination_cursor
+type: example
+summary: illustrates cursor-based pagination for a large dataset endpoint
+priority: normal
+stability: high
+detail:
+  Cursor pagination encodes the last-seen position in an opaque token.
+  This avoids offset drift when items are inserted or deleted between pages.
+
+  Request:
+    GET /api/v1/events?limit=20&cursor=eyJpZCI6IjEyMzQifQ
+
+  Response:
+    {
+      "data": [...],
+      "next_cursor": "eyJpZCI6IjE1NTQifQ",
+      "has_more": true
+    }
+
+  When has_more is false or next_cursor is absent, the client has reached
+  the end of the result set.
+notes:
+  Cursors are base64-encoded JSON and must be treated as opaque by clients.
+  Never parse or construct cursors on the client side.

@@ -1,0 +1,18 @@
+agm: 1.0
+package: infra.adr
+version: 1.0.0
+title: Infrastructure Architecture Decisions
+
+node infra.decision.event_sourcing
+type: decision
+summary: adopt event sourcing for the order management domain to enable audit trails and replay
+priority: high
+stability: high
+rationale:
+  - full audit trail with immutable event log suits the compliance requirements
+  - read models can be rebuilt from event history enabling temporal queries
+  - natural fit for the async event-driven architecture already in place
+tradeoffs:
+  - eventual consistency between write side and read projections must be accepted
+  - higher initial complexity and steeper learning curve for the team
+  - schema evolution of events requires versioning discipline

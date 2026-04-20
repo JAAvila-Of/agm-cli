@@ -1,0 +1,85 @@
+# AGM v1.2.0 — Compact Reference
+
+AGM is a line-oriented format for agent-consumable knowledge graphs. Each file
+contains a header followed by one or more node blocks. Nodes are the atomic
+knowledge units — independently addressable, typed, and progressively
+expandable.
+
+---
+
+## File Structure
+
+```
+agm: 1.0
+package: <namespace>      # required; dot-separated, lowercase
+version: 0.1.0            # required; semver
+
+node <id>                 # starts a node block
+type: <node-type>         # required
+summary: <one line>       # required
+```
+
+## Node Types
+
+`facts` | `rules` | `workflow` | `entity` | `decision` | `exception`
+| `example` | `glossary` | `anti_pattern` | `orchestration` | `ticket`
+
+## Key Fields
+
+```
+# Identity (required)
+node <id>
+type: <type>
+summary: <one-line description>
+
+# Relationships
+depends: [<id>, ...]
+related_to: [<id>, ...]
+
+# Operational
+items:
+  - item_name
+steps:
+  - step text
+fields:
+  field_name: type
+
+# Explanatory
+detail:
+  Multi-line block, two-space indent.
+rationale: inline or block
+resolution: how to handle the exception
+
+# Executable
+code:
+  target: src/path/file.ext
+  action: create | append | patch | delete
+  lang: rust | python | typescript | ...
+  content: |
+    <source code>
+verify:
+  - check: description
+    cmd: shell command
+    expect: expected output
+
+# Control
+priority: critical | high | normal | low
+stability: high | medium | low | volatile
+execution_status: pending | ready | in_progress | completed | failed | blocked | skipped
+```
+
+## Minimal Valid File
+
+```agm
+agm: 1.0
+package: demo.kb
+version: 0.1.0
+
+node demo.rule.no_secrets
+type: rules
+summary: do not expose secrets to the browser
+items:
+  - no_browser_secrets
+priority: critical
+stability: high
+```

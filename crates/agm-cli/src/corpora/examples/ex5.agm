@@ -1,0 +1,22 @@
+agm: 1.0
+package: api.security
+version: 0.3.0
+title: API Security Rules
+
+node api.rules.input_validation
+type: rules
+summary: all API inputs must be validated against a schema before processing
+priority: critical
+stability: high
+items:
+  - validate_request_body_against_json_schema
+  - reject_unexpected_fields_with_400
+  - sanitize_string_fields_strip_control_characters
+  - max_request_body_size_1mb
+  - validate_path_parameters_pattern
+  - validate_query_parameters_type_and_range
+rationale:
+  Unvalidated input is the leading vector for injection attacks and data
+  corruption. Schema validation at the boundary prevents malformed data from
+  propagating into the domain layer.
+notes: Validation errors MUST return 400 with a structured error body listing all violations.

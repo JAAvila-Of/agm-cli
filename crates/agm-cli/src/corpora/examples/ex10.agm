@@ -1,0 +1,26 @@
+agm: 1.0
+package: api.exceptions
+version: 0.1.0
+title: API Exception Catalogue
+
+node api.exception.rate_limit_exceeded
+type: exception
+summary: client has exceeded the allowed request rate and must back off before retrying
+priority: high
+stability: high
+detail:
+  This exception occurs when a client exceeds the rate limit for an endpoint.
+  The server returns HTTP 429 Too Many Requests with the following headers:
+
+    Retry-After: <seconds until the limit resets>
+    X-RateLimit-Limit: <max requests per window>
+    X-RateLimit-Remaining: 0
+    X-RateLimit-Reset: <unix timestamp of window reset>
+
+resolution:
+  Client MUST wait for the duration specified in Retry-After before sending
+  another request. Clients SHOULD implement exponential backoff with jitter
+  to avoid thundering-herd effects when the window resets.
+notes:
+  Persistent violations (rate limit hit more than 5 times per hour) trigger
+  an alert and may result in temporary IP or API key suspension.

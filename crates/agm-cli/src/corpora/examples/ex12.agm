@@ -1,0 +1,28 @@
+agm: 1.0
+package: backend.tasks
+version: 0.1.0
+title: Backend Engineering Tasks
+
+node backend.ticket.migrate_to_uuid_pks
+type: ticket
+summary: migrate all public-facing entity endpoints to use UUID primary keys instead of sequential integers
+title: Migrate to UUID Primary Keys in Public API
+description: Replace sequential integer IDs in public API responses with UUID surrogate keys.
+priority: high
+stability: high
+detail:
+  Sequential integer IDs in public API responses expose row counts and enable
+  enumeration attacks. This ticket covers the migration of the four primary
+  domain entities: User, Invoice, Order, and PaymentMethod.
+
+  Migration plan:
+    1. Add uuid column to each table, default gen_random_uuid()
+    2. Backfill existing rows
+    3. Update API serializers to emit uuid instead of id
+    4. Dual-emit both fields for one release cycle
+    5. Deprecate integer id field
+    6. Remove integer id from API response after deprecation window
+
+notes:
+  The internal integer ID remains as the physical primary key for join performance.
+  Only the external representation changes.

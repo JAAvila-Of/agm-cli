@@ -1,0 +1,373 @@
+# AGM v1.2.0 — Compact Reference
+
+AGM is a line-oriented format for agent-consumable knowledge graphs. Each file
+contains a header followed by one or more node blocks. Nodes are the atomic
+knowledge units — independently addressable, typed, and progressively
+expandable.
+
+An agent should often decide relevance from a node's `summary` alone. Loading
+modes allow progressive expansion: start with `summary`, expand to `operational`
+or `full` only when deeper context is needed.
+
+---
+
+## File Structure
+
+```
+agm: 1.0
+package: <namespace>      # required; dot-separated lowercase identifiers
+version: 0.1.0            # required; semver MAJOR.MINOR.PATCH
+
+node <id>                 # starts a node block; unique per package
+type: <node-type>         # required; one of the canonical types
+summary: <one line>       # required; loaded in every mode
+```
+
+A file is a container. The node is the primary unit of retrieval, loading,
+reuse, and versioning.
+
+---
+
+## Node Types
+
+| Type | Purpose |
+|------|---------|
+| `facts` | Factual assertions about the domain |
+| `rules` | Normative constraints (MUST / MUST NOT) |
+| `workflow` | Step-by-step procedural knowledge |
+| `entity` | Data model with typed fields |
+| `decision` | Architecture or design decision with rationale |
+| `exception` | Known error condition and resolution |
+| `example` | Illustrative instance |
+| `glossary` | Term definition |
+| `anti_pattern` | What NOT to do and why |
+| `orchestration` | Multi-agent execution plan with parallel groups |
+| `ticket` | Actionable work item |
+
+---
+
+## Grammar Summary
+
+### Required fields (every node)
+
+```
+node <id>         # node identity; pattern: [a-z][a-z0-9_]*([.-][a-z][a-z0-9_]*)*
+type: <type>      # one of the node types above
+summary: <text>   # one-line description; loaded in every mode
+```
+
+### Relationship fields
+
+```
+depends: [<id>, ...]       # hard dependencies; loader enforces DAG
+related_to: [<id>, ...]    # soft associations; no ordering enforcement
+replaces: [<id>]           # this node supersedes the listed node
+conflicts: [<id>, ...]     # incompatible; validator warns on co-load
+see_also: [<id>, ...]      # additional reading; informational only
+```
+
+### Operational fields
+
+```
+items:                     # unordered list of named constraints or items
+  - item_name
+steps:                     # ordered procedure steps
+  - step description text
+fields:                    # typed field definitions for entity nodes
+  field_name: type         # e.g.  email: string, count: integer
+input: value               # input schema or description
+output: value              # output schema or description
+```
+
+### Explanatory fields
+
+```
+detail:
+  Multi-line block. Indented two spaces from the key.
+  Paragraph breaks preserved. No special escaping.
+rationale: Why the decision was made (inline or block).
+tradeoffs:
+  - pro: benefit text
+    con: cost or risk text
+resolution: How to handle the exception or edge case.
+examples:
+  - description of a concrete instance
+notes: Free-form notes. Not loaded in summary mode.
+```
+
+### Executable fields
+
+```
+code:
+  target: src/path/to/file.ext    # target file for code application
+  action: create | append | patch | delete
+  lang: rust | python | typescript | shell | ...
+  content: |
+    <source code block, indented>
+
+code_blocks:                       # multiple code blocks as a list
+  - target: src/a.rs
+    action: create
+    lang: rust
+    content: |
+      fn main() {}
+
+verify:
+  - check: human-readable description of what is verified
+    cmd: shell command to run
+    expect: expected output or exit code 0
+
+agent_context:
+  nodes: [<id>, ...]              # nodes to load into agent context
+  files: [<path>, ...]            # repository files to load
+  system_hint: text hint for the agent runtime
+```
+
+### Execution state fields
+
+```
+execution_status: pending | ready | in_progress | completed | failed | blocked | skipped
+executed_by: agent-id
+executed_at: 2025-01-15T14:23:00Z
+execution_log: brief log of what happened
+```
+
+### Orchestration fields (type: orchestration only)
+
+```
+parallel_groups:
+  - group: group_name
+    nodes: [<id>, ...]
+    depends: [<group_id>, ...]
+```
+
+### Control fields
+
+```
+priority: critical | high | normal | low
+stability: high | medium | low | volatile
+tags: [tag1, tag2]
+```
+
+### Multi-value syntax variants
+
+```
+# Inline list
+depends: [node.a, node.b]
+
+# Block list
+items:
+  - first_item
+  - second_item
+
+# Inline value
+summary: one line of text
+
+# Multi-line block (two-space indent)
+detail:
+  First paragraph.
+
+  Second paragraph after blank line.
+
+# Nested structure
+tradeoffs:
+  - pro: benefit
+    con: cost
+```
+
+---
+
+## Loading Modes
+
+| Mode | Fields Loaded |
+|------|--------------|
+| `summary` | `node`, `type`, `summary`, `priority`, `stability`, `tags` |
+| `operational` | + `items`, `steps`, `fields`, `input`, `output`, `depends`, `related_to` |
+| `executable` | + `code`, `code_blocks`, `verify`, `agent_context`, `target`, `execution_status` |
+| `full` | all fields including `detail`, `rationale`, `tradeoffs`, `notes`, `examples` |
+
+---
+
+## Validation Rules
+
+1. `agm`, `package`, `version` MUST be present in the header.
+2. `version` MUST follow semver `MAJOR.MINOR.PATCH`.
+3. `package` MUST match `[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)*`.
+4. Each `node` declaration MUST be unique within the package.
+5. `type` MUST be one of the canonical node types.
+6. `summary` MUST be present on every node.
+7. `depends` references MUST resolve to existing nodes (within-file) or declared imports.
+8. Circular `depends` chains MUST be rejected.
+9. `execution_status` MUST use a canonical value.
+10. `code.action` MUST be `create`, `append`, `patch`, or `delete`.
+
+---
+
+## Example: Rules Node
+
+```agm
+agm: 1.0
+package: auth.platform
+version: 0.2.0
+
+node auth.rule.no_secrets_in_browser
+type: rules
+summary: never expose secrets or tokens to browser-side code
+priority: critical
+stability: high
+items:
+  - secrets_never_in_js_bundles
+  - api_keys_server_side_only
+  - tokens_httponly_cookies_only
+rationale: Browser environment is untrusted; any secret exposed can be exfiltrated by scripts.
+```
+
+---
+
+## Example: Workflow Node
+
+```agm
+agm: 1.0
+package: deploy.pipeline
+version: 1.0.0
+
+node deploy.workflow.release
+type: workflow
+summary: standard release workflow for production deployments
+priority: high
+stability: high
+depends: [deploy.decision.feature_flags, deploy.facts.environments]
+steps:
+  - run integration test suite
+  - build release artifact with version tag
+  - deploy to staging and run smoke tests
+  - enable feature flag for 5% of traffic
+  - monitor error rate for 30 minutes
+  - promote to 100% traffic or rollback on threshold breach
+notes: Rollback is automatic if error rate exceeds 1% within the first 15 minutes.
+```
+
+---
+
+## Example: Decision Node
+
+```agm
+agm: 1.0
+package: infra.adr
+version: 1.0.0
+
+node infra.decision.use_postgres
+type: decision
+summary: use PostgreSQL as the primary relational data store
+priority: critical
+stability: high
+rationale:
+  PostgreSQL offers ACID guarantees, a mature ecosystem, and excellent support
+  for JSONB columns when schema flexibility is needed. The team has prior
+  experience and existing operational tooling.
+tradeoffs:
+  - pro: ACID transactions with strong consistency guarantees
+    con: horizontal write scaling requires additional tooling
+  - pro: rich indexing options including partial and expression indexes
+    con: schema migrations require careful downtime planning
+```
+
+---
+
+## Example: Entity Node
+
+```agm
+agm: 1.0
+package: payments.model
+version: 0.3.0
+
+node payments.entity.invoice
+type: entity
+summary: represents a payment invoice with line items and status tracking
+priority: high
+stability: high
+fields:
+  id: uuid
+  customer_id: uuid
+  line_items: list[line_item]
+  subtotal: decimal
+  tax: decimal
+  total: decimal
+  status: enum[draft, issued, paid, voided]
+  issued_at: timestamp
+  due_at: timestamp
+depends: [payments.entity.line_item, payments.entity.customer]
+```
+
+---
+
+## Example: Orchestration Node
+
+```agm
+agm: 1.0
+package: ci.pipeline
+version: 0.1.0
+
+node ci.orch.full_release
+type: orchestration
+summary: full CI/CD release orchestration with parallel testing and staged deploy
+priority: high
+stability: high
+parallel_groups:
+  - group: test_phase
+    nodes: [ci.workflow.unit_tests, ci.workflow.integration_tests, ci.workflow.lint]
+    depends: []
+  - group: build_phase
+    nodes: [ci.workflow.build_artifact]
+    depends: [test_phase]
+  - group: deploy_phase
+    nodes: [ci.workflow.deploy_staging, ci.workflow.smoke_tests]
+    depends: [build_phase]
+  - group: promote_phase
+    nodes: [ci.workflow.promote_production]
+    depends: [deploy_phase]
+```
+
+---
+
+## Example: Anti-Pattern Node
+
+```agm
+agm: 1.0
+package: api.patterns
+version: 0.1.0
+
+node api.anti_pattern.expose_internal_ids
+type: anti_pattern
+summary: do not expose internal sequential database IDs in public API responses
+priority: high
+stability: high
+detail:
+  Sequential integer IDs leak row counts, allow enumeration attacks, and
+  create tight coupling between the API contract and the internal data model.
+  Use UUIDs or opaque tokens in public-facing responses.
+resolution: Replace integer primary keys in API responses with UUID surrogate keys.
+see_also: [api.rules.response_contracts]
+```
+
+---
+
+## Example: Ticket Node
+
+```agm
+agm: 1.0
+package: backend.tasks
+version: 0.1.0
+
+node backend.ticket.add_rate_limit
+type: ticket
+summary: add per-user rate limiting to the public API endpoints
+priority: high
+stability: high
+depends: [backend.facts.api_endpoints, backend.rules.auth]
+detail:
+  Implement token-bucket rate limiting at the API gateway layer.
+  Limit: 100 requests per minute per authenticated user.
+  Unauthenticated requests share a global bucket of 20 req/min.
+  Emit a 429 response with Retry-After header when the bucket is empty.
+```
