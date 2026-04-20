@@ -109,6 +109,7 @@ summary: add OAuth2 login endpoint
 | `context` | Build and display agent context for a node |
 | `verify` | Run verification checks on nodes |
 | `normalize` | Normalize non-canonical synonyms to canonical AGM field and type names |
+| `schema` | Emit JSON Schema (Draft 2020-12) for a built-in AGM node type |
 | `update` | Update agm to the latest version |
 
 ## Library Usage
@@ -130,11 +131,58 @@ if diagnostics.iter().all(|d| !d.is_error()) {
 }
 ```
 
+## Generate tool-use schemas
+
+`agm schema` generates JSON Schema (Draft 2020-12) for any built-in node type, optionally
+wrapped for Anthropic tool-use or OpenAI function-calling. Schemas are derived from the same
+registry the validator uses, so they always stay in sync with the spec.
+
+```bash
+# Raw JSON Schema for the ticket node type
+agm schema ticket
+
+# Anthropic tool-use shape (drop into your tools array)
+agm schema ticket --for anthropic-tool-use --tool-name create_ticket
+
+# OpenAI function-calling shape
+agm schema ticket --for openai-tool
+
+# Strict mode: additionalProperties: false
+agm schema ticket --strict
+
+# Generate all 11 built-in type schemas into a directory
+agm schema all --output schemas/
+
+# Generate all schemas wrapped for Anthropic tool-use
+agm schema all --for anthropic-tool-use --output schemas/
+```
+
+Rust API:
+
+```rust
+use agm_core::schemas::{ticket_schema, schema_for, SchemaOptions, SchemaDialect};
+use agm_core::model::fields::NodeType;
+
+// Convenience function (vanilla, default options)
+let schema = ticket_schema();
+
+// Full control
+let opts = SchemaOptions {
+    dialect: SchemaDialect::AnthropicToolUse,
+    strict: true,
+    ..Default::default()
+};
+let schema = schema_for(&NodeType::Ticket, &opts).unwrap();
+```
+
+See [docs/schemas.md](docs/schemas.md) for the full reference.
+
 ## Documentation
 
 - [CLI API Reference](docs/api.md) -- Complete command reference with examples, options, and edge cases
 - [AGM Specification v1.2.0](docs/spec/agm_spec_v1.2.0.md) -- Full format specification
 - [Normalize Layer](docs/normalize.md) -- How to rewrite non-canonical AGM input to canonical form
+- [JSON Schema Generation](docs/schemas.md) -- How to generate and use node-type schemas
 - [Library API (docs.rs)](https://docs.rs/agm-core) -- Auto-generated Rust API docs for `agm-core`
 - [Contributing](CONTRIBUTING.md) -- How to contribute
 
