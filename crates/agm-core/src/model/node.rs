@@ -145,6 +145,103 @@ pub struct Node {
     pub span: Span,
 }
 
+impl Node {
+    /// Renders this single node as canonical AGM text.
+    ///
+    /// Wraps the node in a minimal `AgmFile` with a placeholder header
+    /// (`agm: 1.0`, `package: "scratch.builder"`, `version: "0.1.0"`) and
+    /// calls the canonical renderer. The output includes the three header lines
+    /// followed by the node block.
+    ///
+    /// This is a convenience for quick serialization — production consumers that
+    /// need a real header should build an `AgmFile` and call
+    /// `renderer::canonical::render_canonical` directly.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::model::node::Node;
+    /// use agm_core::model::fields::NodeType;
+    ///
+    /// let mut node = Node::default();
+    /// node.id = "auth.facts".to_owned();
+    /// node.node_type = NodeType::Facts;
+    /// node.summary = "authentication constraints".to_owned();
+    ///
+    /// let text = node.render_canonical();
+    /// assert!(text.contains("node auth.facts"));
+    /// assert!(text.contains("type: facts"));
+    /// ```
+    #[must_use]
+    pub fn render_canonical(&self) -> String {
+        use crate::model::file::{AgmFile, Header};
+        use crate::renderer::canonical::render_canonical as do_render;
+
+        let file = AgmFile {
+            header: Header {
+                agm: "1.0".to_owned(),
+                package: "scratch.builder".to_owned(),
+                version: "0.1.0".to_owned(),
+                title: None,
+                owner: None,
+                imports: None,
+                default_load: None,
+                description: None,
+                tags: None,
+                status: None,
+                load_profiles: None,
+                target_runtime: None,
+            },
+            nodes: vec![self.clone()],
+        };
+        do_render(&file)
+    }
+
+    /// Renders just the `node <id>` through end-of-node block, without any
+    /// file-level header framing.
+    ///
+    /// Identical to [`render_canonical`] output but with the three placeholder
+    /// header lines (`agm:`, `package:`, `version:`) and the blank separator
+    /// line stripped. The result starts with `node <id>`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::model::node::Node;
+    /// use agm_core::model::fields::NodeType;
+    ///
+    /// let mut node = Node::default();
+    /// node.id = "auth.facts".to_owned();
+    /// node.node_type = NodeType::Facts;
+    /// node.summary = "authentication constraints".to_owned();
+    ///
+    /// let text = node.render_node_only();
+    /// assert!(text.starts_with("node auth.facts"));
+    /// assert!(!text.contains("agm:"));
+    /// ```
+    ///
+    /// [`render_canonical`]: Node::render_canonical
+    #[must_use]
+    pub fn render_node_only(&self) -> String {
+        let full = self.render_canonical();
+        // The canonical renderer emits:
+        //   agm: 1.0\n
+        //   package: scratch.builder\n
+        //   version: 0.1.0\n
+        //   \n
+        //   node <id>\n
+        //   ...
+        // Find the first occurrence of "node " to strip the header block.
+        if let Some(pos) = full.find("\nnode ") {
+            // +1 to skip the leading newline before "node"
+            full[pos + 1..].to_owned()
+        } else {
+            // Fallback: no header present (shouldn't happen for valid nodes)
+            full
+        }
+    }
+}
+
 impl Default for Node {
     fn default() -> Self {
         Self {
