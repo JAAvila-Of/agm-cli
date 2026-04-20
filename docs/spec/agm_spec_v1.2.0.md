@@ -528,7 +528,11 @@ node auth.login
 The identity:
 - MUST be unique within the effective package scope
 - SHOULD be stable over time
-- MUST match the pattern `[a-z][a-z0-9]*([.-][a-z][a-z0-9]*)*`
+- MUST match the pattern `[a-z][a-z0-9_]*([.-][a-z][a-z0-9_]*)*`
+  *(Errata: the original pattern `[a-z][a-z0-9]*` did not allow underscore `_`.
+  The reference implementation has always permitted `_` in segment bodies.
+  This errata aligns the spec with the implementation — underscore is a legal
+  character in node ID segments as of 1.2.0.)*
 - SHOULD reflect semantic hierarchy
 
 ### 11.3 Recommended node size
