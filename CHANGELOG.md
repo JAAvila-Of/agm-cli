@@ -71,10 +71,31 @@ All notable changes to `agm-cli` and `agm-core` are documented here.
   the explicit block-scalar indent indicator on emission and matching
   strip semantics on parse.
 
+- **`agm ingest` CLI subcommand** and **`agm_core::ingest`** module: converts
+  tool-call JSON args (single object or array) into validated canonical AGM
+  text. Pipeline: JSON Schema pre-check → field-name normalization → builder
+  construction (`build_unchecked`) → post-build Standard/Strict validation →
+  canonical render. Supports `--no-normalize`, `--no-schema-check`,
+  `--enforcement strict|standard|permissive`, `--output`, `--version`,
+  `--header-title`. Batch mode synthesizes IDs as `{prefix}.{i}` when
+  individual elements carry no `"node"` field.
+
+- **`extra()` escape hatch** on all 7 node builders (`TicketBuilder`,
+  `WorkflowBuilder`, `OrchestrationBuilder`, `FactsBuilder`, `RulesBuilder`,
+  `DecisionBuilder`, `MemoryEntryBuilder`): routes unknown JSON fields into
+  `node.extra_fields` so model-emitted non-spec fields are preserved for
+  audit rather than discarded.
+
+- **`extra_fields`** on `MemoryEntry`: `BTreeMap<String, FieldValue>` with
+  `#[serde(flatten)]` — unknown fields in memory entries round-trip through
+  serialization.
+
+- **`MemoryEntryBuilder::extra()`** setter for unknown memory-entry fields.
+
 ### Documentation
 
-- New: `docs/normalize.md`, `docs/schemas.md`, `docs/builder.md`.
-- README extended with sections for normalize, schemas, and the Builder API.
+- New: `docs/normalize.md`, `docs/schemas.md`, `docs/builder.md`, `docs/ingest.md`.
+- README extended with sections for normalize, schemas, Builder API, and `agm ingest`.
 - Rustdoc on `validator::node::NODE_ID_RE` clarifies V021 as defence-in-depth:
   the parser's P002 catches invalid IDs at parse time; V021 still fires
   when a `Node` is constructed programmatically (e.g. via `serde_json::from_str`,

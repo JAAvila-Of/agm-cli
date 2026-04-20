@@ -225,6 +225,56 @@ let schema = schema_for(&NodeType::Ticket, &opts).unwrap();
 
 See [docs/schemas.md](docs/schemas.md) for the full reference.
 
+## `agm ingest` — Tool-Call JSON to Canonical AGM
+
+`agm ingest` is the shortest path from a completed LLM tool-call to a
+persisted canonical `.agm` node.
+
+```bash
+# Single node from stdin
+echo '{
+  "type": "ticket",
+  "summary": "add OAuth2 login",
+  "title": "Add OAuth2 Login",
+  "description": "Implement the OAuth2 PKCE flow.",
+  "priority": "high"
+}' | agm ingest ticket --package myproject.tickets --id myproject.ticket.oauth
+
+# From a file
+agm ingest ticket --package myproject.tickets --id myproject.ticket.oauth \
+    --file args.json
+
+# Batch (JSON array) — nodes are id'd by "node" field or synthesized prefix
+cat batch.json | agm ingest ticket --package myproject.tickets --id myproject.batch
+```
+
+Rust API:
+
+```rust
+use agm_core::ingest::{ingest_one, IngestConfig};
+use agm_core::model::fields::NodeType;
+use agm_core::model::schema::EnforcementLevel;
+use serde_json::json;
+
+let v = json!({
+    "type": "ticket",
+    "summary": "add login",
+    "title": "Add Login",
+    "description": "Implement login.",
+    "priority": "high"
+});
+
+let node = ingest_one(
+    NodeType::Ticket,
+    "myproject.ticket.login",
+    v,
+    &IngestConfig::default(),
+).unwrap();
+```
+
+See [docs/ingest.md](docs/ingest.md) for the full reference, including
+Anthropic and OpenAI tool-call integration examples.
+
 ## Documentation
 
 - [CLI API Reference](docs/api.md) -- Complete command reference with examples, options, and edge cases
@@ -232,6 +282,7 @@ See [docs/schemas.md](docs/schemas.md) for the full reference.
 - [Normalize Layer](docs/normalize.md) -- How to rewrite non-canonical AGM input to canonical form
 - [Builder API](docs/builder.md) -- Fluent Rust builder API for constructing AGM nodes programmatically
 - [JSON Schema Generation](docs/schemas.md) -- How to generate and use node-type schemas
+- [Ingest](docs/ingest.md) -- Convert tool-call JSON args into canonical AGM text
 - [Library API (docs.rs)](https://docs.rs/agm-core) -- Auto-generated Rust API docs for `agm-core`
 - [Contributing](CONTRIBUTING.md) -- How to contribute
 
