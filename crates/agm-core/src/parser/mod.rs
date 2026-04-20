@@ -11,9 +11,11 @@ pub mod mem;
 pub mod node;
 pub mod sidecar;
 pub mod state;
+pub mod stream;
 pub mod structured;
 
 pub use lexer::{Line, LineKind, classify_line, lex};
+pub use stream::{ParseEvent, StreamParser};
 
 use crate::error::{AgmError, ErrorCode, ErrorLocation};
 use crate::model::file::AgmFile;

@@ -6,6 +6,20 @@ All notable changes to `agm-cli` and `agm-core` are documented here.
 
 ### Added
 
+- **`agm_core::parser::StreamParser`**: chunk-based streaming parser for AGM
+  text. Consumers feed text incrementally via `push_chunk(&mut self, &str) ->
+  Vec<ParseEvent>` and call `finish(self) -> (Vec<ParseEvent>,
+  Result<AgmFile, Vec<AgmError>>)` to flush the final node and assemble the
+  complete `AgmFile`. Emits six event types: `HeaderComplete`, `NodeStarted`,
+  `NodeComplete`, `Warning`, `Error`, `EndOfFile`. Useful for rendering AGM
+  nodes incrementally as a streaming model response arrives. Reuses
+  `lexer::classify_line`, `header::parse_header`, and `node::parse_node`
+  verbatim — no new grammar logic. Property-tested for equivalence with
+  `parser::parse` across all existing fixtures at chunk sizes
+  `[1, 2, 4, 16, 64, whole]`. CRLF inputs are handled equivalently to LF.
+  `ParseEvent` is `#[non_exhaustive]`. No async wrapper; fully synchronous.
+  No new runtime dependencies. Docs: `docs/streaming.md`.
+
 - **`agm repair` CLI subcommand**: applies conservative text-level rewrite rules
   to AGM files with syntax errors common in LLM-generated output. Ships 9
   built-in rules in canonical order: `R-ZERO-WIDTH`, `R-CRLF`,
