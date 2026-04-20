@@ -251,6 +251,60 @@ enum Commands {
         quiet: bool,
     },
 
+    /// Apply text-level repair rules to an AGM file (repair then normalize)
+    Fix {
+        /// Path to the .agm file
+        file: PathBuf,
+
+        /// Write repaired output to this file (default: stdout)
+        #[arg(long, short, conflicts_with = "in_place", conflicts_with = "check")]
+        output: Option<PathBuf>,
+
+        /// Rewrite the file in place (conflicts with --output)
+        #[arg(long, conflicts_with = "output", conflicts_with = "check")]
+        in_place: bool,
+
+        /// Prompt before writing in place (requires --in-place)
+        #[arg(long, requires = "in_place")]
+        confirm: bool,
+
+        /// Print the repair report to stderr after output
+        #[arg(long)]
+        explain: bool,
+
+        /// Report format for --explain output
+        #[arg(long = "report-format", value_enum, default_value_t = ReportFormatArg::Text)]
+        report_format: ReportFormatArg,
+
+        /// Disable a specific repair rule (repeatable)
+        #[arg(long = "disable-rule", conflicts_with = "enable_only")]
+        disable_rule: Vec<String>,
+
+        /// Enable only these comma-separated rule IDs (conflicts with --disable-rule)
+        #[arg(long = "enable-only", conflicts_with = "disable_rule")]
+        enable_only: Option<String>,
+
+        /// Skip safety-net re-parse after repair
+        #[arg(long)]
+        no_safety_net: bool,
+
+        /// Exit 1 if any rewrites would be applied; no output written (conflicts with --in-place, --output)
+        #[arg(long, conflicts_with = "in_place", conflicts_with = "output")]
+        check: bool,
+
+        /// Additional or override normalize rules YAML file
+        #[arg(long)]
+        rules: Option<PathBuf>,
+
+        /// Skip type-level normalization
+        #[arg(long)]
+        no_types: bool,
+
+        /// Skip field-level normalization
+        #[arg(long)]
+        no_fields: bool,
+    },
+
     /// Normalize non-canonical field and type names to their canonical forms
     Normalize {
         /// Path to the .agm file
@@ -286,6 +340,48 @@ enum Commands {
 
         /// Exit 0 if no rewrites needed, 1 if rewrites would be made (no output written)
         #[arg(long)]
+        check: bool,
+    },
+
+    /// Apply text-level repair rules to an AGM file (syntax-level fixes)
+    Repair {
+        /// Path to the .agm file
+        file: PathBuf,
+
+        /// Write repaired output to this file (default: stdout)
+        #[arg(long, short, conflicts_with = "in_place", conflicts_with = "check")]
+        output: Option<PathBuf>,
+
+        /// Rewrite the file in place (conflicts with --output)
+        #[arg(long, conflicts_with = "output", conflicts_with = "check")]
+        in_place: bool,
+
+        /// Prompt before writing in place (requires --in-place)
+        #[arg(long, requires = "in_place")]
+        confirm: bool,
+
+        /// Print the repair report to stderr after output
+        #[arg(long)]
+        explain: bool,
+
+        /// Report format for --explain output
+        #[arg(long = "report-format", value_enum, default_value_t = ReportFormatArg::Text)]
+        report_format: ReportFormatArg,
+
+        /// Disable a specific repair rule (repeatable)
+        #[arg(long = "disable-rule", conflicts_with = "enable_only")]
+        disable_rule: Vec<String>,
+
+        /// Enable only these comma-separated rule IDs (conflicts with --disable-rule)
+        #[arg(long = "enable-only", conflicts_with = "disable_rule")]
+        enable_only: Option<String>,
+
+        /// Skip safety-net re-parse after repair
+        #[arg(long)]
+        no_safety_net: bool,
+
+        /// Exit 1 if any rewrites would be applied; no output written (conflicts with --in-place, --output)
+        #[arg(long, conflicts_with = "in_place", conflicts_with = "output")]
         check: bool,
     },
 
@@ -751,6 +847,13 @@ impl ReportFormatArg {
             Self::Json => commands::normalize::ReportFormat::Json,
         }
     }
+
+    fn to_repair(&self) -> commands::repair::ReportFormat {
+        match self {
+            Self::Text => commands::repair::ReportFormat::Text,
+            Self::Json => commands::repair::ReportFormat::Json,
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1137,6 +1240,36 @@ fn run() -> anyhow::Result<()> {
             quiet,
         } => commands::diff::run(&left, &right, format.to_core(), breaking_only, quiet),
 
+        Commands::Fix {
+            file,
+            output,
+            in_place,
+            confirm,
+            explain,
+            report_format,
+            disable_rule,
+            enable_only,
+            no_safety_net,
+            check,
+            rules,
+            no_types,
+            no_fields,
+        } => commands::fix::run(
+            &file,
+            output.as_deref(),
+            in_place,
+            confirm,
+            explain,
+            report_format.to_repair(),
+            &disable_rule,
+            enable_only.as_deref(),
+            no_safety_net,
+            check,
+            rules.as_deref(),
+            no_types,
+            no_fields,
+        ),
+
         Commands::Normalize {
             file,
             rules,
@@ -1156,6 +1289,30 @@ fn run() -> anyhow::Result<()> {
             report_format.to_core(),
             no_types,
             no_fields,
+            check,
+        ),
+
+        Commands::Repair {
+            file,
+            output,
+            in_place,
+            confirm,
+            explain,
+            report_format,
+            disable_rule,
+            enable_only,
+            no_safety_net,
+            check,
+        } => commands::repair::run(
+            &file,
+            output.as_deref(),
+            in_place,
+            confirm,
+            explain,
+            report_format.to_repair(),
+            &disable_rule,
+            enable_only.as_deref(),
+            no_safety_net,
             check,
         ),
 
