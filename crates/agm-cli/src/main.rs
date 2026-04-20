@@ -332,6 +332,50 @@ enum Commands {
         pretty: bool,
     },
 
+    /// Ingest tool-call JSON args into canonical AGM text
+    Ingest {
+        /// Node type: facts, rules, workflow, entity, decision, exception,
+        /// example, glossary, anti_pattern, orchestration, ticket
+        #[arg(value_name = "TYPE")]
+        type_: String,
+
+        /// Package name for the generated AGM file header (required)
+        #[arg(long)]
+        package: String,
+
+        /// Node id (single mode) or id prefix (batch mode)
+        #[arg(long)]
+        id: Option<String>,
+
+        /// Read JSON from this file instead of stdin
+        #[arg(long)]
+        file: Option<PathBuf>,
+
+        /// Skip field-name normalization
+        #[arg(long, default_value_t = false)]
+        no_normalize: bool,
+
+        /// Skip JSON Schema pre-check
+        #[arg(long, default_value_t = false)]
+        no_schema_check: bool,
+
+        /// Enforcement level for post-build validation
+        #[arg(long, value_enum, default_value_t = EnforcementArg::Standard)]
+        enforcement: EnforcementArg,
+
+        /// Write AGM output to this file (default: stdout)
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Package version in the generated file header
+        #[arg(long, default_value = "0.1.0")]
+        version: String,
+
+        /// Optional title field in the generated file header
+        #[arg(long)]
+        header_title: Option<String>,
+    },
+
     /// Compile a Markdown file into an AGM file
     Compile {
         /// Path to the input Markdown file
@@ -787,6 +831,30 @@ fn main() -> anyhow::Result<()> {
             tool_description.as_deref(),
             output.as_deref(),
             pretty,
+        ),
+
+        Commands::Ingest {
+            type_,
+            package,
+            id,
+            file,
+            no_normalize,
+            no_schema_check,
+            enforcement,
+            output,
+            version,
+            header_title,
+        } => commands::ingest::run(
+            &type_,
+            &package,
+            id.as_deref(),
+            file.as_deref(),
+            no_normalize,
+            no_schema_check,
+            enforcement.to_core(),
+            output.as_deref(),
+            &version,
+            header_title.as_deref(),
         ),
 
         Commands::Compile {

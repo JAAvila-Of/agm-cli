@@ -5,6 +5,7 @@ pub mod context;
 pub mod diff;
 pub mod graph;
 pub mod helpers;
+pub mod ingest;
 pub mod lint;
 pub mod load;
 pub mod mem_cmd;
