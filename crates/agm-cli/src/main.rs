@@ -288,6 +288,50 @@ enum Commands {
         check: bool,
     },
 
+    /// Emit JSON Schema for a built-in AGM node type
+    Schema {
+        /// Node type: facts, rules, workflow, entity, decision, exception, example,
+        /// glossary, anti_pattern, orchestration, ticket, or "all"
+        #[arg(value_name = "TYPE")]
+        node_type: String,
+
+        /// Output format: json-schema (default) or yaml
+        #[arg(long = "format", value_enum, default_value_t = SchemaFormatArg::JsonSchema)]
+        format: SchemaFormatArg,
+
+        /// Dialect wrapper: vanilla (default), anthropic-tool-use, or openai-tool
+        #[arg(long = "for", value_enum, default_value_t = DialectArg::Vanilla)]
+        for_dialect: DialectArg,
+
+        /// Emit enum constraints (default: true)
+        #[arg(long = "include-enums", default_value_t = true)]
+        include_enums: bool,
+
+        /// Disable enum constraints
+        #[arg(long = "no-include-enums", overrides_with = "include_enums")]
+        no_include_enums: bool,
+
+        /// Tighten schema: disallow non-allowed fields (additionalProperties: false)
+        #[arg(long, default_value_t = false)]
+        strict: bool,
+
+        /// Override the tool name used in dialect wrapping
+        #[arg(long)]
+        tool_name: Option<String>,
+
+        /// Override the tool description used in dialect wrapping
+        #[arg(long)]
+        tool_description: Option<String>,
+
+        /// Write output to file or directory (default: stdout)
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Pretty-print JSON (default: true)
+        #[arg(long, default_value_t = true)]
+        pretty: bool,
+    },
+
     /// Compile a Markdown file into an AGM file
     Compile {
         /// Path to the input Markdown file
@@ -513,6 +557,47 @@ impl ReportFormatArg {
     }
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum SchemaFormatArg {
+    /// JSON Schema (default)
+    #[value(name = "json-schema")]
+    JsonSchema,
+    /// YAML output
+    Yaml,
+}
+
+impl SchemaFormatArg {
+    fn to_cmd(self) -> commands::schema_cmd::SchemaFormatArg {
+        match self {
+            Self::JsonSchema => commands::schema_cmd::SchemaFormatArg::JsonSchema,
+            Self::Yaml => commands::schema_cmd::SchemaFormatArg::Yaml,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum DialectArg {
+    /// Raw JSON Schema
+    #[value(name = "vanilla")]
+    Vanilla,
+    /// Anthropic tool-use shape
+    #[value(name = "anthropic-tool-use")]
+    AnthropicToolUse,
+    /// OpenAI function-calling shape
+    #[value(name = "openai-tool")]
+    OpenAiTool,
+}
+
+impl DialectArg {
+    fn to_cmd(self) -> commands::schema_cmd::DialectArg {
+        match self {
+            Self::Vanilla => commands::schema_cmd::DialectArg::Vanilla,
+            Self::AnthropicToolUse => commands::schema_cmd::DialectArg::AnthropicToolUse,
+            Self::OpenAiTool => commands::schema_cmd::DialectArg::OpenAiTool,
+        }
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     // Configure miette for fancy terminal output
     miette::set_hook(Box::new(|_| {
@@ -679,6 +764,29 @@ fn main() -> anyhow::Result<()> {
             no_types,
             no_fields,
             check,
+        ),
+
+        Commands::Schema {
+            node_type,
+            format,
+            for_dialect,
+            include_enums,
+            no_include_enums,
+            strict,
+            tool_name,
+            tool_description,
+            output,
+            pretty,
+        } => commands::schema_cmd::run(
+            &node_type,
+            format.to_cmd(),
+            for_dialect.to_cmd(),
+            include_enums && !no_include_enums,
+            strict,
+            tool_name.as_deref(),
+            tool_description.as_deref(),
+            output.as_deref(),
+            pretty,
         ),
 
         Commands::Compile {

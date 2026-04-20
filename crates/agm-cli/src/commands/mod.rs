@@ -12,6 +12,7 @@ pub mod normalize;
 pub mod render;
 pub mod retry;
 pub mod run;
+pub mod schema_cmd;
 pub mod state_cmd;
 pub mod status;
 pub mod update;
