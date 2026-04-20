@@ -1,4 +1,5 @@
 mod commands;
+mod corpora;
 mod runtime;
 
 use std::path::PathBuf;
@@ -409,6 +410,37 @@ enum Commands {
         #[arg(long, default_value_t = false)]
         json: bool,
     },
+
+    /// Emit a cacheable, provider-aware AGM system-prompt corpus
+    Corpus {
+        /// Corpus flavor: full, standard, or grammar-only
+        #[arg(long, value_enum, default_value_t = CorpusFlavorArg::Full)]
+        flavor: CorpusFlavorArg,
+
+        /// Provider target: anthropic, openai, or vanilla
+        #[arg(long = "for", value_enum, default_value_t = CorpusTargetArg::Vanilla)]
+        for_target: CorpusTargetArg,
+
+        /// Pad with examples until token estimate meets this minimum
+        #[arg(long)]
+        min_tokens: Option<usize>,
+
+        /// Omit the "# AGM spec version: x.y.z" header line
+        #[arg(long, default_value_t = false)]
+        no_version: bool,
+
+        /// Write corpus to this file instead of stdout
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Output format: text (default) or json
+        #[arg(long, value_enum, default_value_t = CorpusFormatArg::Text)]
+        format: CorpusFormatArg,
+
+        /// Print only the token estimate as an integer
+        #[arg(long, default_value_t = false)]
+        count_only: bool,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -600,6 +632,71 @@ impl ReportFormatArg {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Corpus-specific clap enums
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum CorpusFlavorArg {
+    /// Full grammar, semantics, and 6 examples
+    Full,
+    /// Abridged grammar and 3 examples
+    Standard,
+    /// Grammar summary only
+    #[value(name = "grammar-only")]
+    GrammarOnly,
+}
+
+impl CorpusFlavorArg {
+    fn to_cmd(self) -> commands::corpus::CorpusFlavorArg {
+        match self {
+            Self::Full => commands::corpus::CorpusFlavorArg::Full,
+            Self::Standard => commands::corpus::CorpusFlavorArg::Standard,
+            Self::GrammarOnly => commands::corpus::CorpusFlavorArg::GrammarOnly,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum CorpusTargetArg {
+    /// Anthropic system prompt format
+    Anthropic,
+    /// OpenAI system prompt format
+    #[value(name = "openai")]
+    OpenAi,
+    /// No provider wrapping
+    Vanilla,
+}
+
+impl CorpusTargetArg {
+    fn to_cmd(self) -> commands::corpus::CorpusTargetArg {
+        match self {
+            Self::Anthropic => commands::corpus::CorpusTargetArg::Anthropic,
+            Self::OpenAi => commands::corpus::CorpusTargetArg::OpenAi,
+            Self::Vanilla => commands::corpus::CorpusTargetArg::Vanilla,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum CorpusFormatArg {
+    /// Plain text output
+    Text,
+    /// JSON with body and token metadata
+    Json,
+}
+
+impl CorpusFormatArg {
+    fn to_cmd(self) -> commands::corpus::CorpusFormatArg {
+        match self {
+            Self::Text => commands::corpus::CorpusFormatArg::Text,
+            Self::Json => commands::corpus::CorpusFormatArg::Json,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
 enum SchemaFormatArg {
@@ -875,6 +972,24 @@ fn main() -> anyhow::Result<()> {
             min_confidence,
             validate,
             json,
+        ),
+
+        Commands::Corpus {
+            flavor,
+            for_target,
+            min_tokens,
+            no_version,
+            output,
+            format,
+            count_only,
+        } => commands::corpus::run(
+            flavor.to_cmd(),
+            for_target.to_cmd(),
+            min_tokens,
+            no_version,
+            output.as_deref(),
+            format.to_cmd(),
+            count_only,
         ),
     };
 

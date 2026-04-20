@@ -2,6 +2,7 @@
 
 pub mod compile;
 pub mod context;
+pub mod corpus;
 pub mod diff;
 pub mod graph;
 pub mod helpers;
