@@ -23,3 +23,5 @@ step_*.md
 plan_init.md
 plan_phase_2.md
 agm_specs_v02.md
+news_*[.md,.txt]
+bugs.md
