@@ -131,6 +131,54 @@ if diagnostics.iter().all(|d| !d.is_error()) {
 }
 ```
 
+### Builder API
+
+`agm-core` ships a fluent builder API for constructing spec-compliant
+nodes from Rust. Builders run the same validation as `agm validate`.
+
+```rust
+use agm_core::builder::{TicketBuilder, WorkflowBuilder, CodeBlockBuilder, VerifyCheckBuilder};
+use agm_core::model::fields::Priority;
+use agm_core::model::ticket::{TicketAction, SddPhase};
+use agm_core::model::code::CodeAction;
+
+// Build a ticket node
+let ticket = TicketBuilder::new("my.ticket.oauth-login")
+    .summary("add OAuth2 login endpoint")
+    .title("Add OAuth2 login endpoint")
+    .description("Implement /login with Google OAuth2 and JWT issuance.")
+    .priority(Priority::High)
+    .action(TicketAction::Create)
+    .sdd_phase(SddPhase::Propose)
+    .labels(["auth", "api"])
+    .build()?;
+
+// Render the node as canonical AGM text (no header)
+println!("{}", ticket.render_node_only());
+
+// Build a code-block patch and a verify check
+let patch = CodeBlockBuilder::replace()
+    .target("src/auth/mod.rs")
+    .lang("rust")
+    .old("// TODO: auth")
+    .body("pub mod oauth;")
+    .build()?;
+
+let check = VerifyCheckBuilder::command("cargo test --lib")
+    .expect("exit_code_0")
+    .build()?;
+
+// Build a workflow that carries the patch and the verify check
+let workflow = WorkflowBuilder::new("auth.workflow.add-oauth")
+    .summary("implement OAuth2 login")
+    .steps(["scaffold module", "add route handler", "write tests"])
+    .code_blocks([patch])
+    .verify([check])
+    .build()?;
+```
+
+See [docs/builder.md](docs/builder.md) for the full builder reference.
+
 ## Generate tool-use schemas
 
 `agm schema` generates JSON Schema (Draft 2020-12) for any built-in node type, optionally
@@ -182,6 +230,7 @@ See [docs/schemas.md](docs/schemas.md) for the full reference.
 - [CLI API Reference](docs/api.md) -- Complete command reference with examples, options, and edge cases
 - [AGM Specification v1.2.0](docs/spec/agm_spec_v1.2.0.md) -- Full format specification
 - [Normalize Layer](docs/normalize.md) -- How to rewrite non-canonical AGM input to canonical form
+- [Builder API](docs/builder.md) -- Fluent Rust builder API for constructing AGM nodes programmatically
 - [JSON Schema Generation](docs/schemas.md) -- How to generate and use node-type schemas
 - [Library API (docs.rs)](https://docs.rs/agm-core) -- Auto-generated Rust API docs for `agm-core`
 - [Contributing](CONTRIBUTING.md) -- How to contribute
