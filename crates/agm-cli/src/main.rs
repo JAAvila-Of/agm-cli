@@ -250,6 +250,44 @@ enum Commands {
         quiet: bool,
     },
 
+    /// Normalize non-canonical field and type names to their canonical forms
+    Normalize {
+        /// Path to the .agm file
+        file: PathBuf,
+
+        /// Additional or override rules YAML file
+        #[arg(long)]
+        rules: Option<PathBuf>,
+
+        /// Write normalized output to this file (default: stdout)
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Rewrite the file in place (conflicts with --output)
+        #[arg(long, conflicts_with = "output")]
+        in_place: bool,
+
+        /// Print the normalize report after the output
+        #[arg(long)]
+        explain: bool,
+
+        /// Report format when --explain is used
+        #[arg(long = "report-format", value_enum, default_value_t = ReportFormatArg::Text)]
+        report_format: ReportFormatArg,
+
+        /// Skip type-level normalization
+        #[arg(long)]
+        no_types: bool,
+
+        /// Skip field-level normalization
+        #[arg(long)]
+        no_fields: bool,
+
+        /// Exit 0 if no rewrites needed, 1 if rewrites would be made (no output written)
+        #[arg(long)]
+        check: bool,
+    },
+
     /// Compile a Markdown file into an AGM file
     Compile {
         /// Path to the input Markdown file
@@ -460,6 +498,21 @@ impl DiffFormatArg {
     }
 }
 
+#[derive(Debug, Clone, ValueEnum)]
+enum ReportFormatArg {
+    Text,
+    Json,
+}
+
+impl ReportFormatArg {
+    fn to_core(&self) -> commands::normalize::ReportFormat {
+        match self {
+            Self::Text => commands::normalize::ReportFormat::Text,
+            Self::Json => commands::normalize::ReportFormat::Json,
+        }
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     // Configure miette for fancy terminal output
     miette::set_hook(Box::new(|_| {
@@ -605,6 +658,28 @@ fn main() -> anyhow::Result<()> {
             breaking_only,
             quiet,
         } => commands::diff::run(&left, &right, format.to_core(), breaking_only, quiet),
+
+        Commands::Normalize {
+            file,
+            rules,
+            output,
+            in_place,
+            explain,
+            report_format,
+            no_types,
+            no_fields,
+            check,
+        } => commands::normalize::run(
+            &file,
+            rules.as_deref(),
+            output.as_deref(),
+            in_place,
+            explain,
+            report_format.to_core(),
+            no_types,
+            no_fields,
+            check,
+        ),
 
         Commands::Compile {
             input,

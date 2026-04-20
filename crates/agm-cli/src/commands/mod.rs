@@ -8,6 +8,7 @@ pub mod helpers;
 pub mod lint;
 pub mod load;
 pub mod mem_cmd;
+pub mod normalize;
 pub mod render;
 pub mod retry;
 pub mod run;

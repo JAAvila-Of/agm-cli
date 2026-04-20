@@ -31,6 +31,7 @@ clap.workspace = true
 anyhow.workspace = true
 miette = { workspace = true, features = ["fancy"] }
 serde_json.workspace = true
+serde_yaml = "0.9"
 time = { version = "0.3", features = ["formatting", "parsing"] }
 regex.workspace = true
 log = "0.4"
