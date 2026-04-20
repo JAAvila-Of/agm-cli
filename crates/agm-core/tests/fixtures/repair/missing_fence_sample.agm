@@ -1,6 +1,6 @@
 ```agm
 agm: 1.0
-package: llm-output
+package: test.repair
 version: 0.1.0
 
 node context-node

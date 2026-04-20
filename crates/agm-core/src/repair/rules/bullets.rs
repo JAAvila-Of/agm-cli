@@ -13,9 +13,7 @@ use crate::repair::rules::RepairRule;
 
 /// Check whether a trimmed line is a `-` bullet.
 fn is_dash_bullet(line: &str) -> bool {
-    line.starts_with("- ")
-        || line == "-"
-        || line.starts_with("-\t")
+    line.starts_with("- ") || line == "-" || line.starts_with("-\t")
 }
 
 /// Return the leading-whitespace character count of a string.

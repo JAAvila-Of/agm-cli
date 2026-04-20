@@ -25,6 +25,7 @@ pub(crate) trait RepairRule: Send + Sync {
     fn id(&self) -> &'static str;
 
     /// Short human-readable description of what this rule does.
+    #[allow(dead_code)]
     fn description(&self) -> &'static str;
 
     /// Apply the rule to `input`, returning `(output_text, records)`.
@@ -124,7 +125,10 @@ mod tests {
     #[test]
     fn test_bare_code_block_disabled_by_default() {
         let rules = builtin_rules();
-        let bare = rules.iter().find(|r| r.id() == "R-BARE-CODE-BLOCK").unwrap();
+        let bare = rules
+            .iter()
+            .find(|r| r.id() == "R-BARE-CODE-BLOCK")
+            .unwrap();
         assert!(
             !bare.enabled_by_default(),
             "R-BARE-CODE-BLOCK must be disabled by default"

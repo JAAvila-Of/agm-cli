@@ -130,14 +130,19 @@ mod tests {
     fn test_inside_fence_preserved() {
         let input = "code:\n```\n\u{201C}inside fence\u{201D}\n```\n";
         let (out, records) = SmartQuotesRule.apply(input);
-        assert!(out.contains('\u{201C}'), "smart quote inside fence must be preserved");
-        assert!(records.is_empty(), "no records should be produced for in-fence content");
+        assert!(
+            out.contains('\u{201C}'),
+            "smart quote inside fence must be preserved"
+        );
+        assert!(
+            records.is_empty(),
+            "no records should be produced for in-fence content"
+        );
     }
 
     #[test]
     fn test_outside_fence_rewritten_inside_preserved() {
-        let input =
-            "summary: \u{201C}outside\u{201D}\n```\n\u{201C}inside\u{201D}\n```\nafter: \u{201C}again\u{201D}\n";
+        let input = "summary: \u{201C}outside\u{201D}\n```\n\u{201C}inside\u{201D}\n```\nafter: \u{201C}again\u{201D}\n";
         let (out, records) = SmartQuotesRule.apply(input);
         // outside and after should be replaced; inside should be preserved
         assert!(out.contains("\"outside\""));
@@ -185,7 +190,8 @@ mod tests {
     #[test]
     fn test_fence_toggle_resets_correctly() {
         // Two fences: content inside first preserved, outside second replaced
-        let input = "```\n\u{201C}in1\u{201D}\n```\n\u{201C}out\u{201D}\n```\n\u{201C}in2\u{201D}\n```\n";
+        let input =
+            "```\n\u{201C}in1\u{201D}\n```\n\u{201C}out\u{201D}\n```\n\u{201C}in2\u{201D}\n```\n";
         let (out, records) = SmartQuotesRule.apply(input);
         assert!(out.contains('\u{201C}'), "in-fence quotes preserved");
         assert!(out.contains("\"out\""), "out-of-fence replaced");

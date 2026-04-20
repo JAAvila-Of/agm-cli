@@ -9,8 +9,7 @@ fn fixture(name: &str) -> String {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/repair")
         .join(name);
-    std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("cannot read fixture {name}: {e}"))
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("cannot read fixture {name}: {e}"))
 }
 
 // ---------------------------------------------------------------------------
@@ -18,10 +17,13 @@ fn fixture(name: &str) -> String {
 // ---------------------------------------------------------------------------
 
 fn repair_no_safety(input: &str) -> agm_core::repair::RepairOutput {
-    repair_text(input, &RepairConfig {
-        safety_net: false,
-        ..Default::default()
-    })
+    repair_text(
+        input,
+        &RepairConfig {
+            safety_net: false,
+            ..Default::default()
+        },
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -68,7 +70,11 @@ fn test_repair_prose_prefix_fixture() {
     let out = repair_no_safety(&raw);
 
     // Output should start with the AGM header
-    let first_non_blank = out.text.lines().find(|l| !l.trim().is_empty()).unwrap_or("");
+    let first_non_blank = out
+        .text
+        .lines()
+        .find(|l| !l.trim().is_empty())
+        .unwrap_or("");
     assert!(
         first_non_blank.starts_with("agm:"),
         "first non-blank line should be 'agm:' after stripping prose, got: {first_non_blank:?}"
@@ -82,7 +88,11 @@ fn test_repair_wrapped_fence_fixture() {
     let out = repair_no_safety(&raw);
 
     // The wrapping fences should be stripped
-    let first_non_blank = out.text.lines().find(|l| !l.trim().is_empty()).unwrap_or("");
+    let first_non_blank = out
+        .text
+        .lines()
+        .find(|l| !l.trim().is_empty())
+        .unwrap_or("");
     assert!(
         !first_non_blank.starts_with("```"),
         "fence should be stripped, got first line: {first_non_blank:?}"
@@ -117,15 +127,9 @@ fn test_repair_tabs_fixture() {
 #[test]
 fn test_repair_bom_fixture() {
     let raw = fixture("bom.agm");
-    assert!(
-        raw.starts_with('\u{FEFF}'),
-        "fixture must have BOM prefix"
-    );
+    assert!(raw.starts_with('\u{FEFF}'), "fixture must have BOM prefix");
     let out = repair_no_safety(&raw);
-    assert!(
-        !out.text.starts_with('\u{FEFF}'),
-        "BOM should be stripped"
-    );
+    assert!(!out.text.starts_with('\u{FEFF}'), "BOM should be stripped");
     assert!(!out.report.is_empty());
 }
 
@@ -168,7 +172,11 @@ fn test_repair_missing_fence_sample_fixture() {
     let out = repair_no_safety(&raw);
 
     // The wrapping fence should be stripped and the AGM content exposed
-    let first_non_blank = out.text.lines().find(|l| !l.trim().is_empty()).unwrap_or("");
+    let first_non_blank = out
+        .text
+        .lines()
+        .find(|l| !l.trim().is_empty())
+        .unwrap_or("");
     assert!(
         !first_non_blank.starts_with("```"),
         "fence should be stripped, first line: {first_non_blank:?}"
@@ -213,4 +221,7 @@ idempotency_test!(test_idempotency_crlf, "crlf.agm");
 idempotency_test!(test_idempotency_tabs, "tabs.agm");
 idempotency_test!(test_idempotency_bom, "bom.agm");
 idempotency_test!(test_idempotency_already_clean, "already_clean.agm");
-idempotency_test!(test_idempotency_missing_fence_sample, "missing_fence_sample.agm");
+idempotency_test!(
+    test_idempotency_missing_fence_sample,
+    "missing_fence_sample.agm"
+);

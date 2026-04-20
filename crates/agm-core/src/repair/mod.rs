@@ -63,6 +63,14 @@ pub struct RepairOutput {
 // repair_text
 // ---------------------------------------------------------------------------
 
+/// Return the stable IDs of all built-in repair rules in canonical order.
+///
+/// This includes `R-BARE-CODE-BLOCK` even though it is disabled by default.
+#[must_use]
+pub fn builtin_rule_ids() -> Vec<&'static str> {
+    builtin_rules().iter().map(|r| r.id()).collect()
+}
+
 /// Apply active repair rules to `raw`, returning a `RepairOutput`.
 ///
 /// Active rules = builtin rules that are enabled by default, minus
@@ -81,9 +89,7 @@ pub fn repair_text(raw: &str, config: &RepairConfig) -> RepairOutput {
     } else {
         all_rules
             .iter()
-            .filter(|r| {
-                r.enabled_by_default() && !config.disabled_rules.contains(&r.id())
-            })
+            .filter(|r| r.enabled_by_default() && !config.disabled_rules.contains(&r.id()))
             .map(|r| r.as_ref() as &dyn RepairRule)
             .collect()
     };
@@ -159,9 +165,15 @@ mod tests {
         };
         let out = repair_text(input, &config);
         // Smart quotes should be preserved (R-SMART-QUOTES not in only_rules)
-        assert!(out.text.contains('\u{201C}'), "smart quotes must be preserved when not in only_rules");
+        assert!(
+            out.text.contains('\u{201C}'),
+            "smart quotes must be preserved when not in only_rules"
+        );
         // Trailing whitespace should be stripped
-        assert!(!out.text.contains("   "), "trailing whitespace should be removed");
+        assert!(
+            !out.text.contains("   "),
+            "trailing whitespace should be removed"
+        );
     }
 
     #[test]
@@ -190,10 +202,19 @@ mod tests {
         };
         let out = repair_text(garbage, &config);
         // The safety net should have rolled back
-        assert!(out.rolled_back, "safety net should have triggered on unparseable output");
-        assert_eq!(out.text, garbage, "original text should be preserved on rollback");
+        assert!(
+            out.rolled_back,
+            "safety net should have triggered on unparseable output"
+        );
+        assert_eq!(
+            out.text, garbage,
+            "original text should be preserved on rollback"
+        );
         // Records are still present (for debugging)
-        assert!(!out.report.rewrites.is_empty(), "records preserved even on rollback");
+        assert!(
+            !out.report.rewrites.is_empty(),
+            "records preserved even on rollback"
+        );
     }
 
     #[test]
@@ -239,6 +260,9 @@ mod tests {
         };
         let out = repair_text(input, &config);
         assert!(!out.text.contains('\r'), "CRLF should be normalized");
-        assert!(!out.text.contains('\u{201C}'), "smart quotes should be replaced");
+        assert!(
+            !out.text.contains('\u{201C}'),
+            "smart quotes should be replaced"
+        );
     }
 }

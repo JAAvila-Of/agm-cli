@@ -157,7 +157,10 @@ mod tests {
         let input = "node x\ncode:\n  python\n  x = 1\n  y = 2\n  print(x)\n";
         let (out, records) = BareCodeBlockRule.apply(input);
         assert!(out.contains("```python"), "should insert opening fence");
-        assert!(out.contains("```\n") || out.ends_with("```"), "should insert closing fence");
+        assert!(
+            out.contains("```\n") || out.ends_with("```"),
+            "should insert closing fence"
+        );
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].rule_id, "R-BARE-CODE-BLOCK");
     }
