@@ -11,6 +11,7 @@ pub mod memory;
 pub mod model;
 pub mod normalize;
 pub mod parser;
+pub mod repair;
 pub mod renderer;
 pub mod schema;
 pub mod schemas;

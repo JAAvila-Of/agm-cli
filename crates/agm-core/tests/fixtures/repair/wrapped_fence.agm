@@ -1,0 +1,9 @@
+```agm
+agm: 1.0
+package: repair-test
+version: 0.1.0
+
+node fenced-node
+type: facts
+summary: Node wrapped in a code fence
+```

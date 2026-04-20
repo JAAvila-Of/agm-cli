@@ -1,0 +1,11 @@
+agm: 1.0
+package: repair-test
+version: 0.1.0
+
+node bullets-node
+type: facts
+summary: Node with star bullets
+items:
+* first item
+* second item
++ third item

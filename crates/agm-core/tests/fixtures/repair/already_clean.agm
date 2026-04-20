@@ -1,0 +1,10 @@
+agm: 1.0
+package: repair-test
+version: 0.1.0
+
+node clean-node
+type: facts
+summary: Already clean node
+items:
+  - first
+  - second

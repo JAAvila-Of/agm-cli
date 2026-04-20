@@ -1,0 +1,7 @@
+﻿agm: 1.0
+package: repair-test
+version: 0.1.0
+
+node bom-node
+type: facts
+summary: Node with BOM prefix

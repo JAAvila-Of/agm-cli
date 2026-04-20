@@ -1,0 +1,7 @@
+agm: 1.0
+package: repair-test
+version: 0.1.0
+
+node crlf-node
+type: facts
+summary: Node with CRLF line endings

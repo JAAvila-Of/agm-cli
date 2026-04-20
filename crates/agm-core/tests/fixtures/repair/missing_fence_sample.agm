@@ -1,0 +1,12 @@
+```agm
+agm: 1.0
+package: llm-output
+version: 0.1.0
+
+node context-node
+type: facts
+summary: Context node from wrapped-fence output common from some model providers
+items:
+  - item one
+  - item two
+```

@@ -1,0 +1,10 @@
+agm: 1.0
+package: repair-test
+version: 0.1.0
+
+node quotes-node
+type: facts
+summary: Node with "smart quotes" in summary
+items:
+  - 'single' item
+  - «angle» item

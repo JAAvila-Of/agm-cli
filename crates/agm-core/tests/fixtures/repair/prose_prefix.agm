@@ -1,0 +1,9 @@
+Here is your AGM file as requested:
+
+agm: 1.0
+package: repair-test
+version: 0.1.0
+
+node my-node
+type: facts
+summary: Node after prose prefix
