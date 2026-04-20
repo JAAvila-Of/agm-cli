@@ -7,6 +7,7 @@ pub mod import;
 pub mod loader;
 pub mod memory;
 pub mod model;
+pub mod normalize;
 pub mod parser;
 pub mod renderer;
 pub mod schema;

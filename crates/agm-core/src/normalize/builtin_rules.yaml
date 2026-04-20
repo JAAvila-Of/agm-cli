@@ -1,0 +1,51 @@
+# AGM Normalize — Built-in Rule Set
+# Version: 1.2.0
+#
+# Structure:
+#   type_aliases:         canonical_type -> [synonyms]
+#   field_aliases:        canonical_type -> canonical_field -> [synonyms]
+#   universal_field_aliases: canonical_field -> [synonyms]  (apply to every node type)
+#
+# Rule: the normalizer looks up a synonym and, if found, renames it to the
+# canonical key. Collisions (canonical + synonym both present) emit a warning
+# and the canonical form is kept.
+
+type_aliases:
+  orchestration:
+    - plan
+    - plan_execution
+    - execution_plan
+
+field_aliases:
+  orchestration:
+    parallel_groups:
+      - groups
+      - phases
+    # "requires" is the canonical field INSIDE parallel_group entries per spec §S22.
+    # Field-level rewrites for parallel_group sub-entries are not handled here
+    # because they are structured fields parsed into ParallelGroup.requires —
+    # the engine handles those via extra_fields on the top-level orchestration node.
+    depends:
+      - depends_on
+      - prereq
+      - needs
+  workflow:
+    code_blocks:
+      - steps_with_code
+      - code_steps
+    steps:
+      - tasks
+      - task_list
+  ticket:
+    labels:
+      - tags_list
+
+universal_field_aliases:
+  depends:
+    - depends_on
+    - prereq
+    - needs
+  related_to:
+    - related
+    - see
+    - relates_to
