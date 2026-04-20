@@ -299,6 +299,30 @@ let node = ingest_one(
 See [docs/ingest.md](docs/ingest.md) for the full reference, including
 Anthropic and OpenAI tool-call integration examples.
 
+## Signing `.agm.mem` Sidecars
+
+`agm mem sign` / `agm mem verify` add HMAC-SHA256 integrity protection to memory sidecar files.
+
+```bash
+# Sign in-place with a 32-byte hex key
+agm mem sign project.agm.mem --key hex:4141...4141
+
+# Sign using a key from an environment variable
+agm mem sign project.agm.mem --key env:AGM_SIGNING_KEY
+
+# Verify — exit 0=valid, 1=tampered, 2=unsigned+strict, 3=error
+agm mem verify project.agm.mem --key env:AGM_SIGNING_KEY
+agm mem verify project.agm.mem --key env:AGM_SIGNING_KEY --verify-mode strict
+
+# Write signature to a separate .sig file instead of trailing comment
+agm mem sign project.agm.mem --key env:AGM_SIGNING_KEY --envelope sidecar-file
+agm mem verify project.agm.mem --key env:AGM_SIGNING_KEY --envelope sidecar-file
+```
+
+The signature covers the full canonical sidecar text (headers + entries). Verification uses
+constant-time comparison to prevent timing attacks. See [docs/memory_sdk.md](docs/memory_sdk.md)
+for key rotation, merge strategies, and the Rust API.
+
 ## Documentation
 
 - [CLI API Reference](docs/api.md) -- Complete command reference with examples, options, and edge cases
@@ -307,6 +331,7 @@ Anthropic and OpenAI tool-call integration examples.
 - [Builder API](docs/builder.md) -- Fluent Rust builder API for constructing AGM nodes programmatically
 - [JSON Schema Generation](docs/schemas.md) -- How to generate and use node-type schemas
 - [Ingest](docs/ingest.md) -- Convert tool-call JSON args into canonical AGM text
+- [Memory SDK](docs/memory_sdk.md) -- `.agm.mem` sidecar API with HMAC signing and merge strategies
 - [Library API (docs.rs)](https://docs.rs/agm-core) -- Auto-generated Rust API docs for `agm-core`
 - [Contributing](CONTRIBUTING.md) -- How to contribute
 

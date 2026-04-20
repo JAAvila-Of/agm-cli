@@ -102,10 +102,37 @@ All notable changes to `agm-cli` and `agm-core` are documented here.
 
 - **`MemoryEntryBuilder::extra()`** setter for unknown memory-entry fields.
 
+- **`.agm.mem` First-Class SDK** (`agm_core::memory::store`): `FilesystemMemoryStore`
+  with HMAC-SHA256 signing, atomic writes, and three merge strategies.
+  New public types: `MemoryStore` trait, `FilesystemConfig`, `FilesystemMemoryStore`,
+  `SigningMode` (Disabled / Enabled / EnabledWithRotation), `VerifyMode`
+  (Permissive / IfPresent / Strict), `SignatureEnvelope` (TrailingComment / SidecarFile),
+  `MergeStrategy` (LatestWins / Union / Reject), `MergeOutcome`, `MemoryStoreError`.
+  Key resolution supports `env:VAR`, `file:/path`, `hex:<literal>`, and `generate`
+  (generates a random key and prints it to stderr). Signature covers the full
+  canonical `render_mem` output; verification uses constant-time comparison.
+  Writes are atomic via `NamedTempFile::persist`. New dependency: `hmac = "0.12"`,
+  `sha2 = "0.10"`, `hex = "0.4"`, `getrandom = "0.2"`, `tempfile = "3"`.
+  Optional `zeroize` feature (default-on) zeroes key material on drop.
+
+- **`agm mem sign` CLI subcommand**: sign a `.agm.mem` file in-place.
+  Flags: `--key <KEY_SPEC>`, `--envelope trailing-comment|sidecar-file`.
+
+- **`agm mem verify` CLI subcommand**: verify HMAC-SHA256 integrity of a
+  `.agm.mem` file. Exit codes: 0=valid, 1=tampered, 2=missing+strict, 3=error.
+  Flags: `--key <KEY_SPEC>`, `--envelope`, `--verify-mode permissive|if-present|strict`.
+
+- **`agm mem import`** extended: `--strategy latest-wins|union|reject` merge
+  strategy flag; `--sign <KEY_SPEC>` to sign the merged output; `--envelope`.
+
+- **`agm mem export`** extended: `--sign <KEY_SPEC>` and `--envelope` flags.
+
 ### Documentation
 
-- New: `docs/normalize.md`, `docs/schemas.md`, `docs/builder.md`, `docs/ingest.md`.
-- README extended with sections for normalize, schemas, Builder API, and `agm ingest`.
+- New: `docs/normalize.md`, `docs/schemas.md`, `docs/builder.md`, `docs/ingest.md`,
+  `docs/memory_sdk.md`.
+- README extended with sections for normalize, schemas, Builder API, `agm ingest`,
+  and "Signing `.agm.mem` Sidecars".
 - Rustdoc on `validator::node::NODE_ID_RE` clarifies V021 as defence-in-depth:
   the parser's P002 catches invalid IDs at parse time; V021 still fires
   when a `Node` is constructed programmatically (e.g. via `serde_json::from_str`,
