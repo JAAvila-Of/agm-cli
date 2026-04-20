@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 
-use crate::model::fields::{NodeType, Stability};
+use crate::model::fields::{FieldValue, NodeType, Stability};
 use crate::model::node::Node;
 use crate::model::schema::EnforcementLevel;
 
@@ -319,6 +319,22 @@ impl DecisionBuilder {
         self
     }
 
+    /// Inserts an arbitrary field into the node's `extra_fields` map.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::builder::DecisionBuilder;
+    /// use agm_core::model::fields::FieldValue;
+    ///
+    /// let b = DecisionBuilder::new("arch.db-choice")
+    ///     .extra("extra_key", FieldValue::Scalar("v".to_owned()));
+    /// ```
+    pub fn extra(mut self, key: impl Into<String>, value: FieldValue) -> Self {
+        self.node.extra_fields.insert(key.into(), value);
+        self
+    }
+
     // -----------------------------------------------------------------------
     // Terminal
     // -----------------------------------------------------------------------
@@ -421,5 +437,20 @@ mod tests {
             .unwrap();
         assert_eq!(node.rationale.as_deref().unwrap().len(), 1);
         assert_eq!(node.tradeoffs.as_deref().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_extra_field_stored_in_extra_fields_map() {
+        use crate::model::fields::FieldValue;
+        let node = DecisionBuilder::new("arch.db-choice")
+            .summary("chose PostgreSQL")
+            .rationale(["ACID required"])
+            .extra("extra_key", FieldValue::Scalar("extra_val".to_owned()))
+            .build()
+            .unwrap();
+        assert_eq!(
+            node.extra_fields.get("extra_key"),
+            Some(&FieldValue::Scalar("extra_val".to_owned()))
+        );
     }
 }

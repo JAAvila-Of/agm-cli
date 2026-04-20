@@ -542,14 +542,12 @@ fn test_v031_standard_already_errors() {
 
     assert!(result.is_err());
     let err = result.unwrap_err();
-    let v031 = err
-        .diagnostics()
-        .and_then(|dc| {
-            dc.diagnostics()
-                .iter()
-                .find(|d| d.code == ErrorCode::V031)
-                .cloned()
-        });
+    let v031 = err.diagnostics().and_then(|dc| {
+        dc.diagnostics()
+            .iter()
+            .find(|d| d.code == ErrorCode::V031)
+            .cloned()
+    });
     assert!(v031.is_some());
     assert_eq!(v031.unwrap().severity, Severity::Error);
 }

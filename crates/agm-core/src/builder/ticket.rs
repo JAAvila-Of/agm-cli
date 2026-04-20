@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use crate::model::code::CodeBlock;
 use crate::model::context::AgentContext;
-use crate::model::fields::{NodeType, Priority, SddPhase, Stability, TicketAction};
+use crate::model::fields::{FieldValue, NodeType, Priority, SddPhase, Stability, TicketAction};
 use crate::model::node::Node;
 use crate::model::schema::EnforcementLevel;
 
@@ -444,6 +444,34 @@ impl TicketBuilder {
         self
     }
 
+    /// Inserts an arbitrary field into the node's `extra_fields` map.
+    ///
+    /// Use this escape hatch to preserve model-emitted fields that are not
+    /// covered by a typed setter. Unknown fields are stored for audit and
+    /// will be rendered in canonical output.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::builder::TicketBuilder;
+    /// use agm_core::model::fields::{FieldValue, Priority};
+    ///
+    /// let node = TicketBuilder::new("t.x")
+    ///     .summary("s")
+    ///     .title("T")
+    ///     .description("d")
+    ///     .priority(Priority::Normal)
+    ///     .extra("custom_field", FieldValue::Scalar("value".to_owned()))
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// assert!(node.extra_fields.contains_key("custom_field"));
+    /// ```
+    pub fn extra(mut self, key: impl Into<String>, value: FieldValue) -> Self {
+        self.node.extra_fields.insert(key.into(), value);
+        self
+    }
+
     // -----------------------------------------------------------------------
     // Terminal
     // -----------------------------------------------------------------------
@@ -729,5 +757,18 @@ mod tests {
             .build()
             .unwrap();
         assert!(node.prompt.is_some());
+    }
+
+    #[test]
+    fn test_extra_field_stored_in_extra_fields_map() {
+        use crate::model::fields::FieldValue;
+        let node = minimal_valid()
+            .extra("custom_label", FieldValue::Scalar("beta".to_owned()))
+            .build()
+            .unwrap();
+        assert_eq!(
+            node.extra_fields.get("custom_label"),
+            Some(&FieldValue::Scalar("beta".to_owned()))
+        );
     }
 }

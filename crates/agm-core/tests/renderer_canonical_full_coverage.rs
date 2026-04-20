@@ -192,6 +192,7 @@ fn kitchen_sink_node() -> Node {
         ttl: Some(MemoryTtl::Duration("P2D".to_owned())),
         query: Some("q1".to_owned()),
         max_results: Some(10),
+        extra_fields: Default::default(),
     }]);
 
     // execution state

@@ -1239,6 +1239,7 @@ pub(crate) fn parse_memory(
                     ttl,
                     query,
                     max_results,
+                    extra_fields: Default::default(),
                 });
             }
             _ => break,

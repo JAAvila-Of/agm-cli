@@ -161,6 +161,7 @@ fn kitchen_sink_node() -> Node {
             ttl: Some(MemoryTtl::Session),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         },
         MemoryEntry {
             key: "proj.config".to_owned(),
@@ -171,6 +172,7 @@ fn kitchen_sink_node() -> Node {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         },
     ]);
 

@@ -153,6 +153,8 @@ pub struct MemoryEntry {
     pub query: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_results: Option<u32>,
+    #[serde(flatten, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub extra_fields: std::collections::BTreeMap<String, super::fields::FieldValue>,
 }
 
 #[cfg(test)]
@@ -309,6 +311,7 @@ mod tests {
             ttl: Some(MemoryTtl::Permanent),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         let json = serde_json::to_string(&entry).unwrap();
         let back: MemoryEntry = serde_json::from_str(&json).unwrap();
@@ -326,6 +329,7 @@ mod tests {
             ttl: None,
             query: Some("how are optional fields handled".to_owned()),
             max_results: Some(5),
+            extra_fields: Default::default(),
         };
         let json = serde_json::to_string(&entry).unwrap();
         let back: MemoryEntry = serde_json::from_str(&json).unwrap();
@@ -343,6 +347,7 @@ mod tests {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         let json = serde_json::to_string(&entry).unwrap();
         assert!(!json.contains("value"));

@@ -167,7 +167,10 @@ pub fn validate(
         ));
         // In SingleNode scope skip group-node cross-refs in orchestration.
         all_errors.extend(orchestration::validate_orchestration(
-            n, &all_ids, file_name, single_node,
+            n,
+            &all_ids,
+            file_name,
+            single_node,
         ));
         all_errors.extend(execution::validate_execution(n, file_name));
         all_errors.extend(memory::validate_memory(n, file_name));

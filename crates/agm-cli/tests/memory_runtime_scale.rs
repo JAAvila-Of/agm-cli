@@ -35,6 +35,7 @@ fn upsert(
         ttl: Some(ttl),
         query: None,
         max_results: None,
+        extra_fields: Default::default(),
     };
     let result = rt.execute_action(node_id, &entry).expect("upsert");
     assert_eq!(result, MemoryResult::Upserted);
@@ -50,6 +51,7 @@ fn delete(rt: &mut MemoryRuntime, node_id: &str, scope: MemoryScope, key: &str) 
         ttl: None,
         query: None,
         max_results: None,
+        extra_fields: Default::default(),
     };
     match rt.execute_action(node_id, &entry).expect("delete") {
         MemoryResult::Deleted(b) => b,
@@ -67,6 +69,7 @@ fn list_scope(rt: &mut MemoryRuntime, node_id: &str, scope: MemoryScope, topic: 
         ttl: None,
         query: None,
         max_results: None,
+        extra_fields: Default::default(),
     };
     match rt.execute_action(node_id, &entry).expect("list") {
         MemoryResult::List(v) => v.len(),
@@ -84,6 +87,7 @@ fn get(rt: &mut MemoryRuntime, node_id: &str, scope: MemoryScope, key: &str) -> 
         ttl: None,
         query: None,
         max_results: None,
+        extra_fields: Default::default(),
     };
     match rt.execute_action(node_id, &entry).expect("get") {
         MemoryResult::Value(Some(e)) => Some(e.value),
@@ -196,6 +200,7 @@ fn test_memory_search_returns_unsupported() {
         ttl: None,
         query: Some("some value".to_owned()),
         max_results: None,
+        extra_fields: Default::default(),
     };
 
     let result = rt

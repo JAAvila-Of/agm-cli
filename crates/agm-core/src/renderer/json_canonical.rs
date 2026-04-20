@@ -872,6 +872,7 @@ mod tests {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         }]);
         let json = agm_to_json(&file);
         let mem = &json["nodes"][0]["memory"];

@@ -1216,6 +1216,7 @@ mod tests {
             ttl: Some(MemoryTtl::Session),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         }]);
         let file = AgmFile {
             header: test_header(),
@@ -1689,6 +1690,7 @@ mod tests {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         }]);
         let file = AgmFile {
             header: test_header(),
@@ -1733,6 +1735,7 @@ mod tests {
             ttl: Some(MemoryTtl::Permanent),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         }]);
         let file = AgmFile {
             header: test_header(),

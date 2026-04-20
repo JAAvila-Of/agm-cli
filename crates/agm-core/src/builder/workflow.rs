@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use crate::model::code::CodeBlock;
 use crate::model::context::AgentContext;
-use crate::model::fields::{NodeType, Priority, Stability};
+use crate::model::fields::{FieldValue, NodeType, Priority, Stability};
 use crate::model::node::Node;
 use crate::model::schema::EnforcementLevel;
 use crate::model::verify::VerifyCheck;
@@ -421,6 +421,22 @@ impl WorkflowBuilder {
         self
     }
 
+    /// Inserts an arbitrary field into the node's `extra_fields` map.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::builder::WorkflowBuilder;
+    /// use agm_core::model::fields::FieldValue;
+    ///
+    /// let b = WorkflowBuilder::new("auth.login")
+    ///     .extra("custom_key", FieldValue::Scalar("val".to_owned()));
+    /// ```
+    pub fn extra(mut self, key: impl Into<String>, value: FieldValue) -> Self {
+        self.node.extra_fields.insert(key.into(), value);
+        self
+    }
+
     // -----------------------------------------------------------------------
     // Terminal
     // -----------------------------------------------------------------------
@@ -553,5 +569,18 @@ mod tests {
             .unwrap();
         assert_eq!(node.input.as_deref().unwrap().len(), 2);
         assert_eq!(node.output.as_deref().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_extra_field_stored_in_extra_fields_map() {
+        use crate::model::fields::FieldValue;
+        let node = minimal_valid()
+            .extra("custom_key", FieldValue::Scalar("some_value".to_owned()))
+            .build()
+            .unwrap();
+        assert_eq!(
+            node.extra_fields.get("custom_key"),
+            Some(&FieldValue::Scalar("some_value".to_owned()))
+        );
     }
 }

@@ -314,9 +314,18 @@ fn test_json_render_file_contains_header_and_nodes() {
     // top level rather than nested under a "header" key.
     let obj = value.as_object().expect("top level must be object");
     assert!(obj.contains_key("nodes"), "JSON must contain 'nodes' field");
-    assert!(obj.contains_key("agm"), "JSON must contain flattened 'agm' field");
-    assert!(obj.contains_key("package"), "JSON must contain flattened 'package' field");
-    assert!(obj.contains_key("version"), "JSON must contain flattened 'version' field");
+    assert!(
+        obj.contains_key("agm"),
+        "JSON must contain flattened 'agm' field"
+    );
+    assert!(
+        obj.contains_key("package"),
+        "JSON must contain flattened 'package' field"
+    );
+    assert!(
+        obj.contains_key("version"),
+        "JSON must contain flattened 'version' field"
+    );
 
     assert_eq!(value["agm"], "1.0");
     assert_eq!(value["package"], "json.header.pkg");

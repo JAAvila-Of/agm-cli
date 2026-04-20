@@ -60,7 +60,7 @@ pub(super) fn wrap_node(node: Node) -> AgmFile {
 /// of a complete file and would produce spurious errors in isolation.
 ///
 /// Schema/type/format checks (Passes 1–4) still run in full.
-pub(super) fn validate_single_node(
+pub(crate) fn validate_single_node(
     node: Node,
     level: EnforcementLevel,
 ) -> Result<Node, BuildError> {

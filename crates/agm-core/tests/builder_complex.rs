@@ -396,7 +396,10 @@ fn test_complex_workflow_all_code_actions_and_verify_checks_roundtrip() {
     // load_nodes cross-ref is skipped in SingleNode validation scope (Bug 3 fix).
     // These IDs would only be resolved when the full file is assembled and validated.
     let agent_ctx = AgentContext {
-        load_nodes: Some(vec!["auth.token.model".to_owned(), "auth.session.validate".to_owned()]),
+        load_nodes: Some(vec![
+            "auth.token.model".to_owned(),
+            "auth.session.validate".to_owned(),
+        ]),
         load_files: Some(vec![
             LoadFile {
                 path: "src/auth.rs".to_owned(),

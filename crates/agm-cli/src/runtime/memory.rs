@@ -739,6 +739,7 @@ mod tests {
             ttl: Some(MemoryTtl::Permanent),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         runtime.execute_action(node_id, &entry).unwrap();
     }
@@ -770,6 +771,7 @@ mod tests {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         match runtime.execute_action(node_id, &entry).unwrap() {
             MemoryResult::Deleted(b) => b,
@@ -792,6 +794,7 @@ mod tests {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         // list uses &self through get
         match runtime
@@ -1318,6 +1321,7 @@ mod tests {
             ttl: Some(MemoryTtl::Permanent),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         runtime.execute_action("node1", &entry).unwrap();
 
@@ -1339,6 +1343,7 @@ mod tests {
             ttl: None, // no TTL — should default to Session
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         runtime.execute_action("node1", &entry).unwrap();
 
@@ -1359,6 +1364,7 @@ mod tests {
             ttl: None,
             query: Some("something".to_owned()),
             max_results: Some(5),
+            extra_fields: Default::default(),
         };
         let result = runtime.execute_action("node1", &entry).unwrap();
         assert_eq!(result, MemoryResult::SearchUnsupported);
@@ -1387,6 +1393,7 @@ mod tests {
             ttl: Some(MemoryTtl::Duration(duration_iso.to_owned())),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         runtime.execute_action(node_id, &entry).unwrap();
     }
@@ -2404,6 +2411,7 @@ mod tests {
             ttl: Some(MemoryTtl::Permanent),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         let result = runtime.execute_action("node1", &entry);
         assert!(result.is_ok(), "Value at exactly 32 KiB should be accepted");
@@ -2422,6 +2430,7 @@ mod tests {
             ttl: Some(MemoryTtl::Permanent),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         let result = runtime.execute_action("node1", &entry);
         assert!(result.is_err(), "Value over 32 KiB should be rejected");
@@ -2445,6 +2454,7 @@ mod tests {
             ttl: Some(MemoryTtl::Permanent),
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         };
         let _ = runtime.execute_action("node1", &entry);
         // Verify nothing was stored
@@ -2471,6 +2481,7 @@ mod tests {
                 ttl: Some(MemoryTtl::Permanent),
                 query: None,
                 max_results: None,
+                extra_fields: Default::default(),
             };
             let result = runtime.execute_action("node1", &entry);
             assert!(

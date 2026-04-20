@@ -4,6 +4,9 @@
 //! To attach memory entries to a node, use the node builder's `.memory()` setter
 //! (e.g. on `WorkflowBuilder`).
 
+use std::collections::BTreeMap;
+
+use crate::model::fields::FieldValue;
 use crate::model::memory::{MemoryAction, MemoryEntry, MemoryScope, MemoryTtl};
 
 use super::error::BuildError;
@@ -40,6 +43,7 @@ pub struct MemoryEntryBuilder {
     ttl: Option<MemoryTtl>,
     query: Option<String>,
     max_results: Option<u32>,
+    extra_fields: BTreeMap<String, FieldValue>,
 }
 
 impl MemoryEntryBuilder {
@@ -67,6 +71,7 @@ impl MemoryEntryBuilder {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: BTreeMap::new(),
         }
     }
 
@@ -154,6 +159,27 @@ impl MemoryEntryBuilder {
         self
     }
 
+    /// Inserts an arbitrary field into the entry's `extra_fields` map.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::builder::MemoryEntryBuilder;
+    /// use agm_core::model::fields::FieldValue;
+    /// use agm_core::model::memory::MemoryAction;
+    ///
+    /// let entry = MemoryEntryBuilder::new("k", "t", MemoryAction::Upsert)
+    ///     .extra("custom_key", FieldValue::Scalar("v".to_owned()))
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// assert!(entry.extra_fields.contains_key("custom_key"));
+    /// ```
+    pub fn extra(mut self, key: impl Into<String>, value: FieldValue) -> Self {
+        self.extra_fields.insert(key.into(), value);
+        self
+    }
+
     // -----------------------------------------------------------------------
     // Terminal
     // -----------------------------------------------------------------------
@@ -197,6 +223,7 @@ impl MemoryEntryBuilder {
             ttl: self.ttl,
             query: self.query,
             max_results: self.max_results,
+            extra_fields: self.extra_fields,
         })
     }
 }
@@ -249,5 +276,20 @@ mod tests {
         let result = MemoryEntryBuilder::new("key", "", MemoryAction::Get).build();
         assert!(result.is_err());
         assert!(result.unwrap_err().is_precondition());
+    }
+
+    #[test]
+    fn test_extra_field_stored_in_extra_fields_map() {
+        use crate::model::fields::FieldValue;
+        let entry =
+            MemoryEntryBuilder::new("repo.pattern", "rust.repository", MemoryAction::Upsert)
+                .value("some value")
+                .extra("custom_key", FieldValue::Scalar("custom_val".to_owned()))
+                .build()
+                .unwrap();
+        assert_eq!(
+            entry.extra_fields.get("custom_key"),
+            Some(&FieldValue::Scalar("custom_val".to_owned()))
+        );
     }
 }

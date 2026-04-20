@@ -121,6 +121,7 @@ fn test_memory_load_memory_unresolved_topic_produces_v026() {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         }]),
         span: Span::new(5, 7),
         ..Default::default()

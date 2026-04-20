@@ -7,8 +7,8 @@ use regex::Regex;
 use crate::error::{AgmError, ErrorCode, ErrorLocation};
 use crate::model::execution::ExecutionStatus;
 use crate::model::fields::{
-    Confidence, FieldValue, NodeStatus, Priority, SddPhase, Span, Stability, TicketAction,
-    NODE_ID_PATTERN,
+    Confidence, FieldValue, NODE_ID_PATTERN, NodeStatus, Priority, SddPhase, Span, Stability,
+    TicketAction,
 };
 use crate::model::node::Node;
 
@@ -26,8 +26,7 @@ use super::structured::{
 // Node ID validation
 // ---------------------------------------------------------------------------
 
-static NODE_ID_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(NODE_ID_PATTERN).unwrap());
+static NODE_ID_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(NODE_ID_PATTERN).unwrap());
 
 // ---------------------------------------------------------------------------
 // default_node

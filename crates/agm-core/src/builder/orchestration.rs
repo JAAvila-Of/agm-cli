@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 
-use crate::model::fields::NodeType;
+use crate::model::fields::{FieldValue, NodeType, Stability};
 use crate::model::node::Node;
 use crate::model::orchestration::ParallelGroup;
 use crate::model::schema::EnforcementLevel;
@@ -126,6 +126,21 @@ impl OrchestrationBuilder {
         I: IntoIterator<Item = ParallelGroup>,
     {
         self.node.parallel_groups = Some(groups.into_iter().collect());
+        self
+    }
+
+    /// Sets the `stability` field.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::builder::OrchestrationBuilder;
+    /// use agm_core::model::fields::Stability;
+    ///
+    /// let b = OrchestrationBuilder::new("o.x").stability(Stability::High);
+    /// ```
+    pub fn stability(mut self, s: Stability) -> Self {
+        self.node.stability = Some(s);
         self
     }
 
@@ -270,6 +285,22 @@ impl OrchestrationBuilder {
         S: Into<String>,
     {
         self.node.tags = Some(dedup_preserve_order(items));
+        self
+    }
+
+    /// Inserts an arbitrary field into the node's `extra_fields` map.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::builder::OrchestrationBuilder;
+    /// use agm_core::model::fields::FieldValue;
+    ///
+    /// let b = OrchestrationBuilder::new("o.x")
+    ///     .extra("meta_key", FieldValue::Scalar("meta_val".to_owned()));
+    /// ```
+    pub fn extra(mut self, key: impl Into<String>, value: FieldValue) -> Self {
+        self.node.extra_fields.insert(key.into(), value);
         self
     }
 
@@ -437,6 +468,21 @@ mod tests {
             .build()
             .unwrap();
         assert_eq!(node.parallel_groups.as_ref().unwrap().len(), 2);
+    }
+
+    #[test]
+    fn test_extra_field_stored_in_extra_fields_map() {
+        use crate::model::fields::FieldValue;
+        let node = OrchestrationBuilder::new("o.test")
+            .summary("orchestrate")
+            .parallel_groups([sample_group("g1")])
+            .extra("meta_key", FieldValue::Scalar("meta_val".to_owned()))
+            .build()
+            .unwrap();
+        assert_eq!(
+            node.extra_fields.get("meta_key"),
+            Some(&FieldValue::Scalar("meta_val".to_owned()))
+        );
     }
 
     #[test]

@@ -172,6 +172,7 @@ fn kitchen_sink_file() -> AgmFile {
         ttl: Some(MemoryTtl::Permanent),
         query: None,
         max_results: None,
+        extra_fields: Default::default(),
     }]);
     n.scope = Some(vec!["global".to_owned()]);
     n.applies_when = Some("always".to_owned());

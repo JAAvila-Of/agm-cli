@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 
-use crate::model::fields::{NodeType, Stability};
+use crate::model::fields::{FieldValue, NodeType, Stability};
 use crate::model::node::Node;
 use crate::model::schema::EnforcementLevel;
 
@@ -267,6 +267,22 @@ impl FactsBuilder {
         self
     }
 
+    /// Inserts an arbitrary field into the node's `extra_fields` map.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use agm_core::builder::FactsBuilder;
+    /// use agm_core::model::fields::FieldValue;
+    ///
+    /// let b = FactsBuilder::new("auth.constraints")
+    ///     .extra("extra_key", FieldValue::Scalar("v".to_owned()));
+    /// ```
+    pub fn extra(mut self, key: impl Into<String>, value: FieldValue) -> Self {
+        self.node.extra_fields.insert(key.into(), value);
+        self
+    }
+
     // -----------------------------------------------------------------------
     // Terminal
     // -----------------------------------------------------------------------
@@ -373,5 +389,19 @@ mod tests {
             .build()
             .unwrap();
         assert_eq!(node.tags.as_deref().unwrap(), ["security"]);
+    }
+
+    #[test]
+    fn test_extra_field_stored_in_extra_fields_map() {
+        use crate::model::fields::FieldValue;
+        let node = FactsBuilder::new("auth.constraints")
+            .summary("facts")
+            .extra("extra_key", FieldValue::Scalar("extra_val".to_owned()))
+            .build()
+            .unwrap();
+        assert_eq!(
+            node.extra_fields.get("extra_key"),
+            Some(&FieldValue::Scalar("extra_val".to_owned()))
+        );
     }
 }

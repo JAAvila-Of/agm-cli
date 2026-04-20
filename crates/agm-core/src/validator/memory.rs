@@ -62,6 +62,7 @@ mod tests {
             ttl: None,
             query: None,
             max_results: None,
+            extra_fields: Default::default(),
         }
     }
 

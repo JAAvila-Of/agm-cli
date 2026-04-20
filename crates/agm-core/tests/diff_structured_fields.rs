@@ -58,6 +58,7 @@ fn test_diff_memory_field_change_detected() {
         ttl: None,
         query: None,
         max_results: None,
+        extra_fields: Default::default(),
     }]);
 
     let mut right_node = left_node.clone();
@@ -70,6 +71,7 @@ fn test_diff_memory_field_change_detected() {
         ttl: None,
         query: None,
         max_results: None,
+        extra_fields: Default::default(),
     }]);
 
     let left = AgmFile {
