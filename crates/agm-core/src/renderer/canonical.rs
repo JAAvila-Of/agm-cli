@@ -318,15 +318,18 @@ fn emit_code_block(buf: &mut String, prefix: &str, cb: &CodeBlock) {
     buf.push_str("  action: ");
     buf.push_str(&cb.action.to_string());
     buf.push('\n');
-    // body as block
-    buf.push_str("  body:\n");
-    for line in cb.body.lines() {
-        buf.push_str("    ");
-        buf.push_str(line);
-        buf.push('\n');
-    }
+    // body as block scalar with explicit indent indicator |2.
+    // The parser strips (marker_indent + 2) = (2 + 2) = 4 chars from each line,
+    // so content leading whitespace is preserved on round-trip.
+    buf.push_str("  body: |2\n");
     if cb.body.is_empty() {
         buf.push_str("    \n");
+    } else {
+        for line in cb.body.lines() {
+            buf.push_str("    ");
+            buf.push_str(line);
+            buf.push('\n');
+        }
     }
     if let Some(ref anchor) = cb.anchor {
         buf.push_str("  anchor: ");
@@ -371,11 +374,17 @@ fn emit_code_blocks(buf: &mut String, blocks: &[CodeBlock]) {
             buf.push_str(&cb.action.to_string());
             buf.push('\n');
         }
-        buf.push_str("    body:\n");
-        for line in cb.body.lines() {
-            buf.push_str("      ");
-            buf.push_str(line);
-            buf.push('\n');
+        // body as block scalar with explicit indent indicator |2.
+        // marker_indent = 4, indicator = 2, so parser strips 6 chars per line.
+        buf.push_str("    body: |2\n");
+        if cb.body.is_empty() {
+            buf.push_str("      \n");
+        } else {
+            for line in cb.body.lines() {
+                buf.push_str("      ");
+                buf.push_str(line);
+                buf.push('\n');
+            }
         }
         if let Some(ref anchor) = cb.anchor {
             buf.push_str("    anchor: ");

@@ -228,7 +228,7 @@ pub(crate) fn collect_structured_raw(lines: &[Line], pos: &mut usize) -> String 
             | LineKind::FieldStart(_)
             | LineKind::ListItem(_)
             | LineKind::IndentedLine(_)
-            | LineKind::BodyMarker => {
+            | LineKind::BodyMarker(_) => {
                 if lines[*pos].indent > 0
                     || matches!(
                         &lines[*pos].kind,

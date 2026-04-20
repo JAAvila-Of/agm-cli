@@ -90,7 +90,7 @@ steps:
 code:
   lang: sql
   action: full
-  body:
+  body: |2
     -- Expand: Add UUID column alongside integer ID
     ALTER TABLE users ADD COLUMN uuid UUID DEFAULT gen_random_uuid();
     CREATE UNIQUE INDEX idx_users_uuid ON users(uuid);
@@ -153,7 +153,7 @@ items:
 code:
   lang: yaml
   action: full
-  body:
+  body: |2
     routes:
       - path: /api/v1/users/**
         backend: user-service

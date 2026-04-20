@@ -89,15 +89,31 @@ fn parse_kv_from_text(text: &str) -> Option<(String, String)> {
 // collect_pipe_body
 // ---------------------------------------------------------------------------
 
-/// Collects body text after a `BodyMarker` line (`body: |`).
+/// Collects body text after a `BodyMarker` line.
+///
+/// When `explicit_indent` is `Some(n)`, the body's base indent is computed as
+/// `marker_indent + n` (the indent of the `body:` key line plus the indicator
+/// digit). This allows leading whitespace in body content to be preserved on
+/// round-trip (see canonical renderer's `body: |2` emission).
+///
+/// When `explicit_indent` is `None` (legacy `body: |` syntax), the base indent
+/// is inferred from the first non-blank body line via `detect_base_indent`.
 ///
 /// Strips the base indent from each line, preserving relative indentation.
 /// Trailing blank lines are removed.
-fn collect_pipe_body(lines: &[Line], pos: &mut usize) -> String {
-    // Detect body indent from the first non-blank line.
-    let body_indent = match detect_base_indent(lines, *pos) {
-        Some(i) => i,
-        None => return String::new(),
+pub(super) fn collect_pipe_body(
+    lines: &[Line],
+    pos: &mut usize,
+    explicit_indent: Option<(usize, u8)>,
+) -> String {
+    // Determine body indent: explicit takes priority, else infer from first line.
+    let body_indent = if let Some((marker_indent, indicator)) = explicit_indent {
+        marker_indent + indicator as usize
+    } else {
+        match detect_base_indent(lines, *pos) {
+            Some(i) => i,
+            None => return String::new(),
+        }
     };
 
     let mut parts: Vec<String> = Vec::new();
@@ -192,10 +208,12 @@ fn collect_sub_fields(
                 fields.push((key.clone(), SubFieldValue::List(items.clone())));
                 *pos += 1;
             }
-            LineKind::BodyMarker => {
-                // body: | — collect pipe body.
+            LineKind::BodyMarker(indicator) => {
+                // body: | or body: |N — collect pipe body.
+                let marker_indent = lines[*pos].indent;
+                let explicit = indicator.map(|n| (marker_indent, n));
                 *pos += 1; // advance past BodyMarker
-                let body = collect_pipe_body(lines, pos);
+                let body = collect_pipe_body(lines, pos, explicit);
                 fields.push(("body".to_owned(), SubFieldValue::PipeBody(body)));
             }
             LineKind::FieldStart(key) => {

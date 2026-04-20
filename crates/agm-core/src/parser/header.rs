@@ -191,7 +191,7 @@ pub fn parse_header(lines: &[Line], pos: &mut usize, errors: &mut Vec<AgmError>)
                 }
             }
 
-            LineKind::BodyMarker => {
+            LineKind::BodyMarker(_) => {
                 // Unexpected in header — ignore.
                 *pos += 1;
             }

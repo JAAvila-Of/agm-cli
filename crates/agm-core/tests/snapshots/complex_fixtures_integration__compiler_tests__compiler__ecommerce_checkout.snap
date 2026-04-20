@@ -72,7 +72,7 @@ steps:
 code:
   lang: rust
   action: full
-  body:
+  body: |2
     pub async fn authorize_payment(
         gateway: &PaymentGateway,
         order: &Order,

@@ -363,7 +363,7 @@ fn test_canonical_emits_empty_body_code_block() {
     let out = render_canonical(&file);
     assert!(out.contains("code:\n"));
     assert!(out.contains("  action: full"));
-    assert!(out.contains("  body:\n"));
+    assert!(out.contains("  body: |2\n"));
 }
 
 #[test]

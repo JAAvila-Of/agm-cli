@@ -20,7 +20,13 @@ pub enum LineKind {
     FieldStart(String),
     ListItem(String),
     IndentedLine(String),
-    BodyMarker,
+    /// `body: |` or `body: |N` (N = explicit indent indicator, 1–9).
+    ///
+    /// When `Some(n)`, the parser should strip exactly `body_key_indent + n`
+    /// characters from each body line instead of inferring from the first line.
+    /// When `None`, the parser falls back to `detect_base_indent` for
+    /// backward compatibility with legacy files that omit the indicator.
+    BodyMarker(Option<u8>),
     TestExpectHeader(String),
 }
 
@@ -144,15 +150,32 @@ pub fn classify_line(raw: &str, line_number: usize) -> Result<Line, AgmError> {
         });
     }
 
-    // Rule 6 — BodyMarker: starts with "body:" AND rest after "body:" trimmed == "|"
+    // Rule 6 — BodyMarker: starts with "body:" AND rest after "body:" trimmed starts with "|"
+    // Accepts: `body: |` (legacy, no indicator) and `body: |N` (N = 1–9, explicit indicator).
     if let Some(rest) = trimmed.strip_prefix("body:") {
-        if rest.trim() == "|" {
+        let r = rest.trim();
+        if r == "|" {
             return Ok(Line {
-                kind: LineKind::BodyMarker,
+                kind: LineKind::BodyMarker(None),
                 number: line_number,
                 indent,
                 raw: raw.to_string(),
             });
+        }
+        if let Some(digit_str) = r.strip_prefix('|') {
+            let digit_str = digit_str.trim();
+            if digit_str.len() == 1 {
+                if let Some(d) = digit_str.chars().next().and_then(|c| c.to_digit(10)) {
+                    if d >= 1 {
+                        return Ok(Line {
+                            kind: LineKind::BodyMarker(Some(d as u8)),
+                            number: line_number,
+                            indent,
+                            raw: raw.to_string(),
+                        });
+                    }
+                }
+            }
         }
         // Fall through to field rules below
     }
@@ -376,15 +399,37 @@ mod tests {
     // ---- E: BodyMarker ----
 
     #[test]
-    fn test_classify_body_pipe_returns_body_marker() {
+    fn test_classify_body_pipe_returns_body_marker_none() {
         let line = classify_line("body: |", 1).unwrap();
-        assert_eq!(line.kind, LineKind::BodyMarker);
+        assert_eq!(line.kind, LineKind::BodyMarker(None));
     }
 
     #[test]
-    fn test_classify_body_pipe_with_spaces_returns_body_marker() {
+    fn test_classify_body_pipe_with_spaces_returns_body_marker_none() {
         let line = classify_line("body:  |  ", 1).unwrap();
-        assert_eq!(line.kind, LineKind::BodyMarker);
+        assert_eq!(line.kind, LineKind::BodyMarker(None));
+    }
+
+    #[test]
+    fn test_classify_body_pipe_with_indicator_2_returns_body_marker_some_2() {
+        let line = classify_line("body: |2", 1).unwrap();
+        assert_eq!(line.kind, LineKind::BodyMarker(Some(2)));
+    }
+
+    #[test]
+    fn test_classify_body_pipe_with_indicator_4_returns_body_marker_some_4() {
+        let line = classify_line("body: |4", 1).unwrap();
+        assert_eq!(line.kind, LineKind::BodyMarker(Some(4)));
+    }
+
+    #[test]
+    fn test_classify_body_pipe_with_indicator_0_falls_through_to_scalar() {
+        // Digit 0 is not a valid indent indicator — falls through to ScalarField.
+        let line = classify_line("body: |0", 1).unwrap();
+        assert_eq!(
+            line.kind,
+            LineKind::ScalarField("body".to_string(), "|0".to_string())
+        );
     }
 
     #[test]

@@ -7,8 +7,8 @@ use regex::Regex;
 use crate::error::{AgmError, ErrorCode, ErrorLocation};
 use crate::model::execution::ExecutionStatus;
 use crate::model::fields::{
-    Confidence, FieldValue, NODE_ID_PATTERN, NodeStatus, Priority, SddPhase, Span, Stability,
-    TicketAction,
+    Confidence, FieldValue, NodeStatus, Priority, SddPhase, Span, Stability, TicketAction,
+    NODE_ID_PATTERN,
 };
 use crate::model::node::Node;
 
@@ -18,15 +18,16 @@ use super::fields::{
 };
 use super::lexer::{Line, LineKind};
 use super::structured::{
-    parse_agent_context, parse_code_block, parse_code_blocks, parse_memory, parse_parallel_groups,
-    parse_verify,
+    collect_pipe_body, parse_agent_context, parse_code_block, parse_code_blocks, parse_memory,
+    parse_parallel_groups, parse_verify,
 };
 
 // ---------------------------------------------------------------------------
 // Node ID validation
 // ---------------------------------------------------------------------------
 
-static NODE_ID_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(NODE_ID_PATTERN).unwrap());
+static NODE_ID_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(NODE_ID_PATTERN).unwrap());
 
 // ---------------------------------------------------------------------------
 // default_node
@@ -202,14 +203,16 @@ pub fn parse_node(lines: &[Line], pos: &mut usize, errors: &mut Vec<AgmError>) -
                 }
             }
 
-            LineKind::BodyMarker => {
+            LineKind::BodyMarker(indicator) => {
                 let line_number = lines[*pos].number;
                 last_line = line_number;
 
                 let is_dup = tracker.track("body");
+                let marker_indent = lines[*pos].indent;
+                let explicit = indicator.map(|n| (marker_indent, n));
                 *pos += 1; // advance past BodyMarker
 
-                let text = parse_block(lines, pos);
+                let text = collect_pipe_body(lines, pos, explicit);
 
                 if is_dup {
                     // Already have body — stash in extra_fields.
