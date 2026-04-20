@@ -1,0 +1,48 @@
+---
+source: crates/agm-core/tests/builder_complex.rs
+expression: snapshot_text
+---
+node myapp.ticket.oauth2.login
+type: ticket
+title: Add OAuth2 Login Flow
+description:
+  Implement full Google OAuth2 login to the dashboard.
+  Covers consent screen redirect, token exchange, session creation,
+  and logout endpoint. Backend in Rust with axum.
+action: create
+sdd_phase: apply
+assignee: agent-rust-01
+ticket_id: GH-2024
+labels:
+  - auth
+  - oauth2
+  - security
+  - backend
+prompt: Implement the OAuth2 login flow following RFC 6749.
+stability: medium
+priority: high
+depends: [myapp.ref.constraints, myapp.ref.rules]
+related_to: [myapp.ref.session]
+summary: add OAuth2 login flow to the dashboard
+code_blocks:
+  - lang: rust
+    target: src/auth/oauth.rs
+    action: create
+    body: |2
+      use axum::Router;
+      use tower_http::trace::TraceLayer;
+      
+      pub fn oauth_router() -> Router {
+      Router::new()
+      .layer(TraceLayer::new_for_http())
+      }
+agent_context:
+  load_nodes: [myapp.ref.constraints, myapp.ref.rules]
+  load_files:
+    - path: src/auth.rs
+      range: full
+  system_hint: Focus on OAuth2 best practices.
+  max_tokens: 8000
+detail: Use PKCE extension for public clients. Store tokens in httpOnly cookies.
+notes: See RFC 6749 and PKCE extension RFC 7636.
+tags: [oauth2, rust, axum]

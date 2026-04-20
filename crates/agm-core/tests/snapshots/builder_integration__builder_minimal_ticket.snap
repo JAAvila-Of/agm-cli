@@ -1,0 +1,10 @@
+---
+source: crates/agm-core/tests/builder_integration.rs
+expression: rendered
+---
+node my.ticket.oauth
+type: ticket
+title: Add OAuth2 login flow
+description: Add Google OAuth2 login to the dashboard.
+priority: high
+summary: add OAuth2 login

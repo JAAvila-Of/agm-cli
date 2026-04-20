@@ -1,0 +1,10 @@
+---
+source: crates/agm-core/tests/builder_integration.rs
+expression: rendered
+---
+node auth.login
+type: workflow
+input: [host, return_url]
+output: [redirect_url, sid_cookie]
+summary: authenticate user and create session
+steps: [resolve tenant, redirect to provider, handle callback]

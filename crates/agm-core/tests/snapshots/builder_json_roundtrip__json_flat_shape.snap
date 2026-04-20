@@ -1,0 +1,19 @@
+---
+source: crates/agm-core/tests/builder_json_roundtrip.rs
+expression: pretty
+---
+{
+  "agm": "1.0",
+  "nodes": [
+    {
+      "items": [
+        "item one"
+      ],
+      "node": "snap.shape.node",
+      "summary": "shape lock node",
+      "type": "facts"
+    }
+  ],
+  "package": "snap.shape.pkg",
+  "version": "1.0.0"
+}
