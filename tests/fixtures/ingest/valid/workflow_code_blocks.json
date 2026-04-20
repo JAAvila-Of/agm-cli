@@ -1,0 +1,4 @@
+{
+  "summary": "authenticate user via OAuth2",
+  "steps": ["resolve tenant", "redirect to provider", "exchange code", "issue JWT"]
+}

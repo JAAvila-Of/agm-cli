@@ -1,0 +1,10 @@
+{
+  "type": "ticket",
+  "summary": "implement auth module",
+  "title": "Implement Auth Module",
+  "description": "Build the complete authentication module with JWT and refresh tokens.",
+  "priority": "critical",
+  "action": "create",
+  "labels": ["auth", "security", "backend"],
+  "prompt": "Implement the auth module per the spec in docs/auth.md"
+}

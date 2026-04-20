@@ -1,0 +1,7 @@
+{
+  "summary": "add feature",
+  "title": "Add Feature",
+  "description": "Implement the feature.",
+  "priority": "normal",
+  "unknown_hallucinated_field": "some value"
+}

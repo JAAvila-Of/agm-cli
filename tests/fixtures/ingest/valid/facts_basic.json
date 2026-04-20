@@ -1,0 +1,4 @@
+{
+  "summary": "auth system constraints",
+  "items": ["sessions expire after 24h", "tokens must be rotated", "bcrypt cost factor 12"]
+}
