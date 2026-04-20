@@ -326,7 +326,10 @@ pub fn ticket_from_json(id: &str, v: &Value) -> Result<TicketBuilder, IngestErro
 
     let mut b = TicketBuilder::new(id);
 
-    if let Some(s) = str_val(v, "summary") {
+    // Prefer explicit "summary"; fall back to "title" when absent (defense in
+    // depth — enrichment normally handles this before dispatch).
+    let summary = str_val(v, "summary").or_else(|| str_val(v, "title"));
+    if let Some(s) = summary {
         b = b.summary(s);
     }
     if let Some(s) = str_val(v, "title") {
@@ -447,7 +450,9 @@ pub fn workflow_from_json(id: &str, v: &Value) -> Result<WorkflowBuilder, Ingest
 
     let mut b = WorkflowBuilder::new(id);
 
-    if let Some(s) = str_val(v, "summary") {
+    // Fall back to "title" if "summary" is absent (defense in depth).
+    let summary = str_val(v, "summary").or_else(|| str_val(v, "title"));
+    if let Some(s) = summary {
         b = b.summary(s);
     }
     if let Some(steps) = string_list(v, "steps") {
@@ -554,7 +559,9 @@ pub fn orchestration_from_json(id: &str, v: &Value) -> Result<OrchestrationBuild
 
     let mut b = OrchestrationBuilder::new(id);
 
-    if let Some(s) = str_val(v, "summary") {
+    // Fall back to "title" if "summary" is absent (defense in depth).
+    let summary = str_val(v, "summary").or_else(|| str_val(v, "title"));
+    if let Some(s) = summary {
         b = b.summary(s);
     }
     if let Some(s) = str_val(v, "detail") {
@@ -635,7 +642,9 @@ pub fn facts_from_json(id: &str, v: &Value) -> Result<FactsBuilder, IngestError>
 
     let mut b = FactsBuilder::new(id);
 
-    if let Some(s) = str_val(v, "summary") {
+    // Fall back to "title" if "summary" is absent (defense in depth).
+    let summary = str_val(v, "summary").or_else(|| str_val(v, "title"));
+    if let Some(s) = summary {
         b = b.summary(s);
     }
     if let Some(items) = string_list(v, "items") {
@@ -713,7 +722,9 @@ pub fn rules_from_json(id: &str, v: &Value) -> Result<RulesBuilder, IngestError>
 
     let mut b = RulesBuilder::new(id);
 
-    if let Some(s) = str_val(v, "summary") {
+    // Fall back to "title" if "summary" is absent (defense in depth).
+    let summary = str_val(v, "summary").or_else(|| str_val(v, "title"));
+    if let Some(s) = summary {
         b = b.summary(s);
     }
     if let Some(items) = string_list(v, "items") {
@@ -793,7 +804,9 @@ pub fn decision_from_json(id: &str, v: &Value) -> Result<DecisionBuilder, Ingest
 
     let mut b = DecisionBuilder::new(id);
 
-    if let Some(s) = str_val(v, "summary") {
+    // Fall back to "title" if "summary" is absent (defense in depth).
+    let summary = str_val(v, "summary").or_else(|| str_val(v, "title"));
+    if let Some(s) = summary {
         b = b.summary(s);
     }
     if let Some(items) = string_list(v, "rationale") {

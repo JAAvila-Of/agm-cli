@@ -249,6 +249,42 @@ fn test_ingest_enforcement_strict_unknown_field_with_no_schema_check_passes_to_v
 }
 
 // ---------------------------------------------------------------------------
+// Plan §3 example: minimal JSON with only title/description/priority
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_ingest_ticket_minimal_synthesized_plan_section_3() {
+    // This is the exact one-liner from the plan §3 example.
+    // The JSON has no "type", "node", or "summary" — all three must be
+    // synthesized by the enrichment pass.
+    let json = r#"{"title":"Add OAuth2 login","description":"Add Google OAuth2 login to dashboard","priority":"high"}"#;
+    let output = agm()
+        .args([
+            "ingest",
+            "ticket",
+            "--package",
+            "octopus.tickets",
+            "--id",
+            "octopus.ticket.oauth",
+        ])
+        .write_stdin(json)
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let text = String::from_utf8(output).unwrap();
+    assert!(
+        text.contains("node octopus.ticket.oauth"),
+        "output must contain the node id"
+    );
+    assert!(
+        text.contains("summary: Add OAuth2 login"),
+        "output must contain the synthesized summary"
+    );
+}
+
+// ---------------------------------------------------------------------------
 // --header-title and --version appear in output
 // ---------------------------------------------------------------------------
 

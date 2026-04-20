@@ -196,6 +196,24 @@ for choice in response.choices:
 
 ---
 
+## Field synthesis
+
+Before schema validation and node construction, the ingest pipeline enriches
+the raw JSON with three automatic injections:
+
+1. **`type`** — copied from the CLI subcommand (e.g. `ticket`). If JSON already
+   contains `"type"` and it conflicts with the subcommand, ingest returns a
+   clear type-mismatch error rather than silently overriding either value.
+2. **`node`** — set to the resolved node ID (`--id` or JSON `node`/`id` field).
+   Only injected when neither `"node"` nor `"id"` is present in the JSON.
+3. **`summary`** — synthesized from `"title"` when `"summary"` is absent.
+   This preserves LLM ergonomics: tool callers only need a human-readable
+   `title`; the `summary` field required by AGM is derived automatically.
+
+All three injections apply unconditionally; there is no flag to disable them.
+
+---
+
 ## Normalization
 
 By default, `agm ingest` runs the normalize layer (news_1) after building the
