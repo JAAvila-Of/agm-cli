@@ -9,3 +9,4 @@
 //! Phase 2 runtime.
 
 pub mod schema;
+pub mod store;

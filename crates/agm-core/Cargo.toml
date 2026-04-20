@@ -15,8 +15,9 @@ categories = ["command-line-utilities", "parser-implementations", "data-structur
 exclude = ["tests/fixtures/", "tests/snapshots/", "tests/conformance/"]
 
 [features]
-default = []
+default = ["zeroize"]
 compiler = ["dep:pulldown-cmark"]
+zeroize = ["dep:zeroize"]
 
 [dependencies]
 serde.workspace = true
@@ -29,6 +30,12 @@ regex.workspace = true
 semver.workspace = true
 pulldown-cmark = { workspace = true, optional = true }
 jsonschema = "0.26"
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+getrandom = "0.2"
+zeroize = { version = "1", optional = true }
+tempfile = "3"
 
 [dev-dependencies]
 insta.workspace = true
