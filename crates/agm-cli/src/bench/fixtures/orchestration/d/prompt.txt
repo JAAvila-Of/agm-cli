@@ -1,0 +1,5 @@
+Adversarial case: the following mixes natural language narrative with partial technical specifications.
+
+"We need an orchestration for customer onboarding. Basically when a new customer signs up there's a bunch of stuff that happens. The CRM gets updated (that's Salesforce), some welcome emails go out (through Mailchimp or SendGrid, not sure), the billing system gets configured (Stripe), provisioning happens for their workspace, and the CS team gets notified in Slack. Some of these can happen in parallel. Also there's a compliance check that has to happen first before anything else. Oh and if the customer is enterprise tier there are extra steps but I won't go into that now."
+
+Generate a reasonable AGM orchestration node that captures the main coordination logic.

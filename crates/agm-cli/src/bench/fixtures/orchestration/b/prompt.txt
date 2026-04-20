@@ -1,0 +1,11 @@
+Generate an AGM orchestration node for a code review and merge automation system.
+
+The orchestration should coordinate the following agents:
+1. Static analysis agent (runs linters, type checkers)
+2. Test runner agent (runs unit and integration tests)
+3. Security scanner agent (checks for vulnerabilities)
+4. Review assignment agent (assigns human reviewers)
+5. Merge agent (merges after approvals)
+
+Include appropriate parallel_groups where steps can run concurrently.
+Set status to "pending".

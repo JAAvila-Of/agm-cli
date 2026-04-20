@@ -1,0 +1,6 @@
+# Adversarial case — vague prompt. We only require a ticket node with any summary.
+expected_type: ticket
+must_validate: false
+must_match_schema: false
+required_fields:
+  - field: summary

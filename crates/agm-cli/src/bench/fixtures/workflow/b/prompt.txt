@@ -1,0 +1,11 @@
+Generate an AGM workflow node for an on-call incident response process.
+
+The workflow should cover:
+1. Alert received
+2. On-call engineer acknowledges within 5 minutes
+3. Initial triage and severity classification
+4. Escalation if P0/P1
+5. Mitigation steps
+6. Post-incident review
+
+Set status to "pending" and include a clear summary.

@@ -1,0 +1,9 @@
+Generate an AGM ticket node for the following feature request:
+
+"Add dark mode support to the web dashboard. Users have requested the ability to switch between light and dark themes. This should persist across sessions using local storage."
+
+The node must:
+- Have a descriptive summary
+- Set action to "implement"
+- Set priority to "medium"
+- Be valid AGM v1.0.0 syntax

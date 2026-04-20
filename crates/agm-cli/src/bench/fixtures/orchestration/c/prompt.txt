@@ -1,0 +1,5 @@
+Adversarial case: the following is an ambiguous orchestration request that conflates orchestration with workflow concepts and uses non-AGM terminology.
+
+"Set up the AI agents so they work together. There should be a boss agent and worker agents. The boss tells the workers what to do. Workers report back. If a worker fails, retry it. The whole thing should be monitored. Use whatever coordination mechanism makes sense. Maybe event-driven, maybe polling, we haven't decided yet."
+
+Generate the best AGM orchestration node you can from this vague description.

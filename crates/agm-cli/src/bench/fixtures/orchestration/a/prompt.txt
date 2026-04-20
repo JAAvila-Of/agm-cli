@@ -1,0 +1,8 @@
+Generate an AGM orchestration node for a multi-agent data processing pipeline.
+
+The orchestration should:
+- Coordinate agents for: data ingestion, validation, transformation, and storage
+- Define execution order using the AGM parallel_groups or depends syntax
+- Set status to "pending"
+- Have a clear summary describing the pipeline purpose
+- Be valid AGM v1.0.0 syntax

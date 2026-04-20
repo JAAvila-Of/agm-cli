@@ -1,0 +1,5 @@
+Adversarial case: the following description uses inconsistent terminology and mixes workflow steps with unrelated concerns.
+
+"The process for getting a new feature out starts with someone having an idea, then they maybe write a design doc or maybe they don't, then there's usually a meeting, code gets written at some point, tests if we have time, then it goes out. Sometimes there are bugs. The intern usually handles deployment. Also we need to remember to update the JIRA board. Don't forget Slack notifications."
+
+Generate a coherent AGM workflow node from this description, extracting the main steps as best you can.

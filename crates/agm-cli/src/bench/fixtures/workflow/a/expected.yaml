@@ -1,0 +1,7 @@
+expected_type: workflow
+must_validate: true
+must_match_schema: false
+required_fields:
+  - field: summary
+  - field: status
+    value: pending

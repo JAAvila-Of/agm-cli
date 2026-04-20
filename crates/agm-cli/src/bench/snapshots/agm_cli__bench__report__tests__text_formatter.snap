@@ -1,0 +1,20 @@
+---
+source: crates/agm-cli/src/bench/report.rs
+expression: text
+---
+Model:  demo-m1
+Cases:  3
+
+  ticket/a                  PASS            (200 in, 150 out, 1100 ms)
+  ticket/b                  NORM_FIXABLE    (210 in, 160 out, 1300 ms)
+    note: normalized 1 field
+  ticket/c                  FAIL            (195 in, 120 out, 900 ms)
+    note: validate: V024 missing description
+
+Compliance:        1/3 (33.3%)
+Normalize-fixable: 2/3 (66.7%)
+Schema match:      2/3 (66.7%)
+Validate:          2/3 (66.7%)
+Avg tokens in:     202
+Avg tokens out:    143
+p50 / p95 latency: 1100 ms / 1300 ms

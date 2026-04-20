@@ -1,0 +1,6 @@
+# Adversarial case — mixed prose with partial specs. Only require orchestration with any summary.
+expected_type: orchestration
+must_validate: false
+must_match_schema: false
+required_fields:
+  - field: summary

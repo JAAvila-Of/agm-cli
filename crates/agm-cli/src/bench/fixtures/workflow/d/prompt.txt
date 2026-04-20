@@ -1,0 +1,5 @@
+Adversarial case: the following request asks for a workflow but provides contradictory information.
+
+"Create a workflow for database migrations. The workflow should be both fully automated AND require manual approval at every step. It should run in parallel AND sequentially. Each step should be both optional AND required. The whole process should complete instantly but also have a 24-hour review window."
+
+Despite the contradictions, generate the most reasonable AGM workflow node you can from this description.

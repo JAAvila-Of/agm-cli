@@ -1,0 +1,9 @@
+Generate an AGM ticket node for the following task:
+
+"Fix the null pointer exception that occurs when a user tries to log in without an email address. The authentication service crashes with a NullPointerException in the login handler."
+
+The node must:
+- Have a clear, concise summary
+- Set status to "pending"
+- Identify the affected component (auth service)
+- Be valid AGM v1.0.0 syntax

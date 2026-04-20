@@ -1,0 +1,26 @@
+---
+source: crates/agm-cli/src/bench/report.rs
+expression: md
+---
+# AGM LLM Bench Report
+
+| Field | Value |
+|-------|-------|
+| Model | `demo-m1` |
+| Cases | 3 |
+| Compliance | 33.3% |
+| Normalize-fixable | 66.7% |
+| Schema match | 66.7% |
+| Validate | 66.7% |
+| Avg tokens in | 202 |
+| Avg tokens out | 143 |
+| p50 latency | 1100 ms |
+| p95 latency | 1300 ms |
+
+## Results by Case
+
+| Case | Bucket | Tokens In | Tokens Out | Latency (ms) | Notes |
+|------|--------|-----------|------------|--------------|-------|
+| ticket/a | PASS | 200 | 150 | 1100 |  |
+| ticket/b | NORM_FIXABLE | 210 | 160 | 1300 | normalized 1 field |
+| ticket/c | FAIL | 195 | 120 | 900 | validate: V024 missing description |

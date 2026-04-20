@@ -1,0 +1,5 @@
+Adversarial case: the following description is a mix of prose narrative and technical content with no clear structure.
+
+"So I was testing the payment system and noticed that when you have items in the cart and also at the same time if the user session expires mid-checkout the whole transaction just silently drops without any error message and also sometimes though not always it sends a partial charge to the payment gateway which is obviously bad from a financial perspective and the support team is getting lots of tickets about this."
+
+Extract the core issue and generate a valid AGM ticket node for it.

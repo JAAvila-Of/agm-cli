@@ -1,0 +1,5 @@
+Adversarial case: the following request is intentionally ambiguous. Generate the best AGM ticket node you can for it.
+
+"Something is wrong with the thing that talks to the other thing. It worked yesterday. Priority: urgent maybe? Not sure who owns this."
+
+Even though the description is vague, produce a syntactically valid AGM ticket node with whatever summary and fields you can reasonably infer.

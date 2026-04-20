@@ -1,0 +1,6 @@
+# Adversarial case — contradictory requirements. Only require a workflow with any summary.
+expected_type: workflow
+must_validate: false
+must_match_schema: false
+required_fields:
+  - field: summary

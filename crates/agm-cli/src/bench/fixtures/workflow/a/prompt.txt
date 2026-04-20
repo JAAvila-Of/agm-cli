@@ -1,0 +1,7 @@
+Generate an AGM workflow node that describes the CI/CD pipeline for a containerized web application.
+
+The workflow should:
+- Describe stages: build, test, security scan, deploy to staging, smoke test, deploy to production
+- Set status to "pending"
+- Have a clear summary
+- Be valid AGM v1.0.0 syntax

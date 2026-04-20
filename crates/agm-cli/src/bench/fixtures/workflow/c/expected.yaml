@@ -1,0 +1,6 @@
+# Adversarial case — incoherent prose. We only require a workflow node with any summary.
+expected_type: workflow
+must_validate: false
+must_match_schema: false
+required_fields:
+  - field: summary
