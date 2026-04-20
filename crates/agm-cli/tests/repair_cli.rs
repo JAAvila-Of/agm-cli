@@ -3,6 +3,7 @@
 use std::path::PathBuf;
 
 use assert_cmd::Command;
+use predicates::prelude::PredicateBooleanExt as _;
 
 /// Path to a repair fixture.
 fn fixture_path(name: &str) -> PathBuf {
@@ -203,7 +204,7 @@ fn test_repair_unknown_enable_only_exits_2() {
 #[test]
 fn test_fix_repairs_and_normalizes() {
     // Create a file that needs both repair (CRLF) and normalize (depends_on -> depends).
-    let content = "agm: 1.0\r\npackage: fix-test\r\nversion: 0.1.0\r\n\r\nnode n1\r\ntype: facts\r\nsummary: N1\r\n\r\nnode n2\r\ntype: facts\r\nsummary: N2\r\ndepends: [n1]\r\n";
+    let content = "agm: 1.0\r\npackage: fix.test\r\nversion: 0.1.0\r\n\r\nnode n1\r\ntype: facts\r\nsummary: N1\r\n\r\nnode n2\r\ntype: facts\r\nsummary: N2\r\ndepends: [n1]\r\n";
     let (path, _dir) = write_temp("fix_input.agm", content);
 
     let mut cmd = Command::cargo_bin("agm").unwrap();
@@ -223,7 +224,7 @@ fn test_fix_check_exits_1_when_either_stage_has_rewrites() {
 
 #[test]
 fn test_fix_explain_shows_both_stage_reports() {
-    let content = "agm: 1.0\r\npackage: explain-test\r\nversion: 0.1.0\r\n\r\nnode n1\r\ntype: facts\r\nsummary: test\r\n";
+    let content = "agm: 1.0\r\npackage: explain.test\r\nversion: 0.1.0\r\n\r\nnode n1\r\ntype: facts\r\nsummary: test\r\n";
     let (path, _dir) = write_temp("fix_explain.agm", content);
 
     let mut cmd = Command::cargo_bin("agm").unwrap();
