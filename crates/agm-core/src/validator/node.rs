@@ -15,6 +15,12 @@ use crate::model::node::Node;
 /// Compiled regex for validating node IDs. Pattern sourced from
 /// [`NODE_ID_PATTERN`] in `crate::model::fields` -- shared with the parser
 /// to prevent drift.
+///
+/// **Defence-in-depth**: V021 is reachable even when the parser's P002 check
+/// has already run, because programmatically constructed nodes (e.g. via
+/// `build_unchecked`, `serde_json::from_str`, or direct `Node { id, ... }`
+/// construction) bypass the parser entirely. V021 is the validator-layer
+/// guard for those code paths.
 static NODE_ID_RE: OnceLock<Regex> = OnceLock::new();
 
 fn node_id_regex() -> &'static Regex {
@@ -216,6 +222,26 @@ mod tests {
         node.id = "1auth".to_owned();
         let errors = validate_node_ids(&[node], "test.agm");
         assert!(errors.iter().any(|e| e.code == ErrorCode::V021));
+    }
+
+    #[test]
+    fn test_validate_node_id_digit_only_segment_returns_v021() {
+        // Defence-in-depth: V021 fires when a node with an invalid ID is
+        // constructed directly (bypassing the parser). The parser would have
+        // emitted P002 first, but programmatic construction (build_unchecked,
+        // serde deserialization, direct struct literal) skips the parser.
+        let node = Node {
+            id: "perf.000".to_owned(), // segment "000" starts with a digit
+            node_type: NodeType::Facts,
+            summary: "direct construction test".to_owned(),
+            span: Span::new(1, 2),
+            ..Default::default()
+        };
+        let errors = validate_node_ids(&[node], "test.agm");
+        assert!(
+            errors.iter().any(|e| e.code == ErrorCode::V021),
+            "digit-only segment must trigger V021 via direct struct construction"
+        );
     }
 
     #[test]
