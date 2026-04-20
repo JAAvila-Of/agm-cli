@@ -8,6 +8,7 @@ pub mod graph;
 pub mod helpers;
 pub mod ingest;
 pub mod lint;
+pub mod llm_bench;
 pub mod load;
 pub mod mem_cmd;
 pub mod mem_sign;

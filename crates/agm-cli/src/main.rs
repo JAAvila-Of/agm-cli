@@ -411,6 +411,81 @@ enum Commands {
         json: bool,
     },
 
+    /// Run the LLM emission compliance benchmark suite
+    LlmBench {
+        /// Model identifier (passed verbatim to the provider)
+        #[arg(long)]
+        model: Option<String>,
+
+        /// Provider API shape: messages (Messages-style) or chat (Chat-Completions-style)
+        #[arg(long, value_enum, default_value_t = ProviderKindArg::Messages)]
+        provider: ProviderKindArg,
+
+        /// Path to a directory of custom fixtures (default: built-in 12 cases)
+        #[arg(long)]
+        fixtures: Option<PathBuf>,
+
+        /// Filter cases by glob pattern, e.g. "ticket/*" or "*/a"
+        #[arg(long)]
+        case: Option<String>,
+
+        /// Output format
+        #[arg(long, value_enum, default_value_t = BenchFormatArg::Text)]
+        format: BenchFormatArg,
+
+        /// Write report to this file (default: stdout)
+        #[arg(long, short)]
+        output: Option<PathBuf>,
+
+        /// Maximum concurrent case executions
+        #[arg(long, default_value_t = 2)]
+        concurrency: usize,
+
+        /// Maximum retries on transient errors
+        #[arg(long, default_value_t = 2)]
+        max_retries: u8,
+
+        /// Per-request timeout in seconds
+        #[arg(long, default_value_t = 60)]
+        timeout_secs: u64,
+
+        /// Apply normalize pass before evaluating responses
+        #[arg(long, default_value_t = false)]
+        normalize: bool,
+
+        /// Directory for cassette replay/record
+        #[arg(long)]
+        cassettes: Option<PathBuf>,
+
+        /// Force re-record cassettes even if they exist
+        #[arg(long, default_value_t = false)]
+        record: bool,
+
+        /// Forbid cassette replay; always call the live API
+        #[arg(long, default_value_t = false)]
+        live: bool,
+
+        /// Name of the env var holding the API key (default: AGM_MESSAGES_KEY or AGM_CHAT_KEY)
+        #[arg(long = "api-key")]
+        api_key_var: Option<String>,
+
+        /// Maximum output tokens hint sent to provider
+        #[arg(long)]
+        max_tokens_out: Option<u32>,
+
+        /// Cost per 1k input tokens in USD (required for --cost-only)
+        #[arg(long)]
+        cost_per_1k_in: Option<f64>,
+
+        /// Cost per 1k output tokens in USD (required for --cost-only)
+        #[arg(long)]
+        cost_per_1k_out: Option<f64>,
+
+        /// Print cost estimate only, do not run the suite (requires both --cost-per-1k-* flags)
+        #[arg(long, default_value_t = false)]
+        cost_only: bool,
+    },
+
     /// Emit a cacheable, provider-aware AGM system-prompt corpus
     Corpus {
         /// Corpus flavor: full, standard, or grammar-only
@@ -674,6 +749,47 @@ impl ReportFormatArg {
         match self {
             Self::Text => commands::normalize::ReportFormat::Text,
             Self::Json => commands::normalize::ReportFormat::Json,
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// LlmBench-specific clap enums
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum ProviderKindArg {
+    /// Messages-style HTTP API (system + messages[] + optional tools[])
+    Messages,
+    /// Chat-Completions-style HTTP API (messages[] with role=system/user)
+    Chat,
+}
+
+impl ProviderKindArg {
+    fn to_cmd(self) -> commands::llm_bench::ProviderKind {
+        match self {
+            Self::Messages => commands::llm_bench::ProviderKind::Messages,
+            Self::Chat => commands::llm_bench::ProviderKind::Chat,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum BenchFormatArg {
+    /// Human-readable text summary
+    Text,
+    /// Markdown table report
+    Markdown,
+    /// JSON report
+    Json,
+}
+
+impl BenchFormatArg {
+    fn to_cmd(self) -> agm_cli::bench::report::ReportFormat {
+        match self {
+            Self::Text => agm_cli::bench::report::ReportFormat::Text,
+            Self::Markdown => agm_cli::bench::report::ReportFormat::Markdown,
+            Self::Json => agm_cli::bench::report::ReportFormat::Json,
         }
     }
 }
@@ -1109,6 +1225,53 @@ fn run() -> anyhow::Result<()> {
             validate,
             json,
         ),
+
+        Commands::LlmBench {
+            model,
+            provider,
+            fixtures,
+            case,
+            format,
+            output,
+            concurrency,
+            max_retries,
+            timeout_secs,
+            normalize,
+            cassettes,
+            record,
+            live,
+            api_key_var,
+            max_tokens_out,
+            cost_per_1k_in,
+            cost_per_1k_out,
+            cost_only,
+        } => {
+            let model_str = model.unwrap_or_default();
+            if model_str.is_empty() && !cost_only {
+                eprintln!("error: --model <M> is required when running the suite");
+                std::process::exit(2);
+            }
+            commands::llm_bench::run(
+                &model_str,
+                provider.to_cmd(),
+                fixtures.as_ref(),
+                case.as_deref(),
+                format.to_cmd(),
+                output.as_ref(),
+                concurrency,
+                max_retries,
+                timeout_secs,
+                normalize,
+                cassettes.as_ref(),
+                record,
+                live,
+                api_key_var.as_deref(),
+                max_tokens_out,
+                cost_per_1k_in,
+                cost_per_1k_out,
+                cost_only,
+            )
+        }
 
         Commands::Corpus {
             flavor,
