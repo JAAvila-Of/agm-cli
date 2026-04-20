@@ -5,6 +5,7 @@ pub mod diff;
 pub mod error;
 pub mod graph;
 pub mod import;
+pub mod ingest;
 pub mod loader;
 pub mod memory;
 pub mod model;

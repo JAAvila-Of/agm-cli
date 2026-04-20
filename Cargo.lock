@@ -19,7 +19,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
 name = "agm-cli"
-version = "1.2.0"
+version = "1.3.0"
 dependencies = [
  "agm-core",
  "anyhow",
@@ -38,7 +38,7 @@ dependencies = [
 
 [[package]]
 name = "agm-core"
-version = "1.2.0"
+version = "1.3.0"
 dependencies = [
  "insta",
  "jsonschema",
@@ -56,7 +56,7 @@ dependencies = [
 
 [[package]]
 name = "agm-lsp"
-version = "1.2.0"
+version = "1.3.0"
 dependencies = [
  "agm-core",
  "dashmap 6.1.0",
