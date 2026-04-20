@@ -51,6 +51,28 @@ impl Span {
 }
 
 // ---------------------------------------------------------------------------
+// NODE_ID_PATTERN
+// ---------------------------------------------------------------------------
+
+/// Regex pattern for valid AGM node IDs.
+///
+/// A node ID consists of dot-or-hyphen-separated segments where each segment
+/// starts with a lowercase letter followed by zero or more lowercase letters,
+/// digits, or underscores.
+///
+/// Pattern: `^[a-z][a-z0-9_]*([.\-][a-z][a-z0-9_]*)*$`
+///
+/// Note: the spec (§11.2) documents `[a-z0-9]` per segment, but the reference
+/// implementation allows `_` (underscore) as a non-breaking errata. See §11.2
+/// errata note in `docs/spec/agm_spec_v1.2.0.md`.
+///
+/// Used by both the parser (`P002`) and the validator (`V021`) for defence-in-depth:
+/// the parser rejects invalid IDs at parse time; the validator catches invalid IDs
+/// on programmatically constructed nodes that bypass the parser (e.g. via
+/// `build_unchecked`, `serde_json::from_str`, or direct `Node` struct construction).
+pub const NODE_ID_PATTERN: &str = r"^[a-z][a-z0-9_]*([.\-][a-z][a-z0-9_]*)*$";
+
+// ---------------------------------------------------------------------------
 // NodeType
 // ---------------------------------------------------------------------------
 

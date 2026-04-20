@@ -9,16 +9,16 @@ use regex::Regex;
 
 use crate::error::codes::ErrorCode;
 use crate::error::diagnostic::{AgmError, ErrorLocation, Severity};
-use crate::model::fields::NodeStatus;
+use crate::model::fields::{NODE_ID_PATTERN, NodeStatus};
 use crate::model::node::Node;
 
-/// Regex pattern for valid node IDs: dot-or-hyphen-separated lowercase segments.
-/// Segments may contain lowercase letters, digits, and underscores.
-/// First character of each segment must be a letter.
-static NODE_ID_PATTERN: OnceLock<Regex> = OnceLock::new();
+/// Compiled regex for validating node IDs. Pattern sourced from
+/// [`NODE_ID_PATTERN`] in `crate::model::fields` -- shared with the parser
+/// to prevent drift.
+static NODE_ID_RE: OnceLock<Regex> = OnceLock::new();
 
 fn node_id_regex() -> &'static Regex {
-    NODE_ID_PATTERN.get_or_init(|| Regex::new(r"^[a-z][a-z0-9_]*([.\-][a-z][a-z0-9_]*)*$").unwrap())
+    NODE_ID_RE.get_or_init(|| Regex::new(NODE_ID_PATTERN).unwrap())
 }
 
 /// Validates all node IDs for uniqueness (V003) and pattern compliance (V021).
