@@ -2,7 +2,6 @@
 #![allow(dead_code)]
 
 use std::collections::HashMap;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -11,7 +10,6 @@ use time::format_description::well_known::Rfc3339;
 
 use agm_core::model::mem_file::{MemFile, MemFileEntry};
 use agm_core::model::memory::{MemoryAction, MemoryEntry, MemoryScope, MemoryTtl};
-use agm_core::parser::mem::parse_mem;
 use agm_core::renderer::mem::render_mem;
 
 // ---------------------------------------------------------------------------
@@ -111,7 +109,7 @@ fn load_mem_file(path: &Path, package: &str) -> Result<MemFile> {
     }
     let content = std::fs::read_to_string(path)
         .with_context(|| format!("Failed to read mem file: {}", path.display()))?;
-    parse_mem(&content).map_err(|errors| {
+    agm_core::parser::mem::parse_mem(&content).map_err(|errors| {
         anyhow::anyhow!(
             "Failed to parse mem file {}: {}",
             path.display(),
@@ -124,27 +122,28 @@ fn load_mem_file(path: &Path, package: &str) -> Result<MemFile> {
     })
 }
 
-/// Atomically writes `content` to `path` via a `.tmp` sibling file.
+/// Atomically writes raw `content` to `path` via a temp file in the same directory.
+///
+/// Uses `tempfile::NamedTempFile` for Windows-compatible atomic replace.
 fn atomic_write(path: &Path, content: &str) -> Result<()> {
-    let tmp_path = path.with_extension(format!(
-        "{}.tmp",
-        path.extension().and_then(|e| e.to_str()).unwrap_or("mem")
-    ));
-    {
-        let mut file = std::fs::File::create(&tmp_path)
-            .with_context(|| format!("Failed to create tmp file: {}", tmp_path.display()))?;
-        file.write_all(content.as_bytes())
-            .with_context(|| format!("Failed to write tmp file: {}", tmp_path.display()))?;
-        file.sync_all()
-            .with_context(|| format!("Failed to sync tmp file: {}", tmp_path.display()))?;
-    }
-    std::fs::rename(&tmp_path, path).with_context(|| {
-        format!(
-            "Failed to rename {} -> {}",
-            tmp_path.display(),
-            path.display()
-        )
-    })
+    use std::io::Write as _;
+    let dir = path.parent().unwrap_or_else(|| Path::new("."));
+    let mut tmp = tempfile::NamedTempFile::new_in(dir)
+        .with_context(|| format!("Failed to create temp file in {}", dir.display()))?;
+    tmp.write_all(content.as_bytes())
+        .with_context(|| "Failed to write content to temp file")?;
+    tmp.flush().with_context(|| "Failed to flush temp file")?;
+    tmp.as_file()
+        .sync_all()
+        .with_context(|| "Failed to sync temp file")?;
+    tmp.persist(path)
+        .map_err(|e| anyhow::anyhow!("Failed to persist file {}: {}", path.display(), e.error))?;
+    Ok(())
+}
+
+/// Atomically writes `mem` (rendered as canonical text) to `path`.
+fn atomic_write_mem(path: &Path, mem: &MemFile) -> Result<()> {
+    atomic_write(path, &render_mem(mem))
 }
 
 // ---------------------------------------------------------------------------
@@ -670,16 +669,14 @@ impl MemoryRuntime {
             })?;
         }
 
-        let project_content = render_mem(&self.project_store);
-        atomic_write(&self.project_path, &project_content).with_context(|| {
+        atomic_write_mem(&self.project_path, &self.project_store).with_context(|| {
             format!(
                 "Failed to flush project store: {}",
                 self.project_path.display()
             )
         })?;
 
-        let global_content = render_mem(&self.global_store);
-        atomic_write(&self.global_path, &global_content).with_context(|| {
+        atomic_write_mem(&self.global_path, &self.global_store).with_context(|| {
             format!(
                 "Failed to flush global store: {}",
                 self.global_path.display()

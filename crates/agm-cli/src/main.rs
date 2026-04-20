@@ -524,6 +524,12 @@ enum MemAction {
         /// Export format: json, agm
         #[arg(long, default_value = "json")]
         format: String,
+        /// Sign the output: env:VAR, file:/path, hex:<literal>
+        #[arg(long)]
+        sign: Option<String>,
+        /// Signature envelope: trailing-comment (default) or sidecar-file
+        #[arg(long, value_enum, default_value_t = EnvelopeArg::TrailingComment)]
+        envelope: EnvelopeArg,
     },
     /// Import memory from a file
     Import {
@@ -532,11 +538,50 @@ enum MemAction {
         /// Path to the memory file to import
         #[arg(long)]
         from: PathBuf,
+        /// Merge strategy: latest-wins (default), union, reject
+        #[arg(long, value_enum, default_value_t = MergeStrategyArg::LatestWins)]
+        strategy: MergeStrategyArg,
+        /// Sign the output: env:VAR, file:/path, hex:<literal>
+        #[arg(long)]
+        sign: Option<String>,
+        /// Signature envelope: trailing-comment (default) or sidecar-file
+        #[arg(long, value_enum, default_value_t = EnvelopeArg::TrailingComment)]
+        envelope: EnvelopeArg,
+        /// Verify mode for the destination file: permissive (default), if-present, strict
+        #[arg(long, value_enum, default_value_t = VerifyModeArg::Permissive)]
+        verify_mode: VerifyModeArg,
     },
     /// Garbage-collect expired memory entries
     Gc {
         /// Path to the .agm file
         file: PathBuf,
+    },
+    /// Compute HMAC-SHA256 signature for an existing .agm.mem file
+    Sign {
+        /// Path to the .agm.mem file to sign
+        file: PathBuf,
+        /// Key spec: env:VAR, file:/path, hex:<literal>, or generate
+        #[arg(long)]
+        key: String,
+        /// Signature envelope: trailing-comment (default) or sidecar-file
+        #[arg(long, value_enum, default_value_t = EnvelopeArg::TrailingComment)]
+        envelope: EnvelopeArg,
+    },
+    /// Verify HMAC-SHA256 signature of an .agm.mem file
+    ///
+    /// Exit codes: 0 = valid, 1 = signature mismatch, 2 = signature missing, 3 = other error
+    Verify {
+        /// Path to the .agm.mem file to verify
+        file: PathBuf,
+        /// Key spec: env:VAR, file:/path, hex:<literal>
+        #[arg(long)]
+        key: String,
+        /// Signature envelope: trailing-comment (default) or sidecar-file
+        #[arg(long, value_enum, default_value_t = EnvelopeArg::TrailingComment)]
+        envelope: EnvelopeArg,
+        /// Verify mode: permissive, if-present, strict
+        #[arg(long, value_enum, default_value_t = VerifyModeArg::Strict)]
+        verify_mode: VerifyModeArg,
     },
 }
 
@@ -739,7 +784,68 @@ impl DialectArg {
     }
 }
 
-fn main() -> anyhow::Result<()> {
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum EnvelopeArg {
+    /// Trailing `# hmac-sha256: <hex>` comment line in the .agm.mem file (default)
+    #[value(name = "trailing-comment")]
+    TrailingComment,
+    /// Separate `<file>.sig` sidecar containing the hex digest
+    #[value(name = "sidecar-file")]
+    SidecarFile,
+}
+
+impl EnvelopeArg {
+    fn to_core(self) -> agm_core::memory::store::SignatureEnvelope {
+        match self {
+            Self::TrailingComment => agm_core::memory::store::SignatureEnvelope::TrailingComment,
+            Self::SidecarFile => agm_core::memory::store::SignatureEnvelope::SidecarFile,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum MergeStrategyArg {
+    /// On collision, prefer incoming value (default)
+    #[value(name = "latest-wins")]
+    LatestWins,
+    /// On collision, keep existing value
+    Union,
+    /// Reject on any collision
+    Reject,
+}
+
+impl MergeStrategyArg {
+    fn to_core(self) -> agm_core::memory::store::MergeStrategy {
+        match self {
+            Self::LatestWins => agm_core::memory::store::MergeStrategy::LatestWins,
+            Self::Union => agm_core::memory::store::MergeStrategy::Union,
+            Self::Reject => agm_core::memory::store::MergeStrategy::Reject,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq)]
+enum VerifyModeArg {
+    /// Accept signed and unsigned without verification
+    Permissive,
+    /// Verify if signature present; missing is OK
+    #[value(name = "if-present")]
+    IfPresent,
+    /// Verify; reject if missing or invalid
+    Strict,
+}
+
+impl VerifyModeArg {
+    fn to_core(self) -> agm_core::memory::store::VerifyMode {
+        match self {
+            Self::Permissive => agm_core::memory::store::VerifyMode::Permissive,
+            Self::IfPresent => agm_core::memory::store::VerifyMode::IfPresent,
+            Self::Strict => agm_core::memory::store::VerifyMode::Strict,
+        }
+    }
+}
+
+fn run() -> anyhow::Result<()> {
     // Configure miette for fancy terminal output
     miette::set_hook(Box::new(|_| {
         Box::new(
@@ -845,9 +951,39 @@ fn main() -> anyhow::Result<()> {
                 json,
             } => commands::mem_cmd::list(&file, topic.as_deref(), scope.as_deref(), json),
             MemAction::Get { file, key } => commands::mem_cmd::get(&file, &key),
-            MemAction::Export { file, format } => commands::mem_cmd::export(&file, &format),
-            MemAction::Import { file, from } => commands::mem_cmd::import(&file, &from),
+            MemAction::Export {
+                file,
+                format,
+                sign,
+                envelope,
+            } => commands::mem_cmd::export(&file, &format, sign.as_deref(), envelope.to_core()),
+            MemAction::Import {
+                file,
+                from,
+                strategy,
+                sign,
+                envelope,
+                verify_mode,
+            } => commands::mem_cmd::import(
+                &file,
+                &from,
+                strategy.to_core(),
+                sign.as_deref(),
+                envelope.to_core(),
+                verify_mode.to_core(),
+            ),
             MemAction::Gc { file } => commands::mem_cmd::gc(&file),
+            MemAction::Sign {
+                file,
+                key,
+                envelope,
+            } => commands::mem_sign::run(&file, &key, envelope.to_core()),
+            MemAction::Verify {
+                file,
+                key,
+                envelope,
+                verify_mode,
+            } => commands::mem_verify::run(&file, &key, envelope.to_core(), verify_mode.to_core()),
         },
 
         Commands::Context {
@@ -994,4 +1130,22 @@ fn main() -> anyhow::Result<()> {
     };
 
     std::process::exit(exit_code);
+}
+
+fn main() {
+    // Spawn with an 8 MiB stack so that crypto operations (SHA-256, HMAC) do not
+    // overflow the default 1 MiB Windows thread stack in debug builds.
+    let builder = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
+    let handler = builder
+        .spawn(|| {
+            if let Err(e) = run() {
+                eprintln!("error: {e:?}");
+                std::process::exit(3);
+            }
+        })
+        .expect("failed to spawn main thread");
+    if let Err(e) = handler.join() {
+        eprintln!("error: main thread panicked: {e:?}");
+        std::process::exit(3);
+    }
 }

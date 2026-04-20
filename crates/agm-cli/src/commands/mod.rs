@@ -10,6 +10,8 @@ pub mod ingest;
 pub mod lint;
 pub mod load;
 pub mod mem_cmd;
+pub mod mem_sign;
+pub mod mem_verify;
 pub mod normalize;
 pub mod render;
 pub mod retry;

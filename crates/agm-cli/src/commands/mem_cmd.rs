@@ -2,6 +2,11 @@
 
 use std::path::Path;
 
+use agm_core::memory::store::signing::resolve_key;
+use agm_core::memory::store::{
+    FilesystemConfig, FilesystemMemoryStore, MemoryStore as _, MergeStrategy, SignatureEnvelope,
+    SigningMode, VerifyMode,
+};
 use agm_core::renderer::mem::{render_mem, render_mem_json};
 
 use crate::runtime::memory;
@@ -91,14 +96,51 @@ pub fn get(file: &Path, key: &str) -> i32 {
 
 // ---- export ----
 
-pub fn export(file: &Path, format: &str) -> i32 {
+pub fn export(
+    file: &Path,
+    format: &str,
+    sign_spec: Option<&str>,
+    envelope: SignatureEnvelope,
+) -> i32 {
     let ctx = helpers::build_runtime_context(file);
     let mem = ctx.memory;
     let store = mem.project_store();
 
     match format {
         "json" => println!("{}", render_mem_json(store)),
-        "agm" => print!("{}", render_mem(store)),
+        "agm" => {
+            // If signing is requested, write to the mem sidecar path with signing.
+            if let Some(spec) = sign_spec {
+                let key = match resolve_key(spec) {
+                    Ok(k) => k,
+                    Err(e) => {
+                        eprintln!("error: {e}");
+                        return helpers::EXIT_VALIDATION_ERROR;
+                    }
+                };
+                let mem_path = memory::mem_path_from_agm(file);
+                let cfg = FilesystemConfig {
+                    package: store.package.clone(),
+                    signing: SigningMode::Enabled { key },
+                    verify_mode: VerifyMode::Permissive,
+                    envelope,
+                    ..Default::default()
+                };
+                let mut fs_store = match FilesystemMemoryStore::open(&mem_path, cfg) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        eprintln!("error: {e}");
+                        return helpers::EXIT_IO_ERROR;
+                    }
+                };
+                if let Err(e) = fs_store.save(store) {
+                    eprintln!("error: {e}");
+                    return helpers::EXIT_IO_ERROR;
+                }
+            } else {
+                print!("{}", render_mem(store));
+            }
+        }
         "sql" => {
             eprintln!("error: SQL export not yet implemented");
             return helpers::EXIT_VALIDATION_ERROR;
@@ -113,7 +155,15 @@ pub fn export(file: &Path, format: &str) -> i32 {
 
 // ---- import ----
 
-pub fn import(file: &Path, from: &Path) -> i32 {
+pub fn import(
+    file: &Path,
+    from: &Path,
+    strategy: MergeStrategy,
+    sign_spec: Option<&str>,
+    envelope: SignatureEnvelope,
+    verify_mode: VerifyMode,
+) -> i32 {
+    // Parse the source file.
     let source = match std::fs::read_to_string(from) {
         Ok(s) => s,
         Err(e) => {
@@ -134,24 +184,56 @@ pub fn import(file: &Path, from: &Path) -> i32 {
         }
     };
 
-    // Write to the project mem sidecar path
-    let mem_path = memory::mem_path_from_agm(file);
-    let rendered = render_mem(&parsed_mem);
-    if let Err(e) = std::fs::write(&mem_path, rendered) {
-        eprintln!(
-            "error: failed to write memory to {}: {}",
-            mem_path.display(),
-            e
-        );
-        return helpers::EXIT_IO_ERROR;
-    }
+    // Resolve signing key if requested.
+    let signing = match sign_spec {
+        Some(spec) => match resolve_key(spec) {
+            Ok(key) => SigningMode::Enabled { key },
+            Err(e) => {
+                eprintln!("error: {e}");
+                return helpers::EXIT_VALIDATION_ERROR;
+            }
+        },
+        None => SigningMode::Disabled,
+    };
 
-    println!(
-        "Imported memory from {} to {}",
-        from.display(),
-        mem_path.display()
-    );
-    helpers::EXIT_SUCCESS
+    // Open (or create) the destination store.
+    let mem_path = memory::mem_path_from_agm(file);
+    let cfg = FilesystemConfig {
+        package: parsed_mem.package.clone(),
+        signing,
+        verify_mode,
+        envelope,
+        ..Default::default()
+    };
+    let mut dst_store = match FilesystemMemoryStore::open(&mem_path, cfg) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("error: cannot open destination store: {e}");
+            return helpers::EXIT_IO_ERROR;
+        }
+    };
+
+    // Merge.
+    match dst_store.merge(&parsed_mem, strategy) {
+        Ok(outcome) => {
+            println!(
+                "Imported memory from {} to {} ({} inserted, {} updated)",
+                from.display(),
+                mem_path.display(),
+                outcome.inserted,
+                outcome.updated,
+            );
+            helpers::EXIT_SUCCESS
+        }
+        Err(agm_core::memory::store::MemoryStoreError::MergeConflict(key)) => {
+            eprintln!("error: merge conflict on key `{key}` (strategy: Reject)");
+            helpers::EXIT_VALIDATION_ERROR
+        }
+        Err(e) => {
+            eprintln!("error: import failed: {e}");
+            helpers::EXIT_IO_ERROR
+        }
+    }
 }
 
 // ---- gc ----
