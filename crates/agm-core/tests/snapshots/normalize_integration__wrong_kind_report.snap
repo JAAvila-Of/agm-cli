@@ -1,0 +1,11 @@
+---
+source: crates/agm-core/tests/normalize_integration.rs
+expression: "&report"
+---
+rewrites: []
+warnings:
+  - code: type_mismatch
+    message: "field 'depends' on node 'n1': synonym 'depends_on' has wrong value kind for canonical 'depends' — rewrite skipped"
+    node_id: n1
+    span: "[span]"
+rules_applied: []

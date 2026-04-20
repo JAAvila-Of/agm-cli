@@ -1,0 +1,8 @@
+agm: 1.0
+package: test.normalize
+version: 0.1.0
+
+node worker.node
+type: workflow
+summary: A workflow that uses depends_on instead of depends
+depends_on: [base.facts]

@@ -1,0 +1,11 @@
+---
+source: crates/agm-core/tests/normalize_integration.rs
+expression: "&report"
+---
+rewrites: []
+warnings:
+  - code: collision_keeping_canonical
+    message: "field 'depends' and synonym 'depends_on' both present on node 'n1' with different values — keeping canonical"
+    node_id: n1
+    span: "[span]"
+rules_applied: []

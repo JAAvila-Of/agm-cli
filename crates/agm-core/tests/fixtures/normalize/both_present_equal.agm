@@ -1,0 +1,9 @@
+agm: 1.0
+package: test.normalize
+version: 0.1.0
+
+node n1
+type: workflow
+summary: Both canonical and synonym present with equal values
+depends: [shared.dep]
+depends_on: [shared.dep]

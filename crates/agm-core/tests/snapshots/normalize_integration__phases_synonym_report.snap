@@ -1,0 +1,13 @@
+---
+source: crates/agm-core/tests/normalize_integration.rs
+expression: "&report"
+---
+rewrites:
+  - rule_id: field.orchestration.parallel_groups
+    node_id: plan2
+    before: phases
+    after: parallel_groups
+    span: "[span]"
+warnings: []
+rules_applied:
+  - field.orchestration.parallel_groups

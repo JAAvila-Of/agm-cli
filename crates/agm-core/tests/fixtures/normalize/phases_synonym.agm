@@ -1,0 +1,10 @@
+agm: 1.0
+package: test.normalize
+version: 0.1.0
+
+node plan2
+type: orchestration
+summary: Qwen-style plan using phases synonym
+phases:
+  - p1
+  - p2

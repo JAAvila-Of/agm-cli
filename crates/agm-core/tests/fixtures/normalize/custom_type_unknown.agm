@@ -1,0 +1,8 @@
+agm: 1.0
+package: test.normalize
+version: 0.1.0
+
+node custom1
+type: my_custom_type
+summary: A node with a custom type that has no synonym mapping
+custom_data: some value

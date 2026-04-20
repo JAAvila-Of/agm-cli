@@ -1,0 +1,11 @@
+agm: 1.0
+package: test.normalize
+version: 0.1.0
+
+node plan1
+type: plan_execution
+summary: Claude-style orchestration plan
+groups:
+  - g1
+  - g2
+depends_on: [prereq.node]

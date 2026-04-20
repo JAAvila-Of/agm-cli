@@ -1,0 +1,13 @@
+---
+source: crates/agm-core/tests/normalize_integration.rs
+expression: "&report"
+---
+rewrites:
+  - rule_id: field.workflow.depends
+    node_id: worker.node
+    before: depends_on
+    after: depends
+    span: "[span]"
+warnings: []
+rules_applied:
+  - field.workflow.depends

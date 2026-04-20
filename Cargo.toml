@@ -20,7 +20,7 @@ regex = "1"
 semver = "1"
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
-insta = { version = "1", features = ["yaml"] }
+insta = { version = "1", features = ["yaml", "redactions"] }
 tempfile = "3"
 self_update = { version = "0.42", features = ["archive-zip", "archive-tar", "compression-zip-deflate"] }
 pulldown-cmark = "0.12"

@@ -1,0 +1,29 @@
+---
+source: crates/agm-core/tests/normalize_integration.rs
+expression: "&report"
+---
+rewrites:
+  - rule_id: type.orchestration
+    node_id: plan1
+    before: plan_execution
+    after: orchestration
+    span: "[span]"
+  - rule_id: field.orchestration.depends
+    node_id: plan1
+    before: depends_on
+    after: depends
+    span: "[span]"
+  - rule_id: field.orchestration.parallel_groups
+    node_id: plan1
+    before: groups
+    after: parallel_groups
+    span: "[span]"
+warnings:
+  - code: type_rewritten
+    message: "type 'plan_execution' rewritten to 'orchestration' on node 'plan1'"
+    node_id: plan1
+    span: "[span]"
+rules_applied:
+  - type.orchestration
+  - field.orchestration.depends
+  - field.orchestration.parallel_groups

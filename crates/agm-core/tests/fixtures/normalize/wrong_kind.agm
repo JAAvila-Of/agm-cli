@@ -1,0 +1,8 @@
+agm: 1.0
+package: test.normalize
+version: 0.1.0
+
+node n1
+type: workflow
+summary: depends_on given as scalar instead of list
+depends_on: single-dep-as-scalar

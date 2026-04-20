@@ -1,0 +1,37 @@
+---
+source: crates/agm-core/tests/normalize_integration.rs
+expression: "&rs"
+---
+field_aliases:
+  orchestration:
+    depends:
+      - depends_on
+      - prereq
+      - needs
+    parallel_groups:
+      - groups
+      - phases
+  ticket:
+    labels:
+      - tags_list
+  workflow:
+    code_blocks:
+      - steps_with_code
+      - code_steps
+    steps:
+      - tasks
+      - task_list
+type_aliases:
+  orchestration:
+    - plan
+    - plan_execution
+    - execution_plan
+universal_field_aliases:
+  depends:
+    - depends_on
+    - prereq
+    - needs
+  related_to:
+    - related
+    - see
+    - relates_to
