@@ -372,11 +372,36 @@ The signature covers the full canonical sidecar text (headers + entries). Verifi
 constant-time comparison to prevent timing attacks. See [docs/memory_sdk.md](docs/memory_sdk.md)
 for key rotation, merge strategies, and the Rust API.
 
+## Troubleshooting LLM Outputs
+
+Language models sometimes produce AGM with minor syntax errors: smart quotes,
+CRLF line endings, tab indentation, asterisk bullets, or the entire file wrapped
+in a ` ```agm ``` ` code fence. Use `agm fix` to correct both syntax errors and
+non-canonical field names in a single pass:
+
+```bash
+# Fix syntax issues and normalize field names
+agm fix llm_output.agm --in-place --explain
+
+# Fix only syntax issues (no field normalization)
+agm repair llm_output.agm --in-place --explain
+
+# Check whether fixes are needed without modifying the file
+agm fix llm_output.agm --check
+
+# Repair only the CRLF and trailing whitespace issues
+agm repair llm_output.agm --enable-only R-CRLF,R-TRAILING-WS
+```
+
+See [docs/repair.md](docs/repair.md) for the full rule reference, safety-net
+semantics, and exit codes.
+
 ## Documentation
 
 - [CLI API Reference](docs/api.md) -- Complete command reference with examples, options, and edge cases
 - [AGM Specification v1.2.0](docs/spec/agm_spec_v1.2.0.md) -- Full format specification
 - [Normalize Layer](docs/normalize.md) -- How to rewrite non-canonical AGM input to canonical form
+- [Repair Layer](docs/repair.md) -- How to fix syntax-level errors in LLM-generated AGM files
 - [Builder API](docs/builder.md) -- Fluent Rust builder API for constructing AGM nodes programmatically
 - [JSON Schema Generation](docs/schemas.md) -- How to generate and use node-type schemas
 - [Ingest](docs/ingest.md) -- Convert tool-call JSON args into canonical AGM text

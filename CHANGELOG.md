@@ -6,6 +6,31 @@ All notable changes to `agm-cli` and `agm-core` are documented here.
 
 ### Added
 
+- **`agm repair` CLI subcommand**: applies conservative text-level rewrite rules
+  to AGM files with syntax errors common in LLM-generated output. Ships 9
+  built-in rules in canonical order: `R-ZERO-WIDTH`, `R-CRLF`,
+  `R-TABS-TO-SPACES`, `R-TRAILING-WS`, `R-SMART-QUOTES`, `R-MISSING-AGM-FENCE`,
+  `R-PROSE-BEFORE-HEADER`, `R-BULLET-STAR`, and `R-BARE-CODE-BLOCK` (disabled
+  by default). Features a safety-net re-parse step that rolls back changes if
+  the repaired text still fails to parse. Flags: `--in-place`, `--confirm`,
+  `--output`, `--explain`, `--report-format text|json`, `--disable-rule <ID>`,
+  `--enable-only <ID,...>`, `--no-safety-net`, `--check`. Exit codes: 0 success,
+  1 check-pending, 2 safety-net/unknown-rule, 3 I/O error. Rule IDs are stable
+  across releases. Docs: `docs/repair.md`.
+
+- **`agm fix` CLI subcommand**: umbrella command that chains `agm repair`
+  followed by `agm normalize` in a single pass. Accepts all repair flags plus
+  normalize flags (`--rules`, `--no-types`, `--no-fields`). Reports both stages
+  under `Repair stage:` / `Normalize stage:` in text output; JSON output uses
+  `{ "repair": {...}, "normalize": {...} }`. If repair rolls back (safety net),
+  normalize is skipped. Exit codes mirror `agm repair`. Docs: `docs/repair.md`.
+
+- **`agm_core::repair` module**: public Rust API for text-level repair.
+  `repair_text(raw: &str, config: &RepairConfig) -> RepairOutput` is the main
+  entry point. `RepairConfig::only_rules` and `RepairConfig::disabled_rules`
+  control which rules run. `RepairOutput::rolled_back` indicates safety-net
+  activation. `builtin_rule_ids()` returns the stable ordered list of rule IDs.
+
 - **`agm llm-bench` CLI subcommand**: runs a standardized LLM emission compliance
   suite against any Messages-style or Chat-Completions-style HTTP inference endpoint.
   Ships 12 built-in prompt fixtures (4 per node type: `ticket`, `workflow`,
