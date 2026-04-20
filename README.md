@@ -74,6 +74,29 @@ agm graph myfile.agm --format dot
 agm load myfile.agm --mode summary
 ```
 
+### Cacheable system prompt
+
+Use `agm corpus` to generate a ready-made AGM format reference for an
+agent's system prompt. The `--for anthropic` target prepends a role preamble
+and the `--min-tokens` flag ensures the output exceeds the provider's
+prompt-cache minimum:
+
+```bash
+# Generate a full corpus for Anthropic with at least 2048 tokens
+agm corpus --for anthropic --min-tokens 2048 > system_prompt.md
+
+# Check the token count
+agm corpus --for anthropic --count-only
+# 2509
+
+# JSON output with metadata
+agm corpus --for anthropic --format json | jq '{tokens: .estimated_tokens}'
+```
+
+Pass the content of `system_prompt.md` as the system block in your API
+request and set `cache_control: { type: ephemeral }` on that block to enable
+prompt caching. See [docs/corpus.md](docs/corpus.md) for the full reference.
+
 ### Ticket node example (AGM v1.2)
 
 ```agm
@@ -110,6 +133,7 @@ summary: add OAuth2 login endpoint
 | `verify` | Run verification checks on nodes |
 | `normalize` | Normalize non-canonical synonyms to canonical AGM field and type names |
 | `schema` | Emit JSON Schema (Draft 2020-12) for a built-in AGM node type |
+| `corpus` | Emit a cacheable, provider-aware AGM system-prompt corpus |
 | `update` | Update agm to the latest version |
 
 ## Library Usage

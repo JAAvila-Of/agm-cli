@@ -6,6 +6,16 @@ All notable changes to `agm-cli` and `agm-core` are documented here.
 
 ### Added
 
+- **`agm corpus` CLI subcommand**: emits a cacheable, provider-aware AGM
+  system-prompt corpus in three flavors (`full`, `standard`, `grammar-only`)
+  targeting three provider formats (`anthropic`, `openai`, `vanilla`).
+  Token budget enforcement via `--min-tokens` pads the output with examples
+  from a built-in bank (12 validated AGM examples) until the estimated token
+  count meets the target. Token estimation uses the `cl100k_base` BPE
+  tokenizer (`tiktoken-rs`). Flags: `--flavor`, `--for`, `--min-tokens`,
+  `--no-version`, `--output`, `--format text|json`, `--count-only`. Exit
+  codes: 0 success, 1 bank exhausted, 2 I/O error. Docs: `docs/corpus.md`.
+
 - **Normalize layer** (`agm_core::normalize`): rewrites non-canonical synonyms
   (type aliases like `plan_execution` -> `orchestration`, field renames like
   `depends_on` -> `requires` inside `parallel_groups`, `groups` / `phases` ->
