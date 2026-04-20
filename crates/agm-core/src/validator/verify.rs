@@ -12,8 +12,17 @@ use crate::model::verify::VerifyCheck;
 /// Validates all verify checks on a node.
 ///
 /// Rules: V009 (missing required field in verify entry, unresolved node ref).
+///
+/// When `single_node` is `true`, the cross-node reference check for
+/// `node_status.node` is skipped (the referenced node may exist in a sibling
+/// file not present in the scratch `AgmFile`).
 #[must_use]
-pub fn validate_verify(node: &Node, all_ids: &HashSet<String>, file_name: &str) -> Vec<AgmError> {
+pub fn validate_verify(
+    node: &Node,
+    all_ids: &HashSet<String>,
+    file_name: &str,
+    single_node: bool,
+) -> Vec<AgmError> {
     let mut errors = Vec::new();
     let checks = match &node.verify {
         Some(v) => v,
@@ -87,11 +96,9 @@ pub fn validate_verify(node: &Node, all_ids: &HashSet<String>, file_name: &str) 
                         "Verify entry `node_status` missing required field: `node`",
                         loc.clone(),
                     ));
-                } else if !all_ids.contains(ref_node.as_str()) {
-                    // Cross-package refs are handled by imports.rs; only flag truly unresolved
-                    // local refs (those that don't look like cross-package refs).
-                    // Simple heuristic: if the ref contains a dot segment matching an
-                    // imported package, skip. Here we flag all unresolved local refs.
+                } else if !single_node && !all_ids.contains(ref_node.as_str()) {
+                    // Cross-node ref check: skipped in SingleNode scope because
+                    // the referenced node may live in a sibling file.
                     errors.push(AgmError::new(
                         ErrorCode::V009,
                         format!(
@@ -130,7 +137,7 @@ mod tests {
     fn test_validate_verify_none_returns_empty() {
         let node = minimal_node();
         let all_ids = HashSet::new();
-        let errors = validate_verify(&node, &all_ids, "test.agm");
+        let errors = validate_verify(&node, &all_ids, "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -142,7 +149,7 @@ mod tests {
             expect: None,
         }]);
         let all_ids = HashSet::new();
-        let errors = validate_verify(&node, &all_ids, "test.agm");
+        let errors = validate_verify(&node, &all_ids, "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -154,7 +161,7 @@ mod tests {
             expect: None,
         }]);
         let all_ids = HashSet::new();
-        let errors = validate_verify(&node, &all_ids, "test.agm");
+        let errors = validate_verify(&node, &all_ids, "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
     }
 
@@ -166,7 +173,7 @@ mod tests {
             pattern: "fn main".to_owned(),
         }]);
         let all_ids = HashSet::new();
-        let errors = validate_verify(&node, &all_ids, "test.agm");
+        let errors = validate_verify(&node, &all_ids, "test.agm", false);
         assert!(
             errors
                 .iter()
@@ -182,7 +189,7 @@ mod tests {
             pattern: String::new(),
         }]);
         let all_ids = HashSet::new();
-        let errors = validate_verify(&node, &all_ids, "test.agm");
+        let errors = validate_verify(&node, &all_ids, "test.agm", false);
         assert!(
             errors
                 .iter()
@@ -198,7 +205,7 @@ mod tests {
             status: "completed".to_owned(),
         }]);
         let all_ids = HashSet::new();
-        let errors = validate_verify(&node, &all_ids, "test.agm");
+        let errors = validate_verify(&node, &all_ids, "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
     }
 
@@ -211,7 +218,7 @@ mod tests {
         }]);
         let mut all_ids = HashSet::new();
         all_ids.insert("auth.login".to_owned());
-        let errors = validate_verify(&node, &all_ids, "test.agm");
+        let errors = validate_verify(&node, &all_ids, "test.agm", false);
         assert!(errors.is_empty());
     }
 }

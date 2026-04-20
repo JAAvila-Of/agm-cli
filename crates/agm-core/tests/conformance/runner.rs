@@ -12,7 +12,7 @@ use agm_core::model::schema::EnforcementLevel;
 use agm_core::parser::parse;
 use agm_core::renderer::canonical::render_canonical;
 use agm_core::renderer::json_canonical::{agm_to_json, json_to_agm};
-use agm_core::validator::{ValidateOptions, validate};
+use agm_core::validator::{ValidateOptions, ValidationScope, validate};
 
 // ---------------------------------------------------------------------------
 // ExpectDirective
@@ -169,6 +169,7 @@ pub fn assert_parse_conformance(path: &Path, content: &str, directive: &ExpectDi
                             let opts = ValidateOptions {
                                 enforcement_level: enforcement,
                                 import_resolver: None,
+                                scope: ValidationScope::File,
                             };
                             let diags = validate(file, content, &file_name, &opts);
                             diags
@@ -203,6 +204,7 @@ pub fn assert_validate_conformance(path: &Path, content: &str, directive: &Expec
     let opts = ValidateOptions {
         enforcement_level: enforcement,
         import_resolver: None,
+        scope: ValidationScope::File,
     };
 
     match directive {

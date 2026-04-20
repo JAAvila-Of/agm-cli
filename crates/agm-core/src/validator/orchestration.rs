@@ -101,14 +101,18 @@ fn dfs_requires<'a>(
 /// Rules:
 /// - V018: `orchestration` type node without `parallel_groups`
 /// - V018: group missing required sub-fields (empty group name, empty nodes list)
-/// - V018: group node reference to non-existent node
+/// - V018: group node reference to non-existent node (skipped in `single_node` scope)
 /// - V018: `requires` references non-existent group
 /// - V019: cycle in group `requires` graph
+///
+/// When `single_node` is `true`, the check that each group node reference exists
+/// in `all_ids` is skipped — referenced nodes may live in sibling files.
 #[must_use]
 pub fn validate_orchestration(
     node: &Node,
     all_ids: &HashSet<String>,
     file_name: &str,
+    single_node: bool,
 ) -> Vec<AgmError> {
     let mut errors = Vec::new();
     let line = node.span.start_line;
@@ -153,17 +157,20 @@ pub fn validate_orchestration(
             ));
         }
 
-        // V018 — each node referenced in the group must exist
-        for ref_node_id in &group.nodes {
-            if !all_ids.contains(ref_node_id.as_str()) {
-                errors.push(AgmError::new(
-                    ErrorCode::V018,
-                    format!(
-                        "Orchestration group `{}` references non-existent node `{ref_node_id}`",
-                        group.group
-                    ),
-                    ErrorLocation::full(file_name, line, id),
-                ));
+        // V018 — each node referenced in the group must exist.
+        // Skipped in SingleNode scope: referenced nodes may live in sibling files.
+        if !single_node {
+            for ref_node_id in &group.nodes {
+                if !all_ids.contains(ref_node_id.as_str()) {
+                    errors.push(AgmError::new(
+                        ErrorCode::V018,
+                        format!(
+                            "Orchestration group `{}` references non-existent node `{ref_node_id}`",
+                            group.group
+                        ),
+                        ErrorLocation::full(file_name, line, id),
+                    ));
+                }
             }
         }
 
@@ -224,7 +231,7 @@ mod tests {
             max_concurrency: None,
         }]);
         let all_ids = ids(&["step.a"]);
-        let errors = validate_orchestration(&node, &all_ids, "test.agm");
+        let errors = validate_orchestration(&node, &all_ids, "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -232,7 +239,7 @@ mod tests {
     fn test_validate_orchestration_no_parallel_groups_returns_v018() {
         let node = make_node("orch.main", NodeType::Orchestration);
         let all_ids = HashSet::new();
-        let errors = validate_orchestration(&node, &all_ids, "test.agm");
+        let errors = validate_orchestration(&node, &all_ids, "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V018));
     }
 
@@ -240,7 +247,7 @@ mod tests {
     fn test_validate_orchestration_non_orchestration_no_groups_returns_empty() {
         let node = make_node("facts.node", NodeType::Facts);
         let all_ids = HashSet::new();
-        let errors = validate_orchestration(&node, &all_ids, "test.agm");
+        let errors = validate_orchestration(&node, &all_ids, "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -255,7 +262,7 @@ mod tests {
             max_concurrency: None,
         }]);
         let all_ids = HashSet::new(); // missing.step not in all_ids
-        let errors = validate_orchestration(&node, &all_ids, "test.agm");
+        let errors = validate_orchestration(&node, &all_ids, "test.agm", false);
         assert!(
             errors
                 .iter()
@@ -274,7 +281,7 @@ mod tests {
             max_concurrency: None,
         }]);
         let all_ids = HashSet::new();
-        let errors = validate_orchestration(&node, &all_ids, "test.agm");
+        let errors = validate_orchestration(&node, &all_ids, "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V018));
     }
 
@@ -298,7 +305,7 @@ mod tests {
             },
         ]);
         let all_ids = ids(&["step.a", "step.b"]);
-        let errors = validate_orchestration(&node, &all_ids, "test.agm");
+        let errors = validate_orchestration(&node, &all_ids, "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V019));
     }
 
@@ -313,7 +320,7 @@ mod tests {
             max_concurrency: None,
         }]);
         let all_ids = ids(&["step.a"]);
-        let errors = validate_orchestration(&node, &all_ids, "test.agm");
+        let errors = validate_orchestration(&node, &all_ids, "test.agm", false);
         assert!(
             errors
                 .iter()

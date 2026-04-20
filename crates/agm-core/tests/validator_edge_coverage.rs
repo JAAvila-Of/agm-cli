@@ -34,7 +34,7 @@ fn blank_node(id: &str) -> Node {
 #[test]
 fn test_validate_verify_none_returns_empty() {
     let node = blank_node("n");
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.is_empty());
 }
 
@@ -45,7 +45,7 @@ fn test_validate_verify_command_empty_run_emits_v009() {
         run: "  ".to_owned(), // whitespace only
         expect: None,
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
 }
 
@@ -55,7 +55,7 @@ fn test_validate_verify_file_exists_empty_file_emits_v009() {
     node.verify = Some(vec![VerifyCheck::FileExists {
         file: "".to_owned(),
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
 }
 
@@ -66,7 +66,7 @@ fn test_validate_verify_file_contains_missing_file_emits_v009() {
         file: "".to_owned(),
         pattern: "ok".to_owned(),
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
 }
 
@@ -77,7 +77,7 @@ fn test_validate_verify_file_contains_missing_pattern_emits_v009() {
         file: "src/lib.rs".to_owned(),
         pattern: "".to_owned(),
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
 }
 
@@ -88,7 +88,7 @@ fn test_validate_verify_file_not_contains_missing_file_emits_v009() {
         file: "".to_owned(),
         pattern: "x".to_owned(),
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
 }
 
@@ -99,7 +99,7 @@ fn test_validate_verify_file_not_contains_missing_pattern_emits_v009() {
         file: "src/lib.rs".to_owned(),
         pattern: "".to_owned(),
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
 }
 
@@ -110,7 +110,7 @@ fn test_validate_verify_node_status_empty_node_emits_v009() {
         node: "".to_owned(),
         status: "completed".to_owned(),
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(errors.iter().any(|e| e.code == ErrorCode::V009));
 }
 
@@ -121,7 +121,7 @@ fn test_validate_verify_node_status_unresolved_ref_emits_v009() {
         node: "does.not.exist".to_owned(),
         status: "completed".to_owned(),
     }]);
-    let errors = validate_verify(&node, &HashSet::new(), "t.agm");
+    let errors = validate_verify(&node, &HashSet::new(), "t.agm", false);
     assert!(
         errors
             .iter()
@@ -139,7 +139,7 @@ fn test_validate_verify_node_status_resolved_ref_ok() {
     }]);
     let mut ids = HashSet::new();
     ids.insert("other.node".to_owned());
-    let errors = validate_verify(&node, &ids, "t.agm");
+    let errors = validate_verify(&node, &ids, "t.agm", false);
     assert!(errors.is_empty(), "unexpected errors: {errors:?}");
 }
 

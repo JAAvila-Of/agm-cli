@@ -40,6 +40,39 @@ pub mod type_schema;
 pub mod verify;
 
 // ---------------------------------------------------------------------------
+// ValidationScope
+// ---------------------------------------------------------------------------
+
+/// Controls which validation passes run.
+///
+/// - `File` (default): all passes, including cross-node reference resolution,
+///   cycle detection, and orchestration cross-checks. Use when validating a
+///   complete `AgmFile`. This is the scope used by `agm validate` / `agm lint`.
+///
+/// - `SingleNode`: skips cross-node checks (Pass 5 — references, cycles,
+///   compatibility) and cross-node reference checks within Pass 3 (V004 for
+///   `agent_context.load_nodes`, `verify.node_status`, and relationship fields).
+///   Use when validating a node in isolation, e.g. inside a builder's `.build()`.
+///
+///   **Rationale**: a node under construction legitimately references nodes in
+///   sibling files that don't exist in the scratch `AgmFile` created by the
+///   builder. Cross-node checks would fire V004 spuriously. The full-file
+///   validator enforces reference integrity when the node is assembled into a
+///   real `AgmFile`.
+///
+///   Note: `SingleNode` does NOT bypass schema/type/format checks (Passes 1–4).
+///   Those still run and still catch malformed nodes. The only skipped checks
+///   are those that require the full node-set of a complete file.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ValidationScope {
+    /// Validate all passes against a complete file. Default.
+    #[default]
+    File,
+    /// Skip cross-node reference checks. Used by builder `.build()`.
+    SingleNode,
+}
+
+// ---------------------------------------------------------------------------
 // ValidateOptions
 // ---------------------------------------------------------------------------
 
@@ -55,6 +88,9 @@ pub struct ValidateOptions {
     /// Optional import resolver for cross-package validation (Pass 6).
     /// If `None`, import-related rules (I001–I005) are skipped.
     pub import_resolver: Option<Arc<dyn ImportResolver + Send + Sync>>,
+    /// Validation scope: controls whether cross-node checks run.
+    /// Default: `File` (all passes). Use `SingleNode` inside builder `.build()`.
+    pub scope: ValidationScope,
 }
 
 impl std::fmt::Debug for ValidateOptions {
@@ -62,6 +98,7 @@ impl std::fmt::Debug for ValidateOptions {
         f.debug_struct("ValidateOptions")
             .field("enforcement_level", &self.enforcement_level)
             .field("import_resolver", &self.import_resolver.is_some())
+            .field("scope", &self.scope)
             .finish()
     }
 }
@@ -71,6 +108,7 @@ impl Default for ValidateOptions {
         Self {
             enforcement_level: EnforcementLevel::Standard,
             import_resolver: None,
+            scope: ValidationScope::File,
         }
     }
 }
@@ -112,18 +150,24 @@ pub fn validate(
         .flat_map(|entries| entries.iter().map(|e| e.topic.clone()))
         .collect();
 
+    let single_node = options.scope == ValidationScope::SingleNode;
+
     // Pass 3: Structural per-node checks
     for n in &agm_file.nodes {
         all_errors.extend(code::validate_code(n, file_name));
-        all_errors.extend(verify::validate_verify(n, &all_ids, file_name));
+        // In SingleNode scope skip cross-node ref checks in verify (node_status).
+        all_errors.extend(verify::validate_verify(n, &all_ids, file_name, single_node));
+        // In SingleNode scope skip V004 for load_nodes.
         all_errors.extend(context::validate_context(
             n,
             &all_ids,
             &all_memory_topics,
             file_name,
+            single_node,
         ));
+        // In SingleNode scope skip group-node cross-refs in orchestration.
         all_errors.extend(orchestration::validate_orchestration(
-            n, &all_ids, file_name,
+            n, &all_ids, file_name, single_node,
         ));
         all_errors.extend(execution::validate_execution(n, file_name));
         all_errors.extend(memory::validate_memory(n, file_name));
@@ -139,8 +183,8 @@ pub fn validate(
         ));
     }
 
-    // Pass 5: Cross-node checks (only meaningful if there are nodes)
-    if !agm_file.nodes.is_empty() {
+    // Pass 5: Cross-node checks — skipped in SingleNode scope.
+    if !agm_file.nodes.is_empty() && !single_node {
         all_errors.extend(references::validate_references(
             agm_file, &all_ids, file_name,
         ));

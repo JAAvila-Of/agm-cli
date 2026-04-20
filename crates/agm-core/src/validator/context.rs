@@ -17,12 +17,17 @@ fn is_unsafe_path(path: &str) -> bool {
 ///
 /// Rules: V004 (unresolved load_nodes reference), V015 (unsafe load_files
 /// path), V025/V026 (invalid or unresolved load_memory topics).
+///
+/// When `single_node` is `true`, the V004 check for `load_nodes` references
+/// is skipped — referenced nodes may exist in sibling files not present in
+/// the scratch `AgmFile` created by the builder.
 #[must_use]
 pub fn validate_context(
     node: &Node,
     all_ids: &HashSet<String>,
     all_memory_topics: &HashSet<String>,
     file_name: &str,
+    single_node: bool,
 ) -> Vec<AgmError> {
     let ctx = match &node.agent_context {
         Some(c) => c,
@@ -33,17 +38,20 @@ pub fn validate_context(
     let line = node.span.start_line;
     let id = node.id.as_str();
 
-    // V004 — load_nodes must reference existing node IDs
-    if let Some(ref load_nodes) = ctx.load_nodes {
-        for ref_id in load_nodes {
-            if !all_ids.contains(ref_id.as_str()) {
-                errors.push(AgmError::new(
-                    ErrorCode::V004,
-                    format!(
-                        "Unresolved reference `{ref_id}` in `agent_context.load_nodes` of node `{id}`"
-                    ),
-                    ErrorLocation::full(file_name, line, id),
-                ));
+    // V004 — load_nodes must reference existing node IDs.
+    // Skipped in SingleNode scope: referenced nodes may live in sibling files.
+    if !single_node {
+        if let Some(ref load_nodes) = ctx.load_nodes {
+            for ref_id in load_nodes {
+                if !all_ids.contains(ref_id.as_str()) {
+                    errors.push(AgmError::new(
+                        ErrorCode::V004,
+                        format!(
+                            "Unresolved reference `{ref_id}` in `agent_context.load_nodes` of node `{id}`"
+                        ),
+                        ErrorLocation::full(file_name, line, id),
+                    ));
+                }
             }
         }
     }
@@ -100,7 +108,7 @@ mod tests {
     fn test_validate_context_none_returns_empty() {
         let node = minimal_node();
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -116,7 +124,7 @@ mod tests {
         });
         let mut all_ids = HashSet::new();
         all_ids.insert("auth.login".to_owned());
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -131,7 +139,7 @@ mod tests {
             load_memory: None,
         });
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V004));
     }
 
@@ -149,7 +157,7 @@ mod tests {
             load_memory: None,
         });
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -167,7 +175,7 @@ mod tests {
             load_memory: None,
         });
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V015));
     }
 
@@ -185,7 +193,7 @@ mod tests {
             load_memory: None,
         });
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V015));
     }
 
@@ -193,7 +201,7 @@ mod tests {
     fn test_validate_context_load_memory_none_returns_empty() {
         let node = minimal_node();
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -210,7 +218,7 @@ mod tests {
         let all_ids = HashSet::new();
         let mut all_memory_topics = HashSet::new();
         all_memory_topics.insert("rust.repository".to_owned());
-        let errors = validate_context(&node, &all_ids, &all_memory_topics, "test.agm");
+        let errors = validate_context(&node, &all_ids, &all_memory_topics, "test.agm", false);
         assert!(errors.is_empty());
     }
 
@@ -225,7 +233,7 @@ mod tests {
             load_memory: Some(vec!["rust.repository".to_owned()]),
         });
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V026));
     }
 
@@ -240,7 +248,7 @@ mod tests {
             load_memory: Some(vec!["Rust.Models".to_owned()]),
         });
         let all_ids = HashSet::new();
-        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm");
+        let errors = validate_context(&node, &all_ids, &HashSet::new(), "test.agm", false);
         assert!(errors.iter().any(|e| e.code == ErrorCode::V025));
     }
 }

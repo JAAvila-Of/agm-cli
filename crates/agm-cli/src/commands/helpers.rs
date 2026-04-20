@@ -118,6 +118,7 @@ pub fn parse_and_build_graph(path: &Path) -> ParsedAgm {
     let options = ValidateOptions {
         enforcement_level: agm_core::model::schema::EnforcementLevel::Standard,
         import_resolver: None,
+        ..Default::default()
     };
     let collection = validate(&file, &source, &file_name, &options);
     if collection.has_errors() {

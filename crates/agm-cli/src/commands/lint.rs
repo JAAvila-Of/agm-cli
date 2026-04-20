@@ -24,6 +24,7 @@ pub fn run(file: &Path, enforcement: EnforcementLevel, errors_format: ErrorOutpu
     let options = ValidateOptions {
         enforcement_level: enforcement,
         import_resolver: None,
+        ..Default::default()
     };
     let mut collection = validate(&agm_file, &source, &file_name, &options);
 
