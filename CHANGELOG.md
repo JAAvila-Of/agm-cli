@@ -6,6 +6,21 @@ All notable changes to `agm-cli` and `agm-core` are documented here.
 
 ### Added
 
+- **`agm llm-bench` CLI subcommand**: runs a standardized LLM emission compliance
+  suite against any Messages-style or Chat-Completions-style HTTP inference endpoint.
+  Ships 12 built-in prompt fixtures (4 per node type: `ticket`, `workflow`,
+  `orchestration`; 2 adversarial per type) plus 24 synthesized cassettes for
+  fully-offline CI runs. Compliance buckets: `PASS`, `NORM_FIXABLE`, `SCHEMA_ONLY`,
+  `VALIDATE_ONLY`, `FAIL`, `ERROR`. Reports: `--format text|markdown|json`.
+  Concurrency via `--concurrency <N>` (scoped threads, no `rayon`).
+  Cassette modes: `Replay` (default when `--cassettes` given), `Record` (with
+  `--record`), `Disabled` (with `--live`). Cost estimation via opt-in
+  `--cost-per-1k-in` / `--cost-per-1k-out` flags. No vendor names or API keys
+  are hardcoded; endpoints and keys come entirely from env vars
+  (`AGM_MESSAGES_ENDPOINT`, `AGM_MESSAGES_KEY`, `AGM_CHAT_ENDPOINT`,
+  `AGM_CHAT_KEY`). Exit codes: 0 pass, 1 failures, 2 config error,
+  3 missing credentials, 4 network unreachable. Docs: `docs/llm_bench.md`.
+
 - **`agm corpus` CLI subcommand**: emits a cacheable, provider-aware AGM
   system-prompt corpus in three flavors (`full`, `standard`, `grammar-only`)
   targeting three provider formats (`anthropic`, `openai`, `vanilla`).

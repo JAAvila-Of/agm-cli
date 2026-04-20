@@ -97,6 +97,54 @@ Pass the content of `system_prompt.md` as the system block in your API
 request and set `cache_control: { type: ephemeral }` on that block to enable
 prompt caching. See [docs/corpus.md](docs/corpus.md) for the full reference.
 
+### LLM emission compliance benchmark
+
+Use `agm llm-bench` to measure how well an HTTP inference endpoint emits
+spec-compliant AGM nodes. The suite ships 12 built-in prompt fixtures plus
+committed cassettes for fully offline CI runs.
+
+```bash
+# Run against committed cassettes (no network)
+agm llm-bench \
+  --model demo-m1 \
+  --cassettes crates/agm-cli/tests/llm/cassettes \
+  --format text
+
+# Run against a live Messages-style endpoint
+export AGM_MESSAGES_ENDPOINT=https://your.endpoint/v1/messages
+export AGM_MESSAGES_KEY=sk-yourkey
+agm llm-bench --model your-model-id --provider messages --live
+
+# Estimate cost without running
+agm llm-bench --model your-model-id \
+  --cost-only \
+  --cost-per-1k-in 3.00 \
+  --cost-per-1k-out 15.00
+```
+
+Example report:
+
+```
+Model:  demo-m1
+Cases:  12
+
+  orchestration/a         PASS            (230 in, 165 out, 1200 ms)
+  orchestration/b         PASS            (235 in, 180 out, 1300 ms)
+  ticket/a                PASS            (210 in, 180 out, 1100 ms)
+  ticket/b                PASS            (220 in, 185 out, 1050 ms)
+  ...
+
+Compliance:        10/12 (83.3%)
+Normalize-fixable: 10/12 (83.3%)
+Schema match:      10/12 (83.3%)
+Validate:          10/12 (83.3%)
+Avg tokens in:     218
+Avg tokens out:    172
+p50 / p95 latency: 1100 ms / 1300 ms
+```
+
+See [docs/llm_bench.md](docs/llm_bench.md) for the full reference.
+
 ### Ticket node example (AGM v1.2)
 
 ```agm
@@ -134,6 +182,7 @@ summary: add OAuth2 login endpoint
 | `normalize` | Normalize non-canonical synonyms to canonical AGM field and type names |
 | `schema` | Emit JSON Schema (Draft 2020-12) for a built-in AGM node type |
 | `corpus` | Emit a cacheable, provider-aware AGM system-prompt corpus |
+| `llm-bench` | Run the LLM emission compliance suite against any HTTP inference endpoint |
 | `update` | Update agm to the latest version |
 
 ## Library Usage
