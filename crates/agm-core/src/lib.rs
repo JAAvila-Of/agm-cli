@@ -11,6 +11,7 @@ pub mod normalize;
 pub mod parser;
 pub mod renderer;
 pub mod schema;
+pub mod schemas;
 pub mod validator;
 
 #[cfg(feature = "compiler")]

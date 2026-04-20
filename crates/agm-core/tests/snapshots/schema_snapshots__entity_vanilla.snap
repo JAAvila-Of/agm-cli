@@ -1,0 +1,462 @@
+---
+source: crates/agm-core/tests/schema_snapshots.rs
+expression: schema
+---
+{
+  "$defs": {
+    "agent_context": {
+      "additionalProperties": true,
+      "description": "Additional context for the executing agent (spec §S25)",
+      "properties": {
+        "load_files": {
+          "description": "Files to load into agent context",
+          "type": "array"
+        },
+        "load_memory": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "load_nodes": {
+          "description": "Node IDs to load into agent context",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "max_tokens": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "system_hint": {
+          "description": "Free-form hint for the agent",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "code_block": {
+      "additionalProperties": false,
+      "description": "A code block with optional language, target, and action",
+      "properties": {
+        "action": {
+          "enum": [
+            "create",
+            "append",
+            "prepend",
+            "replace",
+            "insert_before",
+            "insert_after",
+            "full"
+          ],
+          "type": "string"
+        },
+        "anchor": {
+          "description": "Insertion anchor",
+          "type": "string"
+        },
+        "body": {
+          "description": "Code content",
+          "type": "string"
+        },
+        "lang": {
+          "description": "Programming language",
+          "type": "string"
+        },
+        "old": {
+          "description": "Old code being replaced",
+          "type": "string"
+        },
+        "target": {
+          "description": "File path target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "body"
+      ],
+      "type": "object"
+    },
+    "memory_entry": {
+      "additionalProperties": false,
+      "description": "A memory operation entry",
+      "properties": {
+        "action": {
+          "enum": [
+            "get",
+            "upsert",
+            "delete",
+            "list",
+            "search"
+          ],
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "max_results": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "query": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "node",
+            "session",
+            "project",
+            "global"
+          ],
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "ttl": {
+          "description": "permanent | session | duration:<ISO8601>",
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "topic",
+        "action"
+      ],
+      "type": "object"
+    },
+    "parallel_group": {
+      "additionalProperties": false,
+      "description": "A group of nodes to execute in parallel or sequentially",
+      "properties": {
+        "group": {
+          "description": "Group identifier",
+          "type": "string"
+        },
+        "max_concurrency": {
+          "description": "Maximum concurrent node executions within the group",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "nodes": {
+          "description": "Node IDs in this group",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "requires": {
+          "description": "Group IDs that must complete before this group starts",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "strategy": {
+          "enum": [
+            "sequential",
+            "parallel"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "group",
+        "nodes",
+        "strategy"
+      ],
+      "type": "object"
+    },
+    "verify_check": {
+      "description": "A verification check (tagged union keyed by 'type')",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "expect": {
+              "type": "string"
+            },
+            "run": {
+              "type": "string"
+            },
+            "type": {
+              "const": "command"
+            }
+          },
+          "required": [
+            "type",
+            "run"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "type": {
+              "const": "file_exists"
+            }
+          },
+          "required": [
+            "type",
+            "file"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "pattern": {
+              "type": "string"
+            },
+            "type": {
+              "const": "file_contains"
+            }
+          },
+          "required": [
+            "type",
+            "file",
+            "pattern"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "pattern": {
+              "type": "string"
+            },
+            "type": {
+              "const": "file_not_contains"
+            }
+          },
+          "required": [
+            "type",
+            "file",
+            "pattern"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "node": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "type": {
+              "const": "node_status"
+            }
+          },
+          "required": [
+            "type",
+            "node",
+            "status"
+          ],
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "AGM entity node per spec v1.2.0 §13.4",
+  "properties": {
+    "aliases": {
+      "description": "Alternative names for this node",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "applies_when": {
+      "description": "Condition under which this node applies",
+      "type": "string"
+    },
+    "confidence": {
+      "description": "Confidence level in this node's content",
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "inferred",
+        "tentative"
+      ],
+      "type": "string"
+    },
+    "conflicts": {
+      "description": "Node IDs this node conflicts with",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "depends": {
+      "description": "Node IDs this node depends on",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "detail": {
+      "description": "Extended description or body text",
+      "type": "string"
+    },
+    "executed_at": {
+      "description": "ISO 8601 timestamp of execution",
+      "type": "string"
+    },
+    "executed_by": {
+      "description": "Agent or user that executed this node",
+      "type": "string"
+    },
+    "execution_log": {
+      "description": "Log output from execution",
+      "type": "string"
+    },
+    "execution_status": {
+      "description": "Current execution state",
+      "enum": [
+        "pending",
+        "ready",
+        "in_progress",
+        "completed",
+        "failed",
+        "blocked",
+        "skipped"
+      ],
+      "type": "string"
+    },
+    "fields": {
+      "description": "Field definitions for entity nodes",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "keywords": {
+      "description": "Keywords used in search / retrieval",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "memory": {
+      "description": "Memory operations to execute",
+      "items": {
+        "$ref": "#/$defs/memory_entry"
+      },
+      "type": "array"
+    },
+    "notes": {
+      "description": "Freeform notes",
+      "type": "string"
+    },
+    "priority": {
+      "description": "Execution priority",
+      "enum": [
+        "critical",
+        "high",
+        "normal",
+        "low"
+      ],
+      "type": "string"
+    },
+    "related_to": {
+      "description": "Related node IDs (non-dependency)",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "replaces": {
+      "description": "Node IDs this node supersedes",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "retry_count": {
+      "description": "Number of times execution has been retried",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "scope": {
+      "description": "Contexts or domains where this node applies",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "see_also": {
+      "description": "Additional reference node IDs",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "stability": {
+      "description": "How stable this node is",
+      "enum": [
+        "high",
+        "medium",
+        "low",
+        "volatile"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "description": "Lifecycle status of this node",
+      "enum": [
+        "active",
+        "draft",
+        "deprecated",
+        "superseded"
+      ],
+      "type": "string"
+    },
+    "summary": {
+      "description": "One-line description of the node",
+      "type": "string"
+    },
+    "tags": {
+      "description": "Free-form tags for search and categorisation",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "type": {
+      "const": "entity"
+    },
+    "valid_from": {
+      "description": "ISO 8601 date from which this node is valid",
+      "type": "string"
+    },
+    "valid_until": {
+      "description": "ISO 8601 date until which this node is valid",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "summary",
+    "fields"
+  ],
+  "type": "object"
+}
