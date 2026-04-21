@@ -59,8 +59,7 @@ impl RepairRule for SmartQuotesRule {
             }
 
             // Outside fence: replace smart quotes character by character
-            let mut col = 1usize;
-            for ch in line_str.chars() {
+            for (col, ch) in (1usize..).zip(line_str.chars()) {
                 if let Some(replacement) = ascii_replacement(ch) {
                     records.push(RepairRecord {
                         rule_id: self.id().to_owned(),
@@ -73,7 +72,6 @@ impl RepairRule for SmartQuotesRule {
                 } else {
                     out.push(ch);
                 }
-                col += 1;
             }
             out.push('\n');
         }
