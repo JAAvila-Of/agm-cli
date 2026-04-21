@@ -1,3 +1,5 @@
 crates/agm-cli/src/bench/fixtures/**/*.txt    text eol=lf
 crates/agm-cli/src/bench/fixtures/**/*.yaml   text eol=lf
 crates/agm-cli/tests/llm/cassettes/**/*.json  text eol=lf
+crates/agm-core/tests/fixtures/repair/*.agm   text eol=lf
+crates/agm-core/tests/fixtures/repair/crlf.agm text eol=crlf
