@@ -323,13 +323,13 @@ impl CodeBlockBuilder {
                     ));
                 }
             }
-            CodeAction::InsertBefore | CodeAction::InsertAfter => {
-                if self.anchor.is_none() {
-                    return Err(BuildError::Precondition(format!(
-                        "action `{}` requires `anchor`",
-                        self.action
-                    )));
-                }
+            CodeAction::InsertBefore | CodeAction::InsertAfter
+                if self.anchor.is_none() =>
+            {
+                return Err(BuildError::Precondition(format!(
+                    "action `{}` requires `anchor`",
+                    self.action
+                )));
             }
             _ => {}
         }
