@@ -59,7 +59,7 @@ fn collect_fixtures(dir: &str, cap: usize) -> Vec<PathBuf> {
         .unwrap()
         .filter_map(|e| e.ok())
         .map(|e| e.path())
-        .filter(|p| p.extension().map_or(false, |ext| ext == "agm"))
+        .filter(|p| p.extension().is_some_and(|ext| ext == "agm"))
         .collect();
     paths.sort();
     paths.truncate(cap);
@@ -255,7 +255,7 @@ fn test_stream_ordering_invariant() {
                 .unwrap()
                 .filter_map(|e| e.ok())
                 .map(|e| e.path())
-                .filter(|p| p.extension().map_or(false, |ext| ext == "agm"))
+                .filter(|p| p.extension().is_some_and(|ext| ext == "agm"))
                 .collect();
             v.sort();
             all_fixtures.extend(v);

@@ -226,12 +226,7 @@ impl StreamParser {
     fn drain_lines(&mut self) -> Vec<ParseEvent> {
         let mut events = Vec::new();
 
-        loop {
-            // Find the next newline.
-            let Some(nl_pos) = self.pending_text.find('\n') else {
-                break;
-            };
-
+        while let Some(nl_pos) = self.pending_text.find('\n') {
             // Slice out the line (without the '\n'), strip a trailing '\r'.
             let raw_line = self.pending_text[..nl_pos]
                 .strip_suffix('\r')
@@ -618,7 +613,7 @@ mod tests {
         let chunks = ["agm: 1.0\n", "package: test.pkg\n", "version: 0.1.0\n"];
         let total: usize = chunks.iter().map(|c| c.len()).sum();
         for chunk in &chunks {
-            parser.push_chunk(chunk);
+            let _ = parser.push_chunk(chunk);
         }
         assert_eq!(parser.bytes_consumed(), total);
     }
